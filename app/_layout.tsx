@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import "./global.css";
 
 export default function RootLayout() {
   return (
@@ -6,5 +7,4 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" options={{ title: "Home", headerShown: false }} />
     </Stack>
   )
-
 }
