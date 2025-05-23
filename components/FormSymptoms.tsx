@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import RadioButtonCustom from './ui/RadioButtonCustom';
+import handleSendSymptomsToN8n from '../api/handleSendSymptomsToN8n';
 
 export default function FormSymptoms() {
     // Form state
@@ -10,6 +11,7 @@ export default function FormSymptoms() {
     const [tipoDeDor, setTipoDeDor] = useState('');
     const [quandoDorComecou, setQuandoDorComecou] = useState('');
     const [nivelDeDor, setNivelDeDor] = useState('');
+    const [comoAfetaMinhaVida, setComoAfetaMinhaVida] = useState('');
     const [response, setResponse] = useState('');
     
     // Navigation state
@@ -22,9 +24,17 @@ export default function FormSymptoms() {
             state: dorComMaisFreq,
             setState: setDorComMaisFreq,
             options: [
-                { label: 'Costas', value: 'costas', imageSource: require('../assets/images/favicon.png') },
+                // add this options Pescoço,Ombros ,Coluna torácica (meio das costas), Lombar, Quadril, Joelhos,Tornozelos / Pés, Cotovelos, Punhos / Mãos
                 { label: 'Pescoço', value: 'pescoco', imageSource: require('../assets/images/favicon.png') },
-                { label: 'Pernas', value: 'pernas', imageSource: require('../assets/images/favicon.png') }
+                { label: 'Ombros', value: 'ombros', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Coluna torácica (meio das costas)', value: 'colunaToracica', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Lombar', value: 'lombar', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Quadril', value: 'quadril', imageSource: require('../assets/images/favicon.png') },
+                { label: ' Joelhos', value: 'joelhos', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Tornozelos / Pés', value: 'tornozelos', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Cotovelos', value: 'cotovelos', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Punhos / Mãos', value: 'punhos', imageSource: require('../assets/images/favicon.png') },
+
             ]
         },
         {
@@ -32,9 +42,15 @@ export default function FormSymptoms() {
             state: dorApareceEmQualSituacao,
             setState: setDorApareceEmQualSituacao,
             options: [
-                { label: 'Quando descanso', value: 'quandoDescanso', imageSource: require('../assets/images/favicon.png') },
-                { label: 'Ao me movimentar', value: 'aoMeMovimentar', imageSource: require('../assets/images/favicon.png') },
-                { label: 'O tempo todo', value: 'oTempoTodo', imageSource: require('../assets/images/favicon.png') }
+
+                { label: 'Quando fico sentado(a) por muito tempo', value: 'quandoSentado', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Ao caminhar', value: 'aoCaminhar', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Ao subir escadas', value: 'aoSubirEscadas', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Ao carregar peso', value: 'aoCarregarPeso', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Durante o trabalho', value: 'duranteTrabalho', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Durante o sono', value: 'duranteSono', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Após exercício físico', value: 'aposExercicioFisico', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dor constante, sem relação com esforço', value: 'dorConstante', imageSource: require('../assets/images/favicon.png') },
             ]
         },
         {
@@ -42,10 +58,15 @@ export default function FormSymptoms() {
             state: tipoDeDor,
             setState: setTipoDeDor,
             options: [
-                { label: 'Aguda', value: 'dorTipoAguda', imageSource: require('../assets/images/favicon.png') },
-                { label: 'Dor Crônica', value: 'dorTipoCronica', imageSource: require('../assets/images/favicon.png') },
-                { label: 'Queimação', value: 'dorTipoQueimacao', imageSource: require('../assets/images/favicon.png') },
-                { label: 'Pontada', value: 'dorTipoPontada', imageSource: require('../assets/images/favicon.png') }
+
+                { label: 'Dor aguda, pontada forte', value: 'dorAguda', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Triagem para Dor', value: 'triagemDor', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dor contínua e incômoda', value: 'dorContinua', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dor queimação/formigamento', value: 'dorQueimacao', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dor que irradia para pernas ou braços', value: 'dorIrradia', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dor que piora com movimento', value: 'dorPioraComMovimento', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Não sei descrever', value: 'naoSeiDescrever', imageSource: require('../assets/images/favicon.png') },
+
             ]
         },
         {
@@ -53,10 +74,12 @@ export default function FormSymptoms() {
             state: quandoDorComecou,
             setState: setQuandoDorComecou,
             options: [
-                { label: '1 dia', value: 'umDia', imageSource: require('../assets/images/favicon.png') },
-                { label: '1 semana', value: 'umaSemana', imageSource: require('../assets/images/favicon.png') },
-                { label: '1 mês', value: 'umMes', imageSource: require('../assets/images/favicon.png') },
-                { label: 'Mais de 1 mês', value: 'maisDeUmMes', imageSource: require('../assets/images/favicon.png') }
+                { label: 'Hoje', value: 'hoje', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Há alguns dias', value: 'algunsDias', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Há semanas', value: 'semanas', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Há meses', value: 'meses', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Mais de 6 meses', value: 'maisDe6Meses', imageSource: require('../assets/images/favicon.png') },
+                
             ]
         },
         {
@@ -68,6 +91,21 @@ export default function FormSymptoms() {
                 { label: '3-5', value: 'nivel3a5', imageSource: require('../assets/images/favicon.png') },
                 { label: '6-8', value: 'nivel6a8', imageSource: require('../assets/images/favicon.png') },
                 { label: '9-10', value: 'nivel9a10', imageSource: require('../assets/images/favicon.png') }
+            ]
+        },
+        {
+            question: 'Como essa dor afeta sua vida?',
+            state: comoAfetaMinhaVida,
+            setState: setComoAfetaMinhaVida,
+            options: [
+                { label: 'Dificulta trabalhar', value: 'dificultaTrabalhar', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dificulta dormir bem', value: 'dificultaDormirBem', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me impede de me exercitar', value: 'meImpedeDeMeExercitar', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me deixa irritado(a)', value: 'meDeixaIrritado', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me afasta da rotina', value: 'meAfastaDaRotina', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me preocupa com algo mais sério', value: 'mePreocupaComAlgoMaisSeri', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Não afeta tanto, só quero prevenir', value: 'naoAfetaTanto', imageSource: require('../assets/images/favicon.png') },
+
             ]
         }
     ];
@@ -88,44 +126,14 @@ export default function FormSymptoms() {
     // Calculate progress percentage
     const progressPercentage = ((currentScreen + 1) / questions.length) * 100;
     
+
     // API submission function
-    const handleSendSymptomsToN8n = async() => {
-        try{
-            const apiResponse = await fetch('https://f76e-2801-b0-20-59-a145-b5da-6962-9765.ngrok-free.app/webhook-test/send-symtoms', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    "Dor com mais frequência:": String(dorComMaisFreq),
-                    "Dor aparece em qual situação:": String(dorApareceEmQualSituacao),
-                    "Tipo de Dor": String(tipoDeDor),
-                    "Quando Começou": String(quandoDorComecou),
-                    "Nível de Dor": String(nivelDeDor)
+    const sendDataToN8n = async () => {
+        const response = await handleSendSymptomsToN8n(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida);   
+        setResponse(response);
+    };
+        
 
-                }),
-            });
-
-            if (!apiResponse.ok) {
-                throw new Error('Erro na resposta do n8n');
-            }
-
-            const data = await apiResponse.json();
-            
-            if (data) {
-                setResponse(JSON.stringify(data));
-            } else {
-                setResponse('Resposta inválida do n8n');
-            }
-        }
-        catch(error){
-            console.log(error);
-            setResponse('Erro ao enviar dados');
-        }
-    }
-
-
-    // Render the current question or the results screen
     const renderContent = () => {
         // If we've completed all questions, show results
         if (currentScreen >= questions.length) {
@@ -206,7 +214,7 @@ export default function FormSymptoms() {
                         onPress={() => {
                             
                             // Call API function
-                            handleSendSymptomsToN8n();
+                            sendDataToN8n();
                             
                             // // Move to results screen
                             // setCurrentScreen(currentScreen + 1);
