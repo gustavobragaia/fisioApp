@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Text, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import RadioButtonCustom from './ui/RadioButtonCustom';
 
 export default function FormSymptoms() {
@@ -77,11 +77,6 @@ export default function FormSymptoms() {
         if (currentScreen < questions.length) {
             setCurrentScreen(currentScreen + 1);
         }
-        
-        // If we're at the last screen, submit the form
-        if (currentScreen === questions.length - 1) {
-            handleSendSymptomsToN8n();
-        }
     };
     
     const goToPreviousScreen = () => {
@@ -102,11 +97,12 @@ export default function FormSymptoms() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    "Sintoma 1": String(dorComMaisFreq),
-                    "Sintoma 2": String(dorApareceEmQualSituacao),
+                    "Dor com mais frequência:": String(dorComMaisFreq),
+                    "Dor aparece em qual situação:": String(dorApareceEmQualSituacao),
                     "Tipo de Dor": String(tipoDeDor),
                     "Quando Começou": String(quandoDorComecou),
                     "Nível de Dor": String(nivelDeDor)
+
                 }),
             });
 
@@ -127,6 +123,7 @@ export default function FormSymptoms() {
             setResponse('Erro ao enviar dados');
         }
     }
+
 
     // Render the current question or the results screen
     const renderContent = () => {
@@ -191,15 +188,34 @@ export default function FormSymptoms() {
                     <Text className="text-base font-bold text-deepBlue">Voltar</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity 
-                    className={`py-4 px-6 rounded-xl min-w-[120px] items-center ${!questions[currentScreen]?.state && currentScreen < questions.length ? 'opacity-50' : ''} bg-deepBlue`}
-                    onPress={goToNextScreen}
-                    disabled={!questions[currentScreen]?.state && currentScreen < questions.length}
-                >
-                    <Text className="text-base font-bold text-textDeepBlue">
-                        {currentScreen === questions.length - 1 ? 'Enviar' : 'Próxima'}
-                    </Text>
-                </TouchableOpacity>
+                {/* Show Next button if not on last screen */}
+                {currentScreen < questions.length - 1 && (
+                    <TouchableOpacity 
+                        className={`py-4 px-6 rounded-xl min-w-[120px] items-center ${!questions[currentScreen]?.state ? 'opacity-50' : ''} bg-deepBlue`}
+                        onPress={goToNextScreen}
+                        disabled={!questions[currentScreen]?.state}
+                    >
+                        <Text className="text-base font-bold text-textDeepBlue">Próxima</Text>
+                    </TouchableOpacity>
+                )}
+                
+                {/* Show Send button only on last screen */}
+                {currentScreen === questions.length - 1 && (
+                    <TouchableOpacity 
+                        className={`py-4 px-6 rounded-xl min-w-[120px] items-center ${!questions[currentScreen]?.state ? 'opacity-50' : ''} bg-seafoam`}
+                        onPress={() => {
+                            
+                            // Call API function
+                            handleSendSymptomsToN8n();
+                            
+                            // // Move to results screen
+                            // setCurrentScreen(currentScreen + 1);
+                        }}
+                        disabled={!questions[currentScreen]?.state}
+                    >
+                        <Text className="text-base font-bold text-deepBlue">Enviar Dados</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         </SafeAreaView>
     );
