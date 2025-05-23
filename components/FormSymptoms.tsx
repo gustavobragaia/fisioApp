@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Text, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import RadioButtonCustom from './ui/RadioButtonCustom';
-import colors from '../styles/colors';
 
 export default function FormSymptoms() {
     // Form state

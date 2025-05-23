@@ -9,6 +9,10 @@ const colors = {
         // for bg buttons use deepBlue
         deepBlue: '#4A6FA5',
 
+        // for radio buttons 
+        deepBlueLight: '#aee1f969',
+        deepBlueBorder: '#aee1f98a',
+
         // for text buttons use textDeepBlue
         textDeepBlue: '#fff',
         

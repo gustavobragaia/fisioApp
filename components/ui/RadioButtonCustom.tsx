@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
+import { Text, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
+import colors from '../../styles/colors';
 
 interface CaixaRadioCustomProps {
   label: string;
@@ -16,19 +17,19 @@ export default function CaixaRadioCustom({ label, value, selectedValue, onPress,
     <TouchableOpacity
       onPress={() => onPress(value)}
       style={{
-        width: '100%',
+        width: '100%',  
         height: 100,
-        backgroundColor: isSelected ? '#007AFF' : '#fff',
+        backgroundColor: isSelected ? colors.light.deepBlueLight : colors.background,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: isSelected ? '#007AFF' : '#ccc',
+        borderColor: isSelected ? colors.light.deepBlueBorder : '#ccc',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 5,
       }}
       activeOpacity={0.7}
     >
-      <Text style={{ fontSize: 14, color: isSelected ? '#fff' : '#333', marginBottom: 4 }}>
+      <Text style={{ fontSize: 14, color: isSelected ? colors.textPrimary: colors.textPrimary, marginBottom: 4 }}>
         {label}
       </Text>
       <Image
