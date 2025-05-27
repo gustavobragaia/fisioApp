@@ -1,5 +1,5 @@
 import { Text, View, SafeAreaView } from "react-native";
-import FormSymptoms from "../../components/FormSymptoms";
+import FormPainSymptoms from "../../components/FormPainSymptoms";
 
 export default function Index() {
   return (
@@ -7,7 +7,7 @@ export default function Index() {
       <View className="flex-1 w-full h-full p-6">
           <Text className="text-black font-bold text-lg">NativeWind</Text>
 
-          <FormSymptoms />
+          <FormPainSymptoms />
         </View>
 
     </SafeAreaView>

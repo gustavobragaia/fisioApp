@@ -1,11 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
-import RadioButtonCustom from './ui/RadioButtonCustom';
+import { ActivityIndicator, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import handlePainSendSymptomsToN8n from '../api/handlePainSendSymptomsToN8n';
+import RadioButtonCustom from './ui/RadioButtonCustom';
+import { useRouter } from 'expo-router';
 
 
-export default function FormSymptoms() {
+export default function FormPainSymptoms() {
+    const router = useRouter();
     // Form state
     const [dorComMaisFreq, setDorComMaisFreq] = useState('');
     const [dorApareceEmQualSituacao, setDorApareceEmQualSituacao] = useState('');
@@ -15,6 +17,7 @@ export default function FormSymptoms() {
     const [comoAfetaMinhaVida, setComoAfetaMinhaVida] = useState('');
     const [oQueGostariaDeAlcançarComAlivio, setOQueGostariaDeAlcançarComAlivio] = useState('');
     const [response, setResponse] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     
     // Navigation state
     const [currentScreen, setCurrentScreen] = useState(0);
@@ -146,13 +149,45 @@ export default function FormSymptoms() {
 
     // API submission function
     const sendDataToN8n = async () => {
-        const response = await handlePainSendSymptomsToN8n(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida,oQueGostariaDeAlcançarComAlivio);   
-        setResponse(response);
-        console.log(response);
+        try {
+            setIsLoading(true);
+            const response = await handlePainSendSymptomsToN8n(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida,oQueGostariaDeAlcançarComAlivio);   
+            setResponse(response);
+            console.log(response)
+            // Navigate to ResultDiagnostic with the form data and API response
+            router.push({
+                pathname: '/diagnostic-ideal',
+                params: {
+                    dorComMaisFreq,
+                    dorApareceEmQualSituacao,
+                    tipoDeDor,
+                    quandoDorComecou,
+                    nivelDeDor,
+                    comoAfetaMinhaVida,
+                    oQueGostariaDeAlcancarComAlivio: oQueGostariaDeAlcançarComAlivio,
+                    apiResponse: response
+                }
+            });
+
+        } catch (error) {
+            console.error('Error sending data:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
         
 
     const renderContent = () => {
+        // If loading, show loader
+        if (isLoading) {
+            return (
+                <View className="flex-1 justify-center items-center p-6">
+                    <ActivityIndicator size="large" color="#0066CC" />
+                    <Text className="text-lg text-center mt-4 text-textPrimary">Colhendo dados da triagem...</Text>
+                </View>
+            );
+        }
+        
         // If we've completed all questions, show results
         if (currentScreen >= questions.length) {
             return (
@@ -174,19 +209,21 @@ export default function FormSymptoms() {
                 <Text className="text-2xl font-bold text-center mb-8 text-deepBlue">{currentQuestion.question}</Text>
                 
                 <View className="w-full px-4">
+                        <ScrollView>
                     <View className="flex-row flex-wrap justify-between">
-                        {currentQuestion.options.map((option) => (
-                            <View key={option.value} className="w-[48%] mb-4">
-                                <RadioButtonCustom
-                                    label={option.label}
-                                    value={option.value}
-                                    selectedValue={currentQuestion.state}
-                                    onPress={currentQuestion.setState}
-                                    imageSource={option.imageSource}
-                                />
-                            </View>
-                        ))}
+                            {currentQuestion.options.map((option) => (
+                                <View key={option.value} className="w-[48%] mb-4">
+                                    <RadioButtonCustom
+                                        label={option.label}
+                                        value={option.value}
+                                        selectedValue={currentQuestion.state}
+                                        onPress={currentQuestion.setState}
+                                        imageSource={option.imageSource}
+                                        />
+                                </View>
+                            ))}
                     </View>
+                        </ScrollView>
                 </View>
             </View>
         );
@@ -229,13 +266,12 @@ export default function FormSymptoms() {
                 {currentScreen === questions.length - 1 && (
                     <TouchableOpacity 
                         className={`py-4 px-6 rounded-xl min-w-[120px] items-center ${!questions[currentScreen]?.state ? 'opacity-50' : ''} bg-seafoam`}
-                        onPress={() => {
-                            
+                        onPress={async () => {
                             // Call API function
-                            sendDataToN8n();
+                            await sendDataToN8n();
                             
-                            // // Move to results screen
-                            // setCurrentScreen(currentScreen + 1);
+                            // Move to results screen
+                            setCurrentScreen(currentScreen + 1);
                         }}
                         disabled={!questions[currentScreen]?.state}
                     >

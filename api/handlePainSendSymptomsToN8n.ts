@@ -1,5 +1,5 @@
 
-
+// verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
 
 const handlePainSendSymptomsToN8n = async(
@@ -21,7 +21,7 @@ const handlePainSendSymptomsToN8n = async(
       console.log(comoAfetaMinhaVida)
       console.log(oQueGostariaDeAlcançarComAlivio)
 
-      const apiResponse = await fetch(`https://fisioapplesgo.app.n8n.cloud/webhook-test/send-symtoms`, {
+      const apiResponse = await fetch(`${API_URL}/webhook-test/send-symtoms`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
