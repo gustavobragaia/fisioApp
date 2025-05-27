@@ -2,7 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import RadioButtonCustom from './ui/RadioButtonCustom';
-import handleSendSymptomsToN8n from '../api/handleSendSymptomsToN8n';
+import handlePainSendSymptomsToN8n from '../api/handlePainSendSymptomsToN8n';
+
 
 export default function FormSymptoms() {
     // Form state
@@ -12,6 +13,7 @@ export default function FormSymptoms() {
     const [quandoDorComecou, setQuandoDorComecou] = useState('');
     const [nivelDeDor, setNivelDeDor] = useState('');
     const [comoAfetaMinhaVida, setComoAfetaMinhaVida] = useState('');
+    const [oQueGostariaDeAlcançarComAlivio, setOQueGostariaDeAlcançarComAlivio] = useState('');
     const [response, setResponse] = useState('');
     
     // Navigation state
@@ -107,6 +109,21 @@ export default function FormSymptoms() {
                 { label: 'Não afeta tanto, só quero prevenir', value: 'naoAfetaTanto', imageSource: require('../assets/images/favicon.png') },
 
             ]
+        },
+        {
+            question: 'O que você gostaria de alcançar com o Alívio.com?',
+            state: oQueGostariaDeAlcançarComAlivio,
+            setState: setOQueGostariaDeAlcançarComAlivio,
+            options: [
+                { label: 'Dificulta trabalhar', value: 'dificultaTrabalhar', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Dificulta dormir bem', value: 'dificultaDormirBem', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me impede de me exercitar', value: 'meImpedeDeMeExercitar', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me deixa irritado(a)', value: 'meDeixaIrritado', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me afasta da rotina', value: 'meAfastaDaRotina', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Me preocupa com algo mais sério', value: 'mePreocupaComAlgoMaisSeri', imageSource: require('../assets/images/favicon.png') },
+                { label: 'Não afeta tanto, só quero prevenir', value: 'naoAfetaTanto', imageSource: require('../assets/images/favicon.png') },
+
+            ]
         }
     ];
 
@@ -129,8 +146,9 @@ export default function FormSymptoms() {
 
     // API submission function
     const sendDataToN8n = async () => {
-        const response = await handleSendSymptomsToN8n(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida);   
+        const response = await handlePainSendSymptomsToN8n(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida,oQueGostariaDeAlcançarComAlivio);   
         setResponse(response);
+        console.log(response);
     };
         
 

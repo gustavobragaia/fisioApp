@@ -1,6 +1,16 @@
-const API_URL = 'https://6981-2804-4ec-1102-5249-716e-5224-5dc0-6c78.ngrok-free.app';
 
-const handleSendSymptomsToN8n = async(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida) => {
+
+const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
+
+const handlePainSendSymptomsToN8n = async(
+  dorComMaisFreq: string,
+  dorApareceEmQualSituacao: string,
+  tipoDeDor: string,
+  quandoDorComecou: string,
+  nivelDeDor: string,
+  comoAfetaMinhaVida: string,
+  oQueGostariaDeAlcançarComAlivio: string
+) => {
   try{
       //console log em todos os estados
       console.log(dorComMaisFreq)
@@ -9,8 +19,9 @@ const handleSendSymptomsToN8n = async(dorComMaisFreq,dorApareceEmQualSituacao,ti
       console.log(quandoDorComecou)
       console.log(nivelDeDor)
       console.log(comoAfetaMinhaVida)
+      console.log(oQueGostariaDeAlcançarComAlivio)
 
-      const apiResponse = await fetch(`${API_URL}/webhook-test/send-symtoms`, {
+      const apiResponse = await fetch(`https://fisioapplesgo.app.n8n.cloud/webhook-test/send-symtoms`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -23,6 +34,7 @@ const handleSendSymptomsToN8n = async(dorComMaisFreq,dorApareceEmQualSituacao,ti
               "A dor começou faz": String(quandoDorComecou),  // Garantir que é uma string
               "O nível da dor é": String(nivelDeDor),  // Garantir que é uma string   
               "Como essa dor afeta sua vida?": String(comoAfetaMinhaVida),  // Garantir que é uma string
+              "O que você gostaria de alcançar com o Alívio.com?": String(oQueGostariaDeAlcançarComAlivio),  // Garantir que é uma string
 
           }),
       });
@@ -37,19 +49,16 @@ const handleSendSymptomsToN8n = async(dorComMaisFreq,dorApareceEmQualSituacao,ti
       // Verifique a estrutura dos dados retornados
       if (data) {
           // Convert the response object to a string representation
-          setResponse(JSON.stringify(data));
           return JSON.stringify(data);
 
       } else {
-          setResponse('Resposta inválida do n8n');
           return 'Resposta inválida do n8n';
       }
   }
   catch(error){
       console.log(error);
-      setResponse('Erro ao enviar dados');
       return 'Erro ao enviar dados';
   }
 }
 
-export default handleSendSymptomsToN8n;
+export default handlePainSendSymptomsToN8n;
