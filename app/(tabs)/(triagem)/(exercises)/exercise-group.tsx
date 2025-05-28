@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, Text } from 'react-native';
-import BackHeader from '../../../components/BackHeader';
-import ExerciseGroupList, { Exercise } from '../../../components/ExerciseGroupList';
+import BackHeader from '../../../../components/BackHeader';
+import ExerciseGroupList, { Exercise } from '../../../../components/ExerciseGroupList';
 
 // Exercise type is now imported from the ExerciseGroupList component
 
@@ -12,6 +12,7 @@ export default function ExerciseCategoryScreen() {
     categoryName: string;
     categoryType: string;
     exercises: string; // JSON stringified array of exercises
+    goToExerciseIndex?: string; // Index of exercise to navigate to directly
   }>();
 
   // Parse exercises from params
@@ -74,21 +75,35 @@ export default function ExerciseCategoryScreen() {
 
   // Use mock exercises if none provided
   const displayExercises = exercises.length > 0 ? exercises : mockExercises;
+  
+  // Check if we need to navigate directly to a specific exercise
+  React.useEffect(() => {
+    if (params.goToExerciseIndex) {
+      const index = parseInt(params.goToExerciseIndex, 10);
+      if (!isNaN(index) && index >= 0 && index < displayExercises.length) {
+        // Navigate to the specified exercise
+        handleExercisePress(displayExercises[index], index);
+      }
+    }
+  }, [params.goToExerciseIndex]);
 
   // Handle exercise press
-  const handleExercisePress = (exercise: Exercise) => {
+  const handleExercisePress = (exercise: Exercise, index: number) => {
     // Extract duration in seconds from the duration string (e.g., "2 minutos" -> 120)
     const durationInSeconds = parseDurationToSeconds(exercise.duration);
     
     // Navigate to single exercise screen
     router.push({
-      pathname: '/single-exercise',
+      pathname: '/(tabs)/(triagem)/(exercises)/single-exercise',
       params: {
         exerciseId: exercise.id,
         exerciseName: exercise.name,
         exerciseVideoUrl: exercise.videoUrl,
         exerciseSteps: JSON.stringify(exercise.steps),
-        exerciseDuration: durationInSeconds.toString()
+        exerciseDuration: durationInSeconds.toString(),
+        exerciseIndex: index.toString(),
+        totalExercises: displayExercises.length.toString(),
+        groupId: params.categoryName // Using category name as group ID for now
       }
     });
   };

@@ -14,12 +14,12 @@ export type Exercise = {
 
 type ExerciseGroupListProps = {
   exercises: Exercise[];
-  onExercisePress?: (exercise: Exercise) => void;
+  onExercisePress?: (exercise: Exercise, index: number) => void;
 };
 
 export default function ExerciseGroupList({ exercises, onExercisePress }: ExerciseGroupListProps) {
   // Render exercise item
-  const renderExerciseItem = ({ item }: { item: Exercise }) => {
+  const renderExerciseItem = ({ item, index }: { item: Exercise, index: number }) => {
     // Get background color based on difficulty
     const getDifficultyBgColor = (difficulty: string) => {
       switch(difficulty) {
@@ -33,7 +33,7 @@ export default function ExerciseGroupList({ exercises, onExercisePress }: Exerci
     return (
       <TouchableOpacity 
         className="bg-slate-100 p-4 rounded-lg shadow-sm mb-4 flex-row"
-        onPress={() => onExercisePress ? onExercisePress(item) : null}
+        onPress={() => onExercisePress ? onExercisePress(item, index) : null}
       >
         {item.imageUrl && (
           <Image 
