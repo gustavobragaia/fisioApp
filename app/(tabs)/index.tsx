@@ -65,9 +65,9 @@ const RegularDashboard = ({ userStats, triagemHistory }: { userStats: UserStats,
         <Text className="text-gray-500 text-sm">{new Date(item.date).toLocaleDateString('pt-BR')}</Text>
       </View>
       <View className="flex-row items-center">
-        <Text style={{ color: colors.light.deepBlue }} className="font-medium mr-2">{item.progress.completed}/{item.progress.total}</Text>
-        <View style={{ backgroundColor: colors.light.deepBlue }} className="rounded-full w-8 h-8 items-center justify-center">
-          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        <Text className="font-medium mr-2 text-deepBlue">{item.progress.completed}/{item.progress.total}</Text>
+        <View className="bg-deepBlue rounded-full w-8 h-8 items-center justify-center">
+          <Ionicons name="chevron-forward" size={18} color="#F5F5F5" />
         </View>
       </View>
     </TouchableOpacity>
@@ -76,33 +76,32 @@ const RegularDashboard = ({ userStats, triagemHistory }: { userStats: UserStats,
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       {/* Header with Stats */}
-      <View style={{ backgroundColor: colors.light.deepBlue }} className="rounded-3xl p-6 mb-6">
-        <Text style={{ color: colors.textSecondary }} className="text-2xl font-bold mb-4">Olá, Usuário!</Text>
+      <View className="bg-deepBlue rounded-3xl p-6 mb-6">
+        <Text className="text-textSecondary text-2xl font-bold mb-4">Olá, Usuário!</Text>
         
         <View className="flex-row justify-between mb-4">
-          <View style={{ backgroundColor: colors.light.lightBlue }} className="rounded-xl p-3 items-center w-[30%]">
-            <Text style={{ color: colors.textPrimary }} className="text-2xl font-bold">{userStats.exercisesDone}</Text>
-            <Text style={{ color: colors.textPrimary }} className="text-xs">Exercícios</Text>
+          <View className="bg-lightBlue rounded-xl p-3 items-center w-[30%]">
+            <Text className="text-textPrimary text-2xl font-bold">{userStats.exercisesDone}</Text>
+            <Text className="text-textPrimary text-xs">Exercícios</Text>
           </View>
           
-          <View style={{ backgroundColor: colors.light.lightBlue }} className="rounded-xl p-3 items-center w-[30%]">
-            <Text style={{ color: colors.textPrimary }} className="text-2xl font-bold">{userStats.triagemCount}</Text>
-            <Text style={{ color: colors.textPrimary }} className="text-xs">Triagens</Text>
+          <View className="bg-lightBlue rounded-xl p-3 items-center w-[30%]">
+            <Text className="text-textPrimary text-2xl font-bold">{userStats.triagemCount}</Text>
+            <Text className="text-textPrimary text-xs">Triagens</Text>
           </View>
           
-          <View style={{ backgroundColor: colors.light.lightBlue }} className="rounded-xl p-3 items-center w-[30%]">
-            <Text style={{ color: colors.textPrimary }} className="text-2xl font-bold">{userStats.consecutiveDays}</Text>
-            <Text style={{ color: colors.textPrimary }} className="text-xs">Dias seguidos</Text>
+          <View className="bg-lightBlue rounded-xl p-3 items-center w-[30%]">
+            <Text className="text-textPrimary text-2xl font-bold">{userStats.consecutiveDays}</Text>
+            <Text className="text-textPrimary text-xs">Dias seguidos</Text>
           </View>
         </View>
         
         {/* New Screening Button */}
         <TouchableOpacity 
-          style={{ backgroundColor: colors.background }}
-          className="py-4 rounded-xl" 
+          className="bg-background py-4 rounded-xl" 
           onPress={() => router.push('/(tabs)/(triagem)/triagem')}
         >
-          <Text style={{ color: colors.light.deepBlue }} className="font-bold text-center">Começar Nova Triagem</Text>
+          <Text className="text-deepBlue font-bold text-center">Começar Nova Triagem</Text>
         </TouchableOpacity>
       </View>
 
@@ -119,10 +118,9 @@ const RegularDashboard = ({ userStats, triagemHistory }: { userStats: UserStats,
             {/* Progress Bar */}
             <View className="h-2 bg-gray-200 rounded-full mt-3 mb-2">
               <View 
-                className="h-2 rounded-full" 
+                className="h-2 bg-deepBlue rounded-full" 
                 style={{ 
-                  width: `${(currentTriagem.progress.completed / currentTriagem.progress.total) * 100}%`,
-                  backgroundColor: colors.light.deepBlue 
+                  width: `${(currentTriagem.progress.completed / currentTriagem.progress.total) * 100}%`
                 }} 
               />
             </View>
@@ -130,7 +128,7 @@ const RegularDashboard = ({ userStats, triagemHistory }: { userStats: UserStats,
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-500 text-sm">{currentTriagem.progress.completed} de {currentTriagem.progress.total} exercícios concluídos</Text>
               <TouchableOpacity>
-                <Text style={{ color: colors.light.deepBlue }} className="font-medium">Continuar</Text>
+                <Text className="text-deepBlue font-medium">Continuar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -226,9 +224,9 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ backgroundColor: colors.light.paleSand }} className="flex-1">
+      <SafeAreaView className="flex-1 bg-paleSand">
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color={colors.light.deepBlue} />
+          <ActivityIndicator size="large" color="#4A6FA5" />
           <Text className="mt-4 text-gray-600">Carregando...</Text>
         </View>
       </SafeAreaView>
@@ -236,7 +234,7 @@ export default function Dashboard() {
   }
 
   return (
-    <SafeAreaView style={{ backgroundColor: colors.light.paleSand }} className="flex-1">
+    <SafeAreaView className="flex-1 bg-paleSand">
       <View className="flex-1 w-full h-full p-4">
         {isFirstAccess ? (
           <FirstAccessDashboard />
