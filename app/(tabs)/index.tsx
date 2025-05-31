@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../styles/colors';
+import ProfileAvatar from '../../components/ProfileAvatar';
 
 // Types for our data
 type TriagemItem = {
@@ -48,116 +49,10 @@ const FirstAccessDashboard = () => {
   );
 };
 
-// Regular Dashboard Component
-const RegularDashboard = ({ userStats, triagemHistory }: { userStats: UserStats, triagemHistory: TriagemItem[] }) => {
-  const router = useRouter();
-  
-  // Current triagem with progress (first item in history)
-  const currentTriagem = triagemHistory.length > 0 ? triagemHistory[0] : null;
-  
-  const renderTriagemHistoryItem = ({ item }: { item: TriagemItem }) => (
-    <TouchableOpacity 
-      className="bg-white rounded-xl p-4 mb-3 shadow-sm flex-row justify-between items-center"
-      onPress={() => router.push({ pathname: '/(tabs)/(triagem)/diagnostic-ideal', params: { id: item.id } })}
-    >
-      <View>
-        <Text className="font-bold text-gray-800">Triagem - {item.location}</Text>
-        <Text className="text-gray-500 text-sm">{new Date(item.date).toLocaleDateString('pt-BR')}</Text>
-      </View>
-      <View className="flex-row items-center">
-        <Text className="font-medium mr-2 text-deepBlue">{item.progress.completed}/{item.progress.total}</Text>
-        <View className="bg-deepBlue rounded-full w-8 h-8 items-center justify-center">
-          <Ionicons name="chevron-forward" size={18} color="#F5F5F5" />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  return (
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-      {/* Header with Stats */}
-      <View className="bg-deepBlue rounded-3xl p-6 mb-6">
-        <Text className="text-textSecondary text-2xl font-bold mb-4">Olá, Usuário!</Text>
-        
-        <View className="flex-row justify-between mb-4">
-          <View className="bg-lightBlue rounded-xl p-3 items-center w-[30%]">
-            <Text className="text-textPrimary text-2xl font-bold">{userStats.exercisesDone}</Text>
-            <Text className="text-textPrimary text-xs">Exercícios</Text>
-          </View>
-          
-          <View className="bg-lightBlue rounded-xl p-3 items-center w-[30%]">
-            <Text className="text-textPrimary text-2xl font-bold">{userStats.triagemCount}</Text>
-            <Text className="text-textPrimary text-xs">Triagens</Text>
-          </View>
-          
-          <View className="bg-lightBlue rounded-xl p-3 items-center w-[30%]">
-            <Text className="text-textPrimary text-2xl font-bold">{userStats.consecutiveDays}</Text>
-            <Text className="text-textPrimary text-xs">Dias seguidos</Text>
-          </View>
-        </View>
-        
-        {/* New Screening Button */}
-        <TouchableOpacity 
-          className="bg-background py-4 rounded-xl" 
-          onPress={() => router.push('/(tabs)/(triagem)/triagem')}
-        >
-          <Text className="text-deepBlue font-bold text-center">Começar Nova Triagem</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Current Progress Section */}
-      {currentTriagem && (
-        <View className="mb-6">
-          <Text className="text-xl font-bold text-gray-800 mb-3">Progresso Atual</Text>
-          <View className="bg-white rounded-xl p-4 shadow-sm">
-            <View className="flex-row justify-between mb-1">
-              <Text className="font-bold text-gray-800">Triagem - {currentTriagem.location}</Text>
-              <Text className="text-gray-500">{new Date(currentTriagem.date).toLocaleDateString('pt-BR')}</Text>
-            </View>
-            
-            {/* Progress Bar */}
-            <View className="h-2 bg-gray-200 rounded-full mt-3 mb-2">
-              <View 
-                className="h-2 bg-deepBlue rounded-full" 
-                style={{ 
-                  width: `${(currentTriagem.progress.completed / currentTriagem.progress.total) * 100}%`
-                }} 
-              />
-            </View>
-            
-            <View className="flex-row justify-between items-center">
-              <Text className="text-gray-500 text-sm">{currentTriagem.progress.completed} de {currentTriagem.progress.total} exercícios concluídos</Text>
-              <TouchableOpacity>
-                <Text className="text-deepBlue font-medium">Continuar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* History Section */}
-      <View className="flex-1 mb-6">
-        <Text className="text-xl font-bold text-gray-800 mb-3">Histórico de Triagens</Text>
-        
-        {triagemHistory.length > 0 ? (
-          <FlatList
-            data={triagemHistory}
-            renderItem={renderTriagemHistoryItem}
-            keyExtractor={item => item.id}
-            scrollEnabled={false}
-            nestedScrollEnabled={true}
-          />
-        ) : (
-          <View className="bg-white rounded-xl p-6 items-center justify-center">
-            <Text className="text-gray-500 text-center">Nenhuma triagem encontrada</Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
-  );
-};
+// Regular Dashboard Component is no longer needed as we've inlined the content
 
 export default function Dashboard() {
+  const router = useRouter();
   // State to track if this is the user's first access
   const [isFirstAccess, setIsFirstAccess] = useState<boolean | null>(null);
   const [userStats, setUserStats] = useState<UserStats>({ exercisesDone: 0, triagemCount: 0, consecutiveDays: 0 });
@@ -224,24 +119,119 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-paleSand">
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#4A6FA5" />
-          <Text className="mt-4 text-gray-600">Carregando...</Text>
-        </View>
-      </SafeAreaView>
+      <View className="flex-1 items-center justify-center py-6">
+        <ActivityIndicator size="large" color={colors.light.deepBlue} />
+        <Text className="mt-4 text-textPrimary">Carregando...</Text>
+      </View>
     );
   }
 
   return (
     <SafeAreaView className="flex-1 bg-paleSand">
-      <View className="flex-1 w-full h-full p-4">
+      <ScrollView className="flex-1 px-4">
+        <View className="items-center pt-6 pb-4">
+          <ProfileAvatar name="Gustavo" size={120} />
+          <Text className="text-textPrimary text-xl font-bold mt-4">Olá, Gustavo!</Text>
+        </View>
+        
         {isFirstAccess ? (
           <FirstAccessDashboard />
         ) : (
-          <RegularDashboard userStats={userStats} triagemHistory={triagemHistory} />
+          <View className="flex-1">
+            {/* User Stats Section */}
+            <View className="bg-white rounded-lg p-6 shadow-sm mb-4">
+              <Text className="text-xl font-bold text-deepBlue mb-4">Estatísticas</Text>
+              <View className="flex-row justify-between mb-2">
+                <View className="items-center">
+                  <Text className="text-2xl font-bold text-deepBlue">{userStats.exercisesDone}</Text>
+                  <Text className="text-textPrimary text-sm">Exercícios</Text>
+                </View>
+                
+                <View className="items-center">
+                  <Text className="text-2xl font-bold text-deepBlue">{userStats.triagemCount}</Text>
+                  <Text className="text-textPrimary text-sm">Triagens</Text>
+                </View>
+                
+                <View className="items-center">
+                  <Text className="text-2xl font-bold text-deepBlue">{userStats.consecutiveDays}</Text>
+                  <Text className="text-textPrimary text-sm">Dias seguidos</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* New Screening Button */}
+            <TouchableOpacity 
+              className="bg-deepBlue py-4 rounded-lg mb-4 shadow-sm" 
+              onPress={() => router.push('/(tabs)/(triagem)/triagem')}
+            >
+              <Text className="text-white font-bold text-center">Começar Nova Triagem</Text>
+            </TouchableOpacity>
+
+            {/* Current Progress Section */}
+            {triagemHistory.length > 0 && (
+              <View className="bg-white rounded-lg p-6 shadow-sm mb-4">
+                <Text className="text-lg font-bold text-deepBlue mb-3">Progresso Atual</Text>
+                <View className="flex-row justify-between mb-1">
+                  <Text className="font-bold text-deepBlue">Triagem - {triagemHistory[0].location}</Text>
+                  <Text className="text-textPrimary">{new Date(triagemHistory[0].date).toLocaleDateString('pt-BR')}</Text>
+                </View>
+                
+                {/* Progress Bar */}
+                <View className="h-2 bg-gray-200 rounded-full mt-3 mb-2">
+                  <View 
+                    className="h-2 bg-deepBlue rounded-full" 
+                    style={{ 
+                      width: `${(triagemHistory[0].progress.completed / triagemHistory[0].progress.total) * 100}%`
+                    }} 
+                  />
+                </View>
+                
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-textPrimary text-sm">{triagemHistory[0].progress.completed} de {triagemHistory[0].progress.total} exercícios concluídos</Text>
+                  <TouchableOpacity>
+                    <Text className="text-deepBlue font-medium">Continuar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* History Section */}
+            <View className="flex-1 mb-6">
+              <Text className="text-lg font-bold text-deepBlue mb-3">Histórico de Triagens</Text>
+              
+              {triagemHistory.length > 0 ? (
+                <FlatList
+                  data={triagemHistory}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity 
+                      className="bg-white rounded-lg p-4 mb-3 shadow-sm flex-row justify-between items-center"
+                      onPress={() => router.push({ pathname: '/(tabs)/(triagem)/diagnostic-ideal', params: { id: item.id } })}
+                    >
+                      <View>
+                        <Text className="font-bold text-deepBlue">Triagem - {item.location}</Text>
+                        <Text className="text-textPrimary text-sm">{new Date(item.date).toLocaleDateString('pt-BR')}</Text>
+                      </View>
+                      <View className="flex-row items-center">
+                        <Text className="font-medium mr-2 text-deepBlue">{item.progress.completed}/{item.progress.total}</Text>
+                        <View className="bg-deepBlue rounded-full w-8 h-8 items-center justify-center">
+                          <Ionicons name="chevron-forward" size={18} color="#F5F5F5" />
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                  keyExtractor={item => item.id}
+                  scrollEnabled={false}
+                  nestedScrollEnabled={true}
+                />
+              ) : (
+                <View className="bg-white rounded-lg p-6 items-center justify-center">
+                  <Text className="text-textPrimary text-center">Nenhuma triagem encontrada</Text>
+                </View>
+              )}
+            </View>
+          </View>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
