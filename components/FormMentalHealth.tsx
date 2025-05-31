@@ -2,9 +2,8 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import RadioButtonCustom from './ui/RadioButtonCustom';
-import colors from '../styles/colors';
 import handleMentalHealthSymptomsToN8n from '../api/handleMentalHealthSymptomsToN8n';
+import RadioButtonCustom from './ui/RadioButtonCustom';
 
 export default function FormMentalHealth() {
     const router = useRouter();

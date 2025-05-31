@@ -44,7 +44,7 @@ export default function TabsLayout() {
         options={{ 
           title: "Diagnóstico Ideal", 
           headerShown: false,
-         // href: null // dont show the diagnostic screens in the tab bar
+         href: null // dont show the diagnostic screens in the tab bar
         }} 
       />
       <Tabs.Screen 
@@ -68,7 +68,7 @@ export default function TabsLayout() {
         options={{ 
           title: "Saúde Mental", 
           headerShown: false,
-          //href: null // Hide from tab bar
+          href: null // Hide from tab bar
         }} 
       />
       <Tabs.Screen 
@@ -76,7 +76,7 @@ export default function TabsLayout() {
         options={{ 
           title: "Dor", 
           headerShown: false,
-          //href: null // Hide from tab bar
+          href: null // Hide from tab bar
         }} 
       />
       <Tabs.Screen 
@@ -84,7 +84,7 @@ export default function TabsLayout() {
         options={{ 
           title: "Resultados", 
           headerShown: false,
-          //href: null // Hide from tab bar
+          href: null // Hide from tab bar
         }} 
       />
     </Tabs>
