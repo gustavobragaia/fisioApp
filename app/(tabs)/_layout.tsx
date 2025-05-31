@@ -15,7 +15,7 @@ export default function TabsLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="(triagem)/exercise-group" 
+        name="(triagem)/(exercises)/exercise-group" 
         options={{ 
           title: "Exercícios", 
           headerShown: false,
@@ -23,7 +23,7 @@ export default function TabsLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="(triagem)/single-exercise" 
+        name="(triagem)/(exercises)/single-exercise" 
         options={{ 
           title: "Exercício", 
           headerShown: false,

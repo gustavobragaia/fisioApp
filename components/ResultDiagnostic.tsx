@@ -54,6 +54,12 @@ export default function ResultDiagnostic() {
   // Mock exercises if not provided in the API response
   const exercicios = parsedResponse?.output?.Exercicios || [
     {
+      nome: 'Alívio de Dor',
+      descricao: 'Exercícios para aliviar dores agudas e crônicas',
+      tipo: 'alivio',
+      imageUrl: 'https://via.placeholder.com/150'
+    },
+    {
       nome: 'Alongamento Matinal',
       descricao: 'Série de alongamentos para iniciar o dia com mais disposição',
       tipo: 'alongamento',
@@ -71,12 +77,6 @@ export default function ResultDiagnostic() {
       tipo: 'aquecimento',
       imageUrl: 'https://via.placeholder.com/150'
     },
-    {
-      nome: 'Alívio de Dor',
-      descricao: 'Exercícios para aliviar dores agudas e crônicas',
-      tipo: 'alivio',
-      imageUrl: 'https://via.placeholder.com/150'
-    }
   ];
   
   // Get exercise type class for NativeWind
@@ -119,7 +119,7 @@ export default function ResultDiagnostic() {
         description: 'Descrição do exercício 3',
         imageUrl: 'https://via.placeholder.com/150',
         steps: ['Passo 1', 'Passo 2', 'Passo 3'],
-        duration: '4 minutos',
+        duration: '1 minuto',
         difficulty: 'difícil'
       }
     ];
@@ -136,7 +136,7 @@ export default function ResultDiagnostic() {
           // Navigate to exercise category screen with the category data
           const exercises = mockExercisesForCategory(item.tipo);
           router.push({
-            pathname: '/exercise-group',
+            pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
             params: {
               categoryName: item.nome,
               categoryType: item.tipo,

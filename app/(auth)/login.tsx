@@ -35,8 +35,8 @@ export default function LoginScreen() {
           <View className="w-20 h-20 rounded-full bg-white items-center justify-center mb-4 shadow-lg">
             <Text className="text-4xl font-bold text-deepBlue">F</Text>
           </View>
-          <Text className="text-3xl font-bold text-white mt-2">FisioApp</Text>
-          <Text className="text-base text-white/80 mt-1">Seu assistente de fisioterapia</Text>
+          <Text className="text-3xl font-bold text-slate-900 mt-2">FisioApp</Text>
+          <Text className="text-base text-slate-900 mt-1">Seu assistente de fisioterapia</Text>
         </View>
 
         <View className="space-y-4 w-full bg-white p-6 rounded-2xl shadow-md">

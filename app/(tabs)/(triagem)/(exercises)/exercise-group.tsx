@@ -41,7 +41,7 @@ export default function ExerciseCategoryScreen() {
         'Mantenha por 15 segundos',
         'Repita do lado esquerdo'
       ],
-      duration: '2 minutos',
+      duration: '30 segundos',
       difficulty: 'fácil'
     },
     {
@@ -122,7 +122,9 @@ export default function ExerciseCategoryScreen() {
         return value * 60; // Convert minutes to seconds
       }
       
-      return value; // Assume seconds if no unit specified
+      // For demo purposes, limit exercise duration to a maximum of 30 seconds
+      // This makes testing easier - remove this line for production
+      return Math.min(value, 30);
     } catch (error) {
       console.error('Error parsing duration:', error);
       return 30; // Default to 30 seconds

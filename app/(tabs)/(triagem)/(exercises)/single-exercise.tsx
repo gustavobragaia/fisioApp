@@ -1,11 +1,17 @@
-import React from 'react';
-import { View, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, SafeAreaView, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import BackHeader from '../../../../components/BackHeader';
 import Exercise from '../../../../components/Exercise';
+import ExerciseFeedback from '../../../../components/ExerciseFeedback';
+import colors from '../../../../styles/colors';
+
+// FeedbackScreen component has been moved to /components/ExerciseFeedback.tsx
 
 export default function SingleExerciseScreen() {
   const router = useRouter();
+  const [showFeedback, setShowFeedback] = useState(false);
+  
   const params = useLocalSearchParams<{
     exerciseId: string;
     exerciseName: string;
@@ -34,7 +40,8 @@ export default function SingleExerciseScreen() {
   const duration = React.useMemo(() => {
     try {
       if (params.exerciseDuration) {
-        return parseInt(params.exerciseDuration, 10);
+        return 30;
+        // return parseInt(params.exerciseDuration, 10);
       }
       return 30; // Default 30 seconds
     } catch (error) {
@@ -48,16 +55,18 @@ export default function SingleExerciseScreen() {
   const totalExercises = params.totalExercises ? parseInt(params.totalExercises, 10) : 1;
   
   const handleExerciseComplete = () => {
-    // Handle exercise completion - could navigate back or show a success message
+    // Show the feedback screen when exercise is completed
+    setShowFeedback(true);
     console.log('Exercise completed!');
   };
-  
+
   const handlePreviousExercise = () => {
     if (currentIndex > 0) {
+      // Reset feedback state first
+      setShowFeedback(false);
+      
       // Navigate directly to the previous exercise
-      // We need to go back and then navigate to the specific exercise
-      // In a more advanced implementation, we would store the full exercise list in a context or state manager
-      router.replace({
+      router.push({
         pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
         params: {
           goToExerciseIndex: (currentIndex - 1).toString(),
@@ -70,9 +79,11 @@ export default function SingleExerciseScreen() {
   
   const handleNextExercise = () => {
     if (currentIndex < totalExercises - 1) {
+      // Reset feedback state first
+      setShowFeedback(false);
+      
       // Navigate directly to the next exercise
-      // In a more advanced implementation, we would store the full exercise list in a context or state manager
-      router.replace({
+      router.push({
         pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
         params: {
           goToExerciseIndex: (currentIndex + 1).toString(),
@@ -83,24 +94,75 @@ export default function SingleExerciseScreen() {
     }
   };
 
+  // Return to exercise group screen
+  const handleReturnToGroup = () => {
+    // Reset feedback state first
+    setShowFeedback(false);
+    
+    // Use push instead of replace to create a new navigation entry
+    router.push({
+      pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
+      params: {
+        categoryName: params.groupId || '',
+        categoryType: 'Exercícios'
+      }
+    });
+  };
+
+  // Repeat the current exercise
+  const handleRepeatExercise = () => {
+    setShowFeedback(false);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 p-4">
-        {/* Header */}
-        <BackHeader title={params.exerciseName || 'Exercício'} />
-        
-        {/* Exercise Component */}
-        <Exercise
-          id={params.exerciseId}
-          name={params.exerciseName}
-          videoUrl={params.exerciseVideoUrl}
-          steps={exerciseSteps}
-          duration={duration}
-          onComplete={handleExerciseComplete}
-          onPrevious={currentIndex > 0 ? handlePreviousExercise : undefined}
+      {showFeedback ? (
+        <ExerciseFeedback 
+          onRepeat={handleRepeatExercise}
+          onComplete={handleReturnToGroup}
           onNext={currentIndex < totalExercises - 1 ? handleNextExercise : undefined}
         />
-      </View>
+      ) : (
+        <View className="flex-1">
+          {/* Header with progress indicator */}
+          <View className="px-4 pt-4 pb-2">
+            <BackHeader title={params.exerciseName || 'Exercício'} />
+            
+            {/* Exercise Progress */}
+            {totalExercises > 1 && (
+              <View className="flex-row items-center justify-between mt-2 mb-1">
+                <Text className="text-sm text-textPrimary">
+                  Exercício {currentIndex + 1} de {totalExercises}
+                </Text>
+                <View className="flex-row items-center">
+                  <View className="w-24 h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <View 
+                      className="h-full bg-deepBlue rounded-full" 
+                      style={{ width: `${((currentIndex + 1) / totalExercises) * 100}%` }}
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+          
+          {/* Exercise Component with shadow and rounded corners */}
+          <View className="flex-1 px-4">
+            <View className="flex-1 bg-white rounded-2xl overflow-hidden shadow-sm">
+              <Exercise
+                id={params.exerciseId}
+                name={params.exerciseName}
+                videoUrl={params.exerciseVideoUrl}
+                steps={exerciseSteps}
+                duration={duration}
+                onComplete={handleExerciseComplete}
+                onPrevious={currentIndex > 0 ? handlePreviousExercise : undefined}
+                onNext={currentIndex < totalExercises - 1 ? handleNextExercise : undefined}
+              />
+            </View>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
