@@ -6,6 +6,7 @@ const colors = {
     textSecondary: '#F5F5F5',
     
     light: {
+        
         // for bg buttons use deepBlue
         deepBlue: '#4A6FA5',
 
