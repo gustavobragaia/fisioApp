@@ -202,8 +202,8 @@ export default function FormPainSymptoms() {
                 <Text className="text-2xl font-bold text-center mb-8 text-deepBlue">{currentQuestion.question}</Text>
                 
                 <View className="w-full px-4">
-                        <ScrollView>
-                    <View className="flex-row flex-wrap justify-between">
+                    <ScrollView>
+                        <View className="flex-row flex-wrap justify-between">
                             {currentQuestion.options.map((option) => (
                                 <View key={option.value} className="w-[48%] mb-4">
                                     <RadioButtonCustom
@@ -212,11 +212,11 @@ export default function FormPainSymptoms() {
                                         selectedValue={currentQuestion.state}
                                         onPress={currentQuestion.setState}
                                         imageSource={option.imageSource}
-                                        />
+                                    />
                                 </View>
                             ))}
-                    </View>
-                        </ScrollView>
+                        </View>
+                    </ScrollView>
                 </View>
             </View>
         );

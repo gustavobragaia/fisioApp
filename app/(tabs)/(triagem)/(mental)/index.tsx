@@ -8,7 +8,6 @@ import FormMentalHealth from "../../../../components/FormMentalHealth";
 export default function MentalHealthTriagePage() {
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1">
         <View className="flex-1 w-full h-full p-5">
           {/* Header with back button */}
           <TouchableOpacity 
@@ -27,7 +26,6 @@ export default function MentalHealthTriagePage() {
           {/* Mental health assessment form component */}
           <FormMentalHealth />
         </View>
-      </ScrollView>
     </SafeAreaView>
   );
 }
