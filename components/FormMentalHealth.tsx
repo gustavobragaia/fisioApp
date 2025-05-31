@@ -1,11 +1,16 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import handleMentalHealthSymptomsToN8n from '../api/handleMentalHealthSymptomsToN8n';
 import RadioButtonCustom from './ui/RadioButtonCustom';
 
-export default function FormMentalHealth() {
+// Define the ref type for external access to form methods
+export type FormMentalHealthRefType = {
+    resetForm: () => void;
+};
+
+const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
     const router = useRouter();
     
     // Form state
@@ -19,6 +24,21 @@ export default function FormMentalHealth() {
     
     // Navigation state
     const [currentScreen, setCurrentScreen] = useState(0);
+    
+    // Expose the resetForm function via ref
+    useImperativeHandle(ref, () => ({
+        resetForm: () => {
+            // Reset all form state
+            setComoEstaSentindo('');
+            setFrequenciaSentimento('');
+            setDificuldadeFrequente('');
+            setImpactoRotina('');
+            setBuscouAjuda('');
+            setObjetivoAlivio('');
+            setCurrentScreen(0);
+            setIsLoading(false);
+        }
+    }));
     
     // Questions data
     const questions = [
@@ -384,4 +404,6 @@ export default function FormMentalHealth() {
             </View>
         </SafeAreaView>
     );
-}
+});
+
+export default FormMentalHealth;

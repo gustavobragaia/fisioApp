@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Text, View, SafeAreaView, TouchableOpacity, ScrollView } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../../styles/colors";
-import FormMentalHealth from "../../../../components/FormMentalHealth";
+import FormMentalHealth, { FormMentalHealthRefType } from "../../../../components/FormMentalHealth";
 
 export default function MentalHealthTriagePage() {
+  // Create a ref for the form component
+  const formRef = useRef<FormMentalHealthRefType>(null);
+  
+  // Reset the form when the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset form when screen is focused
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
+      return () => {};
+    }, [])
+  );
   return (
     <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 w-full h-full p-5">
@@ -24,7 +37,7 @@ export default function MentalHealthTriagePage() {
           </Text>
           
           {/* Mental health assessment form component */}
-          <FormMentalHealth />
+          <FormMentalHealth ref={formRef} />
         </View>
     </SafeAreaView>
   );
