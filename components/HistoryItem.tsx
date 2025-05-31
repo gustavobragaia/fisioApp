@@ -60,8 +60,8 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ diagnostic }) => {
       
       <View className="flex-row justify-between items-center mt-2">
         <Text className="text-gray-500">Status: {diagnostic.status}</Text>
-        <View className="bg-[#CDEFE8] px-3 py-1 rounded-full">
-          <Text className="text-[#4A6FA5] text-xs">Ver detalhes</Text>
+        <View className="bg-deepBlue px-3 py-1 rounded-full">
+          <Text className="text-white text-xs">Ver detalhes</Text>
         </View>
       </View>
     </TouchableOpacity>

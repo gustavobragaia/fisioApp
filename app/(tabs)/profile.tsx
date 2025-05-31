@@ -128,7 +128,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F4F1EE]">
+    <SafeAreaView className="flex-1 bg-paleSand">
       <ScrollView className="flex-1 px-4">
         <View className="items-center pt-6 pb-4">
           <ProfileAvatar name={userName} size={120} />
@@ -137,19 +137,19 @@ export default function ProfileScreen() {
         
         <View className="flex-row bg-white rounded-lg overflow-hidden mb-4">
           <TouchableOpacity 
-            className={`flex-1 py-3 items-center ${activeTab === 'history' ? 'bg-[#CDEFE8]' : 'bg-white'}`}
+            className={`flex-1 py-3 items-center ${activeTab === 'history' ? 'bg-deepBlue' : 'bg-white'}`}
             onPress={() => setActiveTab('history')}
           >
-            <Text className={`font-medium ${activeTab === 'history' ? 'text-[#4A6FA5]' : 'text-textPrimary'}`}>
+            <Text className={`font-medium ${activeTab === 'history' ? 'text-white' : 'text-textPrimary'}`}>
               Histórico
             </Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            className={`flex-1 py-3 items-center ${activeTab === 'settings' ? 'bg-[#CDEFE8]' : 'bg-white'}`}
+            className={`flex-1 py-3 items-center ${activeTab === 'settings' ? 'bg-deepBlue' : 'bg-white'}`}
             onPress={() => setActiveTab('settings')}
           >
-            <Text className={`font-medium ${activeTab === 'settings' ? 'text-[#4A6FA5]' : 'text-textPrimary'}`}>
+            <Text className={`font-medium ${activeTab === 'settings' ? 'text-white' : 'text-textPrimary'}`}>
               Configurações
             </Text>
           </TouchableOpacity>
