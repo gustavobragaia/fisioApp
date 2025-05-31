@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, SafeAreaView, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 import BackHeader from '../../../../components/BackHeader';
 import Exercise from '../../../../components/Exercise';
 import ExerciseFeedback from '../../../../components/ExerciseFeedback';
-import colors from '../../../../styles/colors';
+
 
 // FeedbackScreen component has been moved to /components/ExerciseFeedback.tsx
 
@@ -147,21 +147,23 @@ export default function SingleExerciseScreen() {
           </View>
           
           {/* Exercise Component with shadow and rounded corners */}
-          <View className="flex-1 px-4">
-            <View className="flex-1 bg-white rounded-2xl overflow-hidden shadow-sm">
-              <Exercise
-                id={params.exerciseId}
-                name={params.exerciseName}
-                videoUrl={params.exerciseVideoUrl}
-                steps={exerciseSteps}
-                duration={duration}
-                onComplete={handleExerciseComplete}
-                onPrevious={currentIndex > 0 ? handlePreviousExercise : undefined}
-                onNext={currentIndex < totalExercises - 1 ? handleNextExercise : undefined}
-              />
-            </View>
+            <ScrollView>
+              <View className="flex-1 px-4">
+                <View className="flex-1 bg-white rounded-2xl overflow-hidden shadow-sm">
+                  <Exercise
+                    id={params.exerciseId}
+                    name={params.exerciseName}
+                    videoUrl={params.exerciseVideoUrl}
+                    steps={exerciseSteps}
+                    duration={duration}
+                    onComplete={handleExerciseComplete}
+                    onPrevious={currentIndex > 0 ? handlePreviousExercise : undefined}
+                    onNext={currentIndex < totalExercises - 1 ? handleNextExercise : undefined}
+                  />
+                </View>
+              </View>
+            </ScrollView>
           </View>
-        </View>
       )}
     </SafeAreaView>
   );
