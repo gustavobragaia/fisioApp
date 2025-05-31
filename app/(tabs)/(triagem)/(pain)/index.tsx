@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Text, View, SafeAreaView, TouchableOpacity } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import FormPainSymptoms from "../../../../components/FormPainSymptoms";
+import FormPainSymptoms, { FormPainSymptomsRefType } from "../../../../components/FormPainSymptoms";
 import colors from "../../../../styles/colors";
 
 export default function PainTriagePage() {
+  // Create a ref for the form component
+  const formRef = useRef<FormPainSymptomsRefType>(null);
+  
+  // Reset the form when the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset form when screen is focused
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
+      return () => {};
+    }, [])
+  );
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 w-full h-full p-5">
@@ -24,7 +37,7 @@ export default function PainTriagePage() {
         </Text>
         
         {/* Pain symptoms form */}
-        <FormPainSymptoms />
+        <FormPainSymptoms ref={formRef} />
       </View>
     </SafeAreaView>
   );

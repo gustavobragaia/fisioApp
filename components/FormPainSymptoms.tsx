@@ -1,12 +1,17 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import handlePainSendSymptomsToN8n from '../api/handlePainSendSymptomsToN8n';
 import RadioButtonCustom from './ui/RadioButtonCustom';
 
 
-export default function FormPainSymptoms() {
+// Define the ref type for external access to form methods
+export type FormPainSymptomsRefType = {
+    resetForm: () => void;
+};
+
+const FormPainSymptoms = forwardRef<FormPainSymptomsRefType>((props, ref) => {
     const router = useRouter();
     // Form state
     const [dorComMaisFreq, setDorComMaisFreq] = useState('');
@@ -21,6 +26,23 @@ export default function FormPainSymptoms() {
     
     // Navigation state
     const [currentScreen, setCurrentScreen] = useState(0);
+    
+    // Expose the resetForm function via ref
+    useImperativeHandle(ref, () => ({
+        resetForm: () => {
+            // Reset all form state
+            setDorComMaisFreq('');
+            setDorApareceEmQualSituacao('');
+            setTipoDeDor('');
+            setQuandoDorComecou('');
+            setNivelDeDor('');
+            setComoAfetaMinhaVida('');
+            setOQueGostariaDeAlcançarComAlivio('');
+            setResponse('');
+            setCurrentScreen(0);
+            setIsLoading(false);
+        }
+    }));
     
     // Questions data
     const questions = [
@@ -274,6 +296,8 @@ export default function FormPainSymptoms() {
             </View>
         </SafeAreaView>
     );
-}
+});
+
+export default FormPainSymptoms;
 
 
