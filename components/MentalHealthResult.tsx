@@ -3,17 +3,6 @@ import { View, Text, ScrollView, SafeAreaView, FlatList, Image, TouchableOpacity
 import colors from '../styles/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-type PainDiagnosticParams = {
-  dorComMaisFreq: string;
-  dorApareceEmQualSituacao: string;
-  tipoDeDor: string;
-  quandoDorComecou: string;
-  nivelDeDor: string;
-  comoAfetaMinhaVida: string;
-  oQueGostariaDeAlcancarComAlivio: string;
-  apiResponse?: string;
-};
-
 type MentalHealthParams = {
   anxietyLevel: string;
   stressLevel: string;
@@ -36,17 +25,12 @@ type ApiResponseData = {
   }
 };
 
-type ResultDiagnosticProps = {
-  type?: 'pain' | 'mental';
-};
-
-
-export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProps) {
+export default function MentalHealthResult() {
   // Get the params from the route and router for navigation
-  const params = useLocalSearchParams<PainDiagnosticParams & MentalHealthParams>();
+  const params = useLocalSearchParams<MentalHealthParams>();
   const router = useRouter();
   
-  // Parse the API response
+  // Parse the API response (if available)
   const parseApiResponse = () => {
     try {
       if (!params.apiResponse) return null;
@@ -61,43 +45,11 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
   };
   
   const parsedResponse = parseApiResponse();
-  const fraseMotivacional = parsedResponse?.output?.["Frase Motivacional"] || 
-    (type === 'pain' ? 'Cada movimento é um passo para o bem-estar!' : 'Cuidar da mente é tão importante quanto cuidar do corpo!');
+  const fraseMotivacional = parsedResponse?.output?.["Frase Motivacional"] || 'Cuidar da mente é tão importante quanto cuidar do corpo!';
+  const diagnostico = parsedResponse?.output?.Diagnostico || 'Com base na sua avaliação, identificamos que você pode se beneficiar de exercícios para reduzir ansiedade e melhorar a qualidade do sono. Práticas de respiração e meditação podem ajudar a acalmar a mente e preparar o corpo para um descanso melhor.';
   
-  const diagnostico = parsedResponse?.output?.Diagnostico || 
-    (type === 'pain' 
-      ? 'Diagnóstico não disponível' 
-      : 'Com base na sua avaliação, identificamos que você pode se beneficiar de exercícios para reduzir ansiedade e melhorar a qualidade do sono. Práticas de respiração e meditação podem ajudar a acalmar a mente e preparar o corpo para um descanso melhor.');
-  
-  // Mock exercises if not provided in the API response based on type
-  const painExercises = [
-    {
-      nome: 'Alívio de Dor',
-      descricao: 'Exercícios para aliviar dores agudas e crônicas',
-      tipo: 'alivio',
-      imageUrl: 'https://via.placeholder.com/150'
-    },
-    {
-      nome: 'Alongamento Matinal',
-      descricao: 'Série de alongamentos para iniciar o dia com mais disposição',
-      tipo: 'alongamento',
-      imageUrl: 'https://via.placeholder.com/150'
-    },
-    {
-      nome: 'Fortalecimento Lombar',
-      descricao: 'Exercícios para fortalecer a região lombar e prevenir dores',
-      tipo: 'fortalecimento',
-      imageUrl: 'https://via.placeholder.com/150'
-    },
-    {
-      nome: 'Aquecimento Pré-treino',
-      descricao: 'Prepare seu corpo antes de atividades físicas intensas',
-      tipo: 'aquecimento',
-      imageUrl: 'https://via.placeholder.com/150'
-    },
-  ];
-
-  const mentalExercises = [
+  // Mental health exercises
+  const exercicios = parsedResponse?.output?.Exercicios || [
     {
       nome: 'Meditação Guiada',
       descricao: 'Exercícios de meditação para acalmar a mente e reduzir ansiedade',
@@ -124,32 +76,22 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
     },
   ];
   
-  const exercicios = parsedResponse?.output?.Exercicios || (type === 'pain' ? painExercises : mentalExercises);
-  
   // Get exercise type class for NativeWind
   const getExerciseTypeClass = (tipo: string) => {
-    const painClasses: Record<string, {bg: string, text: string}> = {
-      'alongamento': {bg: 'bg-[#CDEFE8]', text: 'text-textPrimary'},
-      'fortalecimento': {bg: 'bg-[#aee1f969]', text: 'text-deepBlue'},
-      'aquecimento': {bg: 'bg-[#AEE1F9]', text: 'text-textPrimary'},
-      'alivio': {bg: 'bg-[#F4F1EE]', text: 'text-textPrimary'},
-    };
-    
-    const mentalClasses: Record<string, {bg: string, text: string}> = {
+    const typeClasses: Record<string, {bg: string, text: string}> = {
       'meditacao': {bg: 'bg-[#8E9BFF40]', text: 'text-textPrimary'},
       'respiracao': {bg: 'bg-[#aee1f969]', text: 'text-deepBlue'},
       'relaxamento': {bg: 'bg-[#CDEFE8]', text: 'text-textPrimary'},
       'sono': {bg: 'bg-[#F4F1EE]', text: 'text-textPrimary'},
     };
     
-    const typeClasses = type === 'pain' ? painClasses : mentalClasses;
     return typeClasses[tipo] || {bg: 'bg-[#F4F1EE]', text: 'text-textPrimary'};
   };
 
   // Mock exercises for each category
   const mockExercisesForCategory = (categoryType: string) => {
     // Mental health specific exercises
-    const mentalExercisesByType: Record<string, any[]> = {
+    const exercisesByType: Record<string, any[]> = {
       'meditacao': [
         {
           id: '1',
@@ -223,79 +165,17 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
       ]
     };
     
-    // Pain specific exercises
-    const painExercisesByType: Record<string, any[]> = {
-      'alongamento': [
-        {
-          id: '1',
-          name: 'Alongamento de Coluna',
-          description: 'Exercício para alongar a coluna e aliviar tensões',
-          imageUrl: 'https://via.placeholder.com/150',
-          steps: ['Sente-se com a coluna ereta', 'Incline lentamente para um lado', 'Mantenha por 15 segundos', 'Repita para o outro lado'],
-          duration: '2 minutos',
-          difficulty: 'fácil'
-        }
-      ],
-      'fortalecimento': [
-        {
-          id: '1',
-          name: 'Ponte para Lombar',
-          description: 'Fortalecimento da região lombar e glúteos',
-          imageUrl: 'https://via.placeholder.com/150',
-          steps: ['Deite-se de costas', 'Dobre os joelhos com os pés apoiados', 'Eleve o quadril', 'Mantenha por 10 segundos'],
-          duration: '3 minutos',
-          difficulty: 'médio'
-        }
-      ],
-      'aquecimento': [
-        {
-          id: '1',
-          name: 'Mobilidade Articular',
-          description: 'Aquecimento das principais articulações',
-          imageUrl: 'https://via.placeholder.com/150',
-          steps: ['Gire os punhos', 'Gire os tornozelos', 'Movimente os ombros em círculos'],
-          duration: '1 minuto',
-          difficulty: 'fácil'
-        }
-      ],
-      'alivio': [
-        {
-          id: '1',
-          name: 'Alívio de Tensão Cervical',
-          description: 'Exercício para aliviar dores na região do pescoço',
-          imageUrl: 'https://via.placeholder.com/150',
-          steps: ['Incline a cabeça para um lado', 'Mantenha por 15 segundos', 'Repita para o outro lado'],
-          duration: '2 minutos',
-          difficulty: 'fácil'
-        }
-      ]
-    };
-    
-    if (type === 'mental') {
-      return mentalExercisesByType[categoryType] || [
-        {
-          id: '1',
-          name: `${categoryType} - Exercício 1`,
-          description: 'Descrição do exercício 1',
-          imageUrl: 'https://via.placeholder.com/150',
-          steps: ['Passo 1', 'Passo 2', 'Passo 3'],
-          duration: '5 minutos',
-          difficulty: 'fácil'
-        }
-      ];
-    } else {
-      return painExercisesByType[categoryType] || [
-        {
-          id: '1',
-          name: `${categoryType} - Exercício 1`,
-          description: 'Descrição do exercício 1',
-          imageUrl: 'https://via.placeholder.com/150',
-          steps: ['Passo 1', 'Passo 2', 'Passo 3'],
-          duration: '2 minutos',
-          difficulty: 'fácil'
-        }
-      ];
-    }
+    return exercisesByType[categoryType] || [
+      {
+        id: '1',
+        name: `${categoryType} - Exercício 1`,
+        description: 'Descrição do exercício 1',
+        imageUrl: 'https://via.placeholder.com/150',
+        steps: ['Passo 1', 'Passo 2', 'Passo 3'],
+        duration: '5 minutos',
+        difficulty: 'fácil'
+      }
+    ];
   };
 
   // Render category-exercise item
@@ -303,7 +183,6 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
     const typeClass = getExerciseTypeClass(item.tipo);
     
     return (
-      
       <TouchableOpacity 
         className="bg-slate-50 p-4 rounded-lg shadow-sm mb-4"
         onPress={() => {
@@ -343,7 +222,6 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1 p-4">
-
         {/* Motivational Phrase */}
         <View className="items-center mb-6">
           <Text className="text-2xl font-bold text-textPrimary text-left">
@@ -352,7 +230,7 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
         </View>
         
         {/* Image Space */}
-        <View className={`h-40 ${type === 'pain' ? 'bg-[#CDEFE8]' : 'bg-[#8E9BFF40]'} rounded-xl mb-6 items-center justify-center`}>
+        <View className="h-40 bg-[#8E9BFF40] rounded-xl mb-6 items-center justify-center">
           <Image 
             source={require('../assets/images/favicon.png')} 
             className="w-20 h-20"
@@ -362,9 +240,7 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
         
         {/* Personalized Message */}
         <Text className="text-xl font-bold text-deepBlue mb-2">
-          {type === 'pain' 
-            ? 'Gustavo, separei esse treino personalizado para você!' 
-            : 'Separamos práticas para ajudar sua saúde mental!'}
+          Separamos práticas para ajudar sua saúde mental!
         </Text>
         
         {/* Diagnostic */}
@@ -373,14 +249,12 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
         </View>
         
         {/* Exercise List */}
-        <Text className="text-xl font-bold text-deepBlue mb-4">
-          {type === 'pain' ? 'Exercícios Recomendados' : 'Práticas Recomendadas'}
-        </Text>
+        <Text className="text-xl font-bold text-deepBlue mb-4">Práticas Recomendadas</Text>
         <FlatList
           data={exercicios}
           renderItem={renderExerciseItem}
-          keyExtractor={(item, index) => `exercise-${index}`}
-          scrollEnabled={false} // Disable scrolling as we're inside a ScrollView
+          keyExtractor={(item, index) => `${item.nome}-${index}`}
+          scrollEnabled={false}
         />
       </ScrollView>
     </SafeAreaView>

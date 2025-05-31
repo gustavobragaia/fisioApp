@@ -63,6 +63,30 @@ export default function TabsLayout() {
           href: null // Hide from tab bar
         }} 
       />
+      <Tabs.Screen 
+        name="(triagem)/(mental)/index" 
+        options={{ 
+          title: "Saúde Mental", 
+          headerShown: false,
+          //href: null // Hide from tab bar
+        }} 
+      />
+      <Tabs.Screen 
+        name="(triagem)/(pain)/index" 
+        options={{ 
+          title: "Dor", 
+          headerShown: false,
+          //href: null // Hide from tab bar
+        }} 
+      />
+      <Tabs.Screen 
+        name="(triagem)/(pain)/results" 
+        options={{ 
+          title: "Resultados", 
+          headerShown: false,
+          //href: null // Hide from tab bar
+        }} 
+      />
     </Tabs>
   )
 }

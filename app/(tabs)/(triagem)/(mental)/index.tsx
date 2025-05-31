@@ -1,0 +1,33 @@
+import React from 'react';
+import { Text, View, SafeAreaView, TouchableOpacity, ScrollView } from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import colors from "../../../../styles/colors";
+import FormMentalHealth from "../../../../components/FormMentalHealth";
+
+export default function MentalHealthTriagePage() {
+  return (
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1">
+        <View className="flex-1 w-full h-full p-5">
+          {/* Header with back button */}
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="flex-row items-center mb-6"
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.light.deepBlue} />
+            <Text className="ml-2 text-lg font-medium text-slate-700">Voltar</Text>
+          </TouchableOpacity>
+
+          <Text className="text-3xl font-bold text-slate-700 mb-6">Avaliação de saúde mental</Text>
+          <Text className="text-lg text-slate-600 mb-8">
+            Vamos entender melhor como você está se sentindo para recomendar os melhores exercícios
+          </Text>
+          
+          {/* Mental health assessment form component */}
+          <FormMentalHealth />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

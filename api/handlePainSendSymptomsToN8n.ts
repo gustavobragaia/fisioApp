@@ -28,6 +28,7 @@ const handlePainSendSymptomsToN8n = async(
           },
           body: JSON.stringify({
               // show all the questions 
+              "Tipo da triagem": "dor",
               "Essa dor é mais frequente no": String(dorComMaisFreq),  // Garantir que é uma string
               "A dor aparece mais na situação": String(dorApareceEmQualSituacao),  // Garantir que é uma string
               "É uma dor do tipo": String(tipoDeDor),  // Garantir que é uma string
