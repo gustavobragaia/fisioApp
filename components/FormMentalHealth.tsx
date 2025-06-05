@@ -4,6 +4,9 @@ import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import handleMentalHealthSymptomsToN8n from '../api/handleMentalHealthSymptomsToN8n';
 import RadioButtonCustom from './ui/RadioButtonCustom';
+import { handleMentalHealthSubmission } from './MentalHealthHandler';
+import { supabase } from '../lib/supabase';
+import colors from '../styles/colors';
 
 // Define the ref type for external access to form methods
 export type FormMentalHealthRefType = {
