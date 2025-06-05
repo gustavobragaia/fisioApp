@@ -34,6 +34,23 @@ export default function Exercise({
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [exerciseComplete, setExerciseComplete] = useState(false);
 
+  // Reset timer and state when exercise ID changes
+  useEffect(() => {
+    // Reset timer to initial duration
+    setTimeRemaining(duration);
+    // Reset timer running state
+    setTimerRunning(false);
+    // Reset exercise completion state
+    setExerciseComplete(false);
+    
+    // Reset video if available
+    if (videoRef.current) {
+      videoRef.current.stopAsync().catch(error => {
+        console.error('Error stopping video:', error);
+      });
+    }
+  }, [id, duration]); // Depend on exercise ID and duration
+
   // Timer effect
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -139,10 +156,11 @@ export default function Exercise({
         )}
         {onNext && (
           <TouchableOpacity 
-            className="bg-[#4A6FA5] p-3 rounded-lg flex-1 ml-2 items-center"
-            onPress={onNext}
+            className={`p-3 rounded-lg flex-1 ml-2 items-center ${exerciseComplete ? 'bg-[#4A6FA5]' : 'bg-gray-300'}`}
+            onPress={exerciseComplete ? onNext : undefined}
+            disabled={!exerciseComplete}
           >
-            <Text className="text-white font-medium">Próximo</Text>
+            <Text className={`font-medium ${exerciseComplete ? 'text-white' : 'text-gray-500'}`}>Próximo</Text>
           </TouchableOpacity>
         )}
       </View>

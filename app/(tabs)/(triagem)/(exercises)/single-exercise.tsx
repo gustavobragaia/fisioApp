@@ -55,8 +55,12 @@ export default function SingleExerciseScreen() {
   const totalExercises = params.totalExercises ? parseInt(params.totalExercises, 10) : 1;
   
   const handleExerciseComplete = () => {
-    // Show the feedback screen when exercise is completed
-    setShowFeedback(true);
+    // Only show the feedback screen when the last exercise is completed
+    if (currentIndex === totalExercises - 1) {
+      setShowFeedback(true);
+    }
+    // No automatic navigation to the next exercise
+    // The user will need to click the "Next" button which is now enabled after completion
     console.log('Exercise completed!');
   };
 
@@ -66,12 +70,15 @@ export default function SingleExerciseScreen() {
       setShowFeedback(false);
       
       // Navigate directly to the previous exercise
-      router.push({
+      // Using replace instead of push to ensure a fresh component mount
+      router.replace({
         pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
         params: {
           goToExerciseIndex: (currentIndex - 1).toString(),
           categoryName: params.groupId || '',
-          categoryType: 'Exercícios'
+          categoryType: 'Exercícios',
+          // Add a timestamp to force the component to remount with fresh state
+          timestamp: Date.now().toString()
         }
       });
     }
@@ -83,12 +90,15 @@ export default function SingleExerciseScreen() {
       setShowFeedback(false);
       
       // Navigate directly to the next exercise
-      router.push({
+      // Using replace instead of push to ensure a fresh component mount
+      router.replace({
         pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
         params: {
           goToExerciseIndex: (currentIndex + 1).toString(),
           categoryName: params.groupId || '',
-          categoryType: 'Exercícios'
+          categoryType: 'Exercícios',
+          // Add a timestamp to force the component to remount with fresh state
+          timestamp: Date.now().toString()
         }
       });
     }
@@ -99,19 +109,21 @@ export default function SingleExerciseScreen() {
     // Reset feedback state first
     setShowFeedback(false);
     
-    // Use push instead of replace to create a new navigation entry
-    router.push({
+    // Use replace for consistency with other navigation functions
+    router.replace({
       pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
       params: {
         categoryName: params.groupId || '',
-        categoryType: 'Exercícios'
+        categoryType: 'Exercícios',
+        // Add a timestamp to force the component to remount with fresh state
+        timestamp: Date.now().toString()
       }
     });
   };
 
   // Repeat the current exercise
   const handleRepeatExercise = () => {
-    setShowFeedback(false);
+      (false);
   };
 
   return (
