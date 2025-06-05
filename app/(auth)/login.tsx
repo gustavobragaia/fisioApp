@@ -1,26 +1,46 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useAuth } from '../_layout';
+import { useAuth } from '../../contexts/AuthContext';
 import colors from '../../styles/colors';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const router = useRouter();
 
   // Import the auth context
-  const { login } = useAuth();
+  const { signIn } = useAuth();
 
-  const handleLogin = () => {
-    // TODO: Implement actual authentication logic
-    console.log('Login with:', email, password);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
+    }
     
-    // Use the auth context to log in
-    login();
-    // Navigate to the main app
-    router.replace('/(tabs)');
+    try {
+      setIsLoading(true);
+      
+      // Use the auth context to sign in with Supabase
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        Alert.alert('Erro de login', error.message || 'Falha na autenticação. Verifique seu email e senha.');
+        return;
+      }
+      
+      // Navigate to the main app on successful login
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Erro', 'Ocorreu um erro durante o login. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -65,15 +85,28 @@ export default function LoginScreen() {
             />
           </View>
           
-          <TouchableOpacity className="self-end">
+          <TouchableOpacity 
+            className="self-end"
+            onPress={() => setForgotPasswordVisible(true)}
+          >
             <Text className="text-sm text-deepBlue font-medium">Esqueceu a senha?</Text>
           </TouchableOpacity>
+          
+          <ForgotPasswordModal
+            visible={forgotPasswordVisible}
+            onClose={() => setForgotPasswordVisible(false)}
+          />
 
           <TouchableOpacity 
             className="w-full h-12 bg-deepBlue rounded-lg items-center justify-center mt-6 shadow-sm"
             onPress={handleLogin}
+            disabled={isLoading}
           >
-            <Text className="text-white font-semibold text-base">Entrar</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text className="text-white font-semibold text-base">Entrar</Text>
+            )}
           </TouchableOpacity>
 
           <View className="flex-row justify-center mt-6">

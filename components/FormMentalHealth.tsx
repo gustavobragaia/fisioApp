@@ -140,8 +140,8 @@ const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
         try {
             setIsLoading(true);
             
-            // Send data to n8n API
-            const response = await handleMentalHealthSymptomsToN8n(
+            // Send data to n8n API (keeping existing functionality)
+            const webhookResponse = await handleMentalHealthSymptomsToN8n(
                 comoEstaSentindo,
                 frequenciaSentimento,
                 dificuldadeFrequente,
@@ -150,20 +150,37 @@ const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
                 objetivoAlivio
             );
             
-            console.log(response);
+            console.log('Webhook response:', webhookResponse);
+            
+            // Also save data to Supabase
+            const supabaseResult = await handleMentalHealthSubmission({
+                comoEstaSentindo,
+                frequenciaSentimento,
+                dificuldadeFrequente,
+                impactoRotina,
+                buscouAjuda,
+                objetivoAlivio,
+                onSuccess: (triagemId) => {
+                    console.log('Mental health data saved to Supabase with triagem ID:', triagemId);
+                },
+                onError: (error) => {
+                    console.error('Error saving to Supabase:', error);
+                }
+            });
             
             // Navigate to the consolidated diagnostic results page with type='mental'
             router.push({
                 pathname: "/(tabs)/(triagem)/diagnostic-ideal",
                 params: {
                     type: 'mental',
+                    triagemId: supabaseResult.success ? supabaseResult.triagemId : undefined,
                     comoEstaSentindo,
                     frequenciaSentimento,
                     dificuldadeFrequente,
                     impactoRotina,
                     buscouAjuda,
                     objetivoAlivio,
-                    apiResponse: response
+                    apiResponse: webhookResponse
                 }
             });
             

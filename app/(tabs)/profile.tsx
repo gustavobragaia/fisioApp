@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../_layout';
+import { useAuth } from '../../contexts/AuthContext';
 import colors from '../../styles/colors';
 import ProfileAvatar from '../../components/ProfileAvatar';
 import HistoryItem from '../../components/HistoryItem';
@@ -41,7 +41,7 @@ const mockDiagnostics: DiagnosticItem[] = [
 ];
 
 export default function ProfileScreen() {
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
   const [userName, setUserName] = useState('Usuário');
   const [diagnosticHistory, setDiagnosticHistory] = useState<DiagnosticItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,7 +118,7 @@ export default function ProfileScreen() {
         
         <TouchableOpacity 
           className="flex-row items-center p-4 bg-white rounded-lg mb-3 shadow-sm"
-          onPress={logout}
+          onPress={signOut}
           activeOpacity={0.7}
         >
           <Text className="text-red-500 text-base flex-1">Sair</Text>

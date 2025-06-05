@@ -1,35 +1,102 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 import { User, Triagem, PainSymptoms, Exercise, UserExercise } from '../types/supabase';
 
 // Authentication functions
 export const signUp = async (email: string, password: string, name: string, cpf?: string, empresa?: string) => {
   try {
-    // 1. Sign up with Supabase Auth
+    // Sign up with Supabase Auth and include user metadata
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name,
+          cpf,
+          empresa
+        }
+      }
     });
 
     if (authError) throw authError;
     
     if (!authData.user) throw new Error('No user returned from sign up');
 
-    // 2. Insert user profile data
-    const { error: profileError } = await supabase
+    // The database trigger should handle creating the user profile
+    // If you want to ensure the profile exists, you can check/create it here
+    const { data: existingUser, error: fetchError } = await supabase
       .from('users')
-      .insert({
-        id: authData.user.id,
-        email,
-        name,
-        cpf,
-        empresa,
-      });
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
 
-    if (profileError) throw profileError;
+    // If the user profile doesn't exist (trigger didn't work), create it manually
+    // Use supabaseAdmin with service role to bypass RLS policies
+    if (fetchError || !existingUser) {
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email,
+          name,
+          cpf,
+          empresa,
+        });
+
+      if (profileError) throw profileError;
+    }
 
     return { user: authData.user, error: null };
   } catch (error) {
     console.error('Error signing up:', error);
+    return { user: null, error };
+  }
+};
+
+// Phone number sign up
+export const signUpWithPhone = async (phone: string, password: string, name: string, empresa?: string) => {
+  try {
+    // Sign up with Supabase Auth using phone and include user metadata
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      phone,
+      password,
+      options: {
+        data: {
+          name,
+          empresa
+        }
+      }
+    });
+
+    if (authError) throw authError;
+    
+    if (!authData.user) throw new Error('No user returned from sign up');
+
+    // The database trigger should handle creating the user profile
+    // If you want to ensure the profile exists, you can check/create it here
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+
+    // If the user profile doesn't exist (trigger didn't work), create it manually
+    // Use supabaseAdmin with service role to bypass RLS policies
+    if (fetchError || !existingUser) {
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          phone,
+          name,
+          empresa,
+        });
+
+      if (profileError) throw profileError;
+    }
+
+    return { user: authData.user, error: null };
+  } catch (error) {
+    console.error('Error signing up with phone:', error);
     return { user: null, error };
   }
 };
@@ -47,6 +114,100 @@ export const signIn = async (email: string, password: string) => {
   } catch (error) {
     console.error('Error signing in:', error);
     return { session: null, user: null, error };
+  }
+};
+
+// Sign in with magic link (passwordless)
+export const signInWithMagicLink = async (email: string) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+    });
+
+    if (error) throw error;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error sending magic link:', error);
+    return { data: null, error };
+  }
+};
+
+// Sign in with SMS OTP
+export const signInWithSmsOtp = async (phone: string) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      phone,
+    });
+
+    if (error) throw error;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error sending SMS OTP:', error);
+    return { data: null, error };
+  }
+};
+
+// Verify SMS OTP
+export const verifySmsOtp = async (phone: string, token: string) => {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
+    });
+
+    if (error) throw error;
+
+    return { session: data.session, user: data.user, error: null };
+  } catch (error) {
+    console.error('Error verifying SMS OTP:', error);
+    return { session: null, user: null, error };
+  }
+};
+
+// Sign in with OAuth provider
+export const signInWithOAuth = async (provider: 'google' | 'facebook' | 'github' | 'gitlab' | 'bitbucket') => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+    });
+
+    if (error) throw error;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error(`Error signing in with ${provider}:`, error);
+    return { data: null, error };
+  }
+};
+
+// Reset password
+export const resetPassword = async (email: string) => {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (error) throw error;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return { data: null, error };
+  }
+};
+
+// Update user
+export const updateUser = async (updates: { email?: string; password?: string; data?: object }) => {
+  try {
+    const { data, error } = await supabase.auth.updateUser(updates);
+
+    if (error) throw error;
+
+    return { user: data.user, error: null };
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return { user: null, error };
   }
 };
 
@@ -81,6 +242,21 @@ export const getCurrentUser = async () => {
   } catch (error) {
     console.error('Error getting current user:', error);
     return { user: null, profile: null, error };
+  }
+};
+
+// Admin function to invite users (requires service_role_key)
+export const inviteUser = async (email: string) => {
+  try {
+    // Note: This requires the service_role_key and should only be used server-side
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email);
+
+    if (error) throw error;
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error inviting user:', error);
+    return { data: null, error };
   }
 };
 

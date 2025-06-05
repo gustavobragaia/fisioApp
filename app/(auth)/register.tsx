@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useAuth } from '../_layout';
+import { useAuth } from '../../contexts/AuthContext';
 import colors from '../../styles/colors';
 
 export default function RegisterScreen() {
@@ -12,19 +12,57 @@ export default function RegisterScreen() {
   const [empresa, setEmpresa] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   // Import the auth context
-  const { login } = useAuth();
+  const { signUp } = useAuth();
 
-  const handleRegister = () => {
-    // TODO: Implement actual registration logic
-    console.log('Register with:', name, email, cpf, empresa, password);
+  const handleRegister = async () => {
+    // Validate inputs
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
     
-    // Use the auth context to log in after registration
-    login();
-    // Navigate to the main app
-    router.replace('/(tabs)');
+    if (password !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem');
+      return;
+    }
+    
+    if (password.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      // Use the auth context to sign up with Supabase
+      const { error } = await signUp(email, password, name, cpf, empresa);
+      
+      if (error) {
+        Alert.alert('Erro no cadastro', error.message || 'Não foi possível criar sua conta. Tente novamente.');
+        return;
+      }
+      
+      // Show success message
+      Alert.alert(
+        'Cadastro realizado',
+        'Sua conta foi criada com sucesso! Verifique seu email para confirmar o cadastro.',
+        [
+          { 
+            text: 'OK', 
+            onPress: () => router.replace('/(auth)/login')
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Registration error:', error);
+      Alert.alert('Erro', 'Ocorreu um erro durante o cadastro. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -116,10 +154,15 @@ export default function RegisterScreen() {
           </View>
 
           <TouchableOpacity 
-            className="w-full h-12 bg-deepBlue rounded-lg items-center justify-center mt-6 shadow-sm"
+            className="w-full h-12 bg-deepBlue rounded-lg items-center justify-center mt-4 shadow-sm"
             onPress={handleRegister}
+            disabled={isLoading}
           >
-            <Text className="text-white font-semibold text-base">Cadastrar</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text className="text-white font-semibold text-base">Criar conta</Text>
+            )}
           </TouchableOpacity>
 
           <View className="flex-row justify-center mt-4">

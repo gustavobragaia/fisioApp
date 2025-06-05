@@ -3,14 +3,33 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User } from '../types/supabase';
-import { signIn, signUp, signOut, getCurrentUser } from '../lib/supabaseUtils';
+import { 
+  signIn, 
+  signUp, 
+  signOut, 
+  getCurrentUser, 
+  signUpWithPhone,
+  signInWithMagicLink,
+  signInWithSmsOtp,
+  verifySmsOtp,
+  signInWithOAuth,
+  resetPassword,
+  updateUser
+} from '../lib/supabaseUtils';
 
 type AuthContextType = {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
   signUp: (email: string, password: string, name: string, cpf?: string, empresa?: string) => Promise<{ error: any }>;
+  signUpWithPhone: (phone: string, password: string, name: string, empresa?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: any }>;
+  signInWithSmsOtp: (phone: string) => Promise<{ error: any }>;
+  verifySmsOtp: (phone: string, token: string) => Promise<{ error: any }>;
+  signInWithOAuth: (provider: 'google' | 'facebook' | 'github' | 'gitlab' | 'bitbucket') => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updateUserAuth: (updates: { email?: string; password?: string; data?: object }) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
 };
 
@@ -84,9 +103,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return result;
   };
 
+  const handleSignUpWithPhone = async (phone: string, password: string, name: string, empresa?: string) => {
+    setIsLoading(true);
+    const result = await signUpWithPhone(phone, password, name, empresa);
+    setIsLoading(false);
+    return result;
+  };
+
   const handleSignIn = async (email: string, password: string) => {
     setIsLoading(true);
     const result = await signIn(email, password);
+    setIsLoading(false);
+    return result;
+  };
+
+  const handleSignInWithMagicLink = async (email: string) => {
+    setIsLoading(true);
+    const result = await signInWithMagicLink(email);
+    setIsLoading(false);
+    return result;
+  };
+
+  const handleSignInWithSmsOtp = async (phone: string) => {
+    setIsLoading(true);
+    const result = await signInWithSmsOtp(phone);
+    setIsLoading(false);
+    return result;
+  };
+
+  const handleVerifySmsOtp = async (phone: string, token: string) => {
+    setIsLoading(true);
+    const result = await verifySmsOtp(phone, token);
+    setIsLoading(false);
+    return result;
+  };
+
+  const handleSignInWithOAuth = async (provider: 'google' | 'facebook' | 'github' | 'gitlab' | 'bitbucket') => {
+    setIsLoading(true);
+    const result = await signInWithOAuth(provider);
+    setIsLoading(false);
+    return result;
+  };
+
+  const handleResetPassword = async (email: string) => {
+    setIsLoading(true);
+    const result = await resetPassword(email);
+    setIsLoading(false);
+    return result;
+  };
+
+  const handleUpdateUser = async (updates: { email?: string; password?: string; data?: object }) => {
+    setIsLoading(true);
+    const result = await updateUser(updates);
     setIsLoading(false);
     return result;
   };
@@ -103,7 +171,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     isLoading,
     signUp: handleSignUp,
+    signUpWithPhone: handleSignUpWithPhone,
     signIn: handleSignIn,
+    signInWithMagicLink: handleSignInWithMagicLink,
+    signInWithSmsOtp: handleSignInWithSmsOtp,
+    verifySmsOtp: handleVerifySmsOtp,
+    signInWithOAuth: handleSignInWithOAuth,
+    resetPassword: handleResetPassword,
+    updateUserAuth: handleUpdateUser,
     signOut: handleSignOut,
   };
 
