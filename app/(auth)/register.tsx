@@ -8,6 +8,8 @@ import colors from '../../styles/colors';
 export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [empresa, setEmpresa] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function RegisterScreen() {
 
   const handleRegister = () => {
     // TODO: Implement actual registration logic
-    console.log('Register with:', name, email, password);
+    console.log('Register with:', name, email, cpf, empresa, password);
     
     // Use the auth context to log in after registration
     login();
@@ -62,6 +64,29 @@ export default function RegisterScreen() {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          <View>
+            <Text className="text-sm font-medium text-deepBlue mb-1">CPF</Text>
+            <TextInput
+              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
+              placeholder="Seu CPF"
+              value={cpf}
+              onChangeText={setCpf}
+              keyboardType="numeric"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          <View>
+            <Text className="text-sm font-medium text-deepBlue mb-1">Empresa</Text>
+            <TextInput
+              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
+              placeholder="Nome da empresa"
+              value={empresa}
+              onChangeText={setEmpresa}
               placeholderTextColor="#9CA3AF"
             />
           </View>
