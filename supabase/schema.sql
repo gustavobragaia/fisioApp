@@ -1,5 +1,6 @@
 -- Create custom types
 CREATE TYPE triagem_type AS ENUM ('pain', 'mental');
+CREATE TYPE difficulty_level AS ENUM ('Iniciante', 'Intermediário', 'Avançado');
 
 -- Create tables
 -- Users table (extends Supabase auth.users)
@@ -59,6 +60,7 @@ CREATE TABLE public.exercises (
   video_url TEXT NOT NULL,
   thumbnail_url TEXT,
   duration INTEGER NOT NULL,
+  difficulty difficulty_level NOT NULL DEFAULT 'Iniciante',
   steps JSONB NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
