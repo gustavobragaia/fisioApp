@@ -1,3 +1,5 @@
+import { User } from '../types/supabase';
+
 // verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
 
@@ -7,7 +9,8 @@ const handleMentalHealthSymptomsToN8n = async(
   dificuldadeFrequente: string,
   impactoRotina: string,
   buscouAjuda: string,
-  objetivoAlivio: string
+  objetivoAlivio: string,
+  user?: User // Add user parameter
 ) => {
   try{
       // console log em todos os estados
@@ -17,6 +20,20 @@ const handleMentalHealthSymptomsToN8n = async(
       console.log(impactoRotina)
       console.log(buscouAjuda)
       console.log(objetivoAlivio)
+
+      // Prepare user data if available
+      const userData = user ? {
+        "ID do usuário": user.id,
+        "Nome": user.name,
+        "Email": user.email,
+        "CPF": user.cpf || 'Não informado',
+        "Empresa": user.empresa || 'Não informado',
+        "Data de cadastro": new Date(user.created_at).toLocaleDateString('pt-BR')
+      } : {
+        "ID do usuário": "Não autenticado",
+        "Nome": "Usuário não autenticado",
+        "Email": "Não informado"
+      };
 
       const apiResponse = await fetch(`${API_URL}/webhook-test/send-symtoms`, {
           method: 'POST',
@@ -32,6 +49,8 @@ const handleMentalHealthSymptomsToN8n = async(
               "Como isso impacta sua rotina diária?": String(impactoRotina),
               "Você já buscou ajuda anteriormente?": String(buscouAjuda),
               "O que você gostaria de alcançar com o Alívio.com?": String(objetivoAlivio),
+              // Include user data
+              ...userData
           }),
       });
 

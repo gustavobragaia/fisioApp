@@ -4,6 +4,7 @@ import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import handlePainSendSymptomsToN8n from '../api/handlePainSendSymptomsToN8n';
 import RadioButtonCustom from './ui/RadioButtonCustom';
+import { useAuth } from '../contexts/AuthContext';
 
 
 // Define the ref type for external access to form methods
@@ -13,6 +14,7 @@ export type FormPainSymptomsRefType = {
 
 const FormPainSymptoms = forwardRef<FormPainSymptomsRefType>((props, ref) => {
     const router = useRouter();
+    const { user } = useAuth(); // Get current user from AuthContext
     // Form state
     const [dorComMaisFreq, setDorComMaisFreq] = useState('');
     const [dorApareceEmQualSituacao, setDorApareceEmQualSituacao] = useState('');
@@ -166,7 +168,16 @@ const FormPainSymptoms = forwardRef<FormPainSymptomsRefType>((props, ref) => {
     const sendDataToN8n = async () => {
         try {
             setIsLoading(true);
-            const response = await handlePainSendSymptomsToN8n(dorComMaisFreq,dorApareceEmQualSituacao,tipoDeDor,quandoDorComecou,nivelDeDor,comoAfetaMinhaVida,oQueGostariaDeAlcançarComAlivio);   
+            const response = await handlePainSendSymptomsToN8n(
+                dorComMaisFreq,
+                dorApareceEmQualSituacao,
+                tipoDeDor,
+                quandoDorComecou,
+                nivelDeDor,
+                comoAfetaMinhaVida,
+                oQueGostariaDeAlcançarComAlivio,
+                user || undefined // Pass the user object or undefined to fix TypeScript error
+            );
             setResponse(response);
             console.log(response)
             // Navigate to ResultDiagnostic with the form data and API response

@@ -7,6 +7,7 @@ import RadioButtonCustom from './ui/RadioButtonCustom';
 import { handleMentalHealthSubmission } from './MentalHealthHandler';
 import { supabase } from '../lib/supabase';
 import colors from '../styles/colors';
+import { useAuth } from '../contexts/AuthContext';
 
 // Define the ref type for external access to form methods
 export type FormMentalHealthRefType = {
@@ -15,6 +16,7 @@ export type FormMentalHealthRefType = {
 
 const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
     const router = useRouter();
+    const { user } = useAuth(); // Get current user from AuthContext
     
     // Form state
     const [comoEstaSentindo, setComoEstaSentindo] = useState('');
@@ -140,14 +142,15 @@ const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
         try {
             setIsLoading(true);
             
-            // Send data to n8n API (keeping existing functionality)
+            // Send data to n8n API with user data
             const webhookResponse = await handleMentalHealthSymptomsToN8n(
                 comoEstaSentindo,
                 frequenciaSentimento,
                 dificuldadeFrequente,
                 impactoRotina,
                 buscouAjuda,
-                objetivoAlivio
+                objetivoAlivio,
+                user || undefined // Pass the user object or undefined to fix TypeScript error
             );
             
             console.log('Webhook response:', webhookResponse);

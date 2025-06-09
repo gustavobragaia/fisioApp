@@ -1,4 +1,6 @@
 
+import { User } from '../types/supabase';
+
 // verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
 
@@ -9,7 +11,8 @@ const handlePainSendSymptomsToN8n = async(
   quandoDorComecou: string,
   nivelDeDor: string,
   comoAfetaMinhaVida: string,
-  oQueGostariaDeAlcançarComAlivio: string
+  oQueGostariaDeAlcançarComAlivio: string,
+  user?: User // Add user parameter
 ) => {
   try{
       //console log em todos os estados
@@ -20,6 +23,20 @@ const handlePainSendSymptomsToN8n = async(
       console.log(nivelDeDor)
       console.log(comoAfetaMinhaVida)
       console.log(oQueGostariaDeAlcançarComAlivio)
+
+      // Prepare user data if available
+      const userData = user ? {
+        "ID do usuário": user.id,
+        "Nome": user.name,
+        "Email": user.email,
+        "CPF": user.cpf || 'Não informado',
+        "Empresa": user.empresa || 'Não informado',
+        "Data de cadastro": new Date(user.created_at).toLocaleDateString('pt-BR')
+      } : {
+        "ID do usuário": "Não autenticado",
+        "Nome": "Usuário não autenticado",
+        "Email": "Não informado"
+      };
 
       const apiResponse = await fetch(`${API_URL}/webhook-test/send-symtoms`, {
           method: 'POST',
@@ -36,7 +53,8 @@ const handlePainSendSymptomsToN8n = async(
               "O nível da dor é": String(nivelDeDor),  // Garantir que é uma string   
               "Como essa dor afeta sua vida?": String(comoAfetaMinhaVida),  // Garantir que é uma string
               "O que você gostaria de alcançar com o Alívio.com?": String(oQueGostariaDeAlcançarComAlivio),  // Garantir que é uma string
-
+              // Include user data
+              ...userData
           }),
       });
 
