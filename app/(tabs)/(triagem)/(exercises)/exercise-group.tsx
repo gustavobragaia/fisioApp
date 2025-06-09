@@ -16,16 +16,20 @@ export default function ExerciseCategoryScreen() {
   const [showRecommended, setShowRecommended] = useState(false);
   
   const params = useLocalSearchParams<{
-    categoryName: string;
-    categoryType: string;
-    exercises: string; // JSON stringified array of exercises
-    goToExerciseIndex?: string; // Index of exercise to navigate to directly
-    triagemId?: string; // ID of the triagem to show recommendations for
-    isRecommended?: string; // Whether to show recommended exercises
+    categoryName?: string;
+    categoryType?: string;
+    exercises?: string; // JSON stringified array of exercises
+    isRecommended?: string;
+    goToExerciseIndex?: string;
+    timestamp?: string; // Used to force remount
+    triagemId?: string; // ID of the triagem this exercise is part of
   }>();
 
+  // State to hold exercises fetched from database
+  const [dbExercises, setDbExercises] = useState<Exercise[]>([]);
+
   // Parse exercises from params
-  const exercises: Exercise[] = React.useMemo(() => {
+  const paramExercises: Exercise[] = React.useMemo(() => {
     try {
       if (params.exercises) {
         return JSON.parse(params.exercises);
@@ -37,53 +41,153 @@ export default function ExerciseCategoryScreen() {
     }
   }, [params.exercises]);
 
-  // Mock exercises if none provided
-  const mockExercises: Exercise[] = [
-    {
-      id: '1',
-      name: 'Alongamento de Pescoço',
-      description: 'Alonga os músculos do pescoço para aliviar tensão',
-      imageUrl: 'https://via.placeholder.com/150',
-      steps: [
-        'Sente-se com a coluna ereta',
-        'Incline a cabeça para o lado direito',
-        'Mantenha por 15 segundos',
-        'Repita do lado esquerdo'
-      ],
-      duration: '30 segundos',
-      difficulty: 'fácil'
-    },
-    {
-      id: '2',
-      name: 'Rotação de Ombros',
-      description: 'Melhora a circulação e alivia tensão nos ombros',
-      imageUrl: 'https://via.placeholder.com/150',
-      steps: [
-        'Fique em pé com os braços relaxados',
-        'Gire os ombros para frente 10 vezes',
-        'Gire os ombros para trás 10 vezes'
-      ],
-      duration: '1 minuto',
-      difficulty: 'fácil'
-    },
-    {
-      id: '3',
-      name: 'Alongamento Lateral',
-      description: 'Alonga os músculos laterais do tronco',
-      imageUrl: 'https://via.placeholder.com/150',
-      steps: [
-        'Fique em pé com os pés afastados na largura dos ombros',
-        'Levante o braço direito e incline o corpo para a esquerda',
-        'Mantenha por 15 segundos',
-        'Repita do outro lado'
-      ],
-      duration: '2 minutos',
-      difficulty: 'médio'
-    }
-  ];
+  // Debug state to track what's happening
+  const [debugInfo, setDebugInfo] = useState<{
+    triagemId?: string;
+    categoryName?: string;
+    userExercisesCount?: number;
+    exercisesCount?: number;
+    error?: string;
+  }>({});
 
-  // Use mock exercises if none provided
-  const displayExercises = exercises.length > 0 ? exercises : mockExercises;
+  // Fetch exercises from database if not provided in params and we have a triagemId
+  useEffect(() => {
+    const fetchExercisesFromDb = async () => {
+      if (params.triagemId && params.categoryName) {
+        setLoading(true);
+        try {
+          console.log('Fetching exercises with:', {
+            triagemId: params.triagemId,
+            categoryName: params.categoryName
+          });
+          
+          setDebugInfo({
+            triagemId: params.triagemId,
+            categoryName: params.categoryName
+          });
+
+          // First get all exercises for this group_id
+          const { data: groupExercises, error: groupExError } = await supabase
+            .from('exercises')
+            .select('*')
+            .eq('group_id', params.categoryName);
+
+          if (groupExError) {
+            console.error('Error fetching group exercises:', groupExError);
+            setDebugInfo(prev => ({ ...prev, error: 'Error fetching group exercises: ' + groupExError.message }));
+            return;
+          }
+
+          console.log(`Found ${groupExercises?.length || 0} exercises in group ${params.categoryName}`);
+          setDebugInfo(prev => ({ ...prev, exercisesCount: groupExercises?.length || 0 }));
+
+          if (groupExercises && groupExercises.length > 0) {
+            // Transform to Exercise type
+            const formattedExercises: Exercise[] = groupExercises.map(ex => ({
+              id: ex.id,
+              name: ex.name,
+              description: ex.description || '',
+              imageUrl: ex.thumbnail_url || 'https://via.placeholder.com/150',
+              videoUrl: ex.video_url,
+              steps: ex.steps || [],
+              duration: ex.duration ? `${ex.duration} segundos` : '30 segundos',
+              difficulty: ex.difficulty || 'Intermediário',
+              // Store the group_id for proper navigation
+              groupId: ex.group_id
+            }));
+            
+            setDbExercises(formattedExercises);
+          } else {
+            // If no exercises found for this group, try to get any exercises for this triagem
+            console.log('No exercises found for this group, trying to find any exercises for this triagem');
+            
+            const { data: userExercises, error: userExError } = await supabase
+              .from('user_exercises')
+              .select('exercise_id')
+              .eq('triagem_id', params.triagemId);
+
+            if (userExError) {
+              console.error('Error fetching user exercises:', userExError);
+              setDebugInfo(prev => ({ ...prev, error: 'Error fetching user exercises: ' + userExError.message }));
+              return;
+            }
+
+            console.log(`Found ${userExercises?.length || 0} user exercises for triagem ${params.triagemId}`);
+            setDebugInfo(prev => ({ ...prev, userExercisesCount: userExercises?.length || 0 }));
+
+            if (userExercises && userExercises.length > 0) {
+              const exerciseIds = userExercises.map(ue => ue.exercise_id);
+              
+              const { data: exercises, error: exError } = await supabase
+                .from('exercises')
+                .select('*')
+                .in('id', exerciseIds);
+
+              if (exError) {
+                console.error('Error fetching exercises:', exError);
+                setDebugInfo(prev => ({ ...prev, error: 'Error fetching exercises: ' + exError.message }));
+                return;
+              }
+
+              if (exercises && exercises.length > 0) {
+                // Group exercises by group_id
+                const exercisesByGroup: Record<string, any[]> = {};
+                
+                exercises.forEach(ex => {
+                  if (!exercisesByGroup[ex.group_id]) {
+                    exercisesByGroup[ex.group_id] = [];
+                  }
+                  exercisesByGroup[ex.group_id].push(ex);
+                });
+                
+                // Use exercises from the requested group if available
+                const groupExercises = exercisesByGroup[params.categoryName] || 
+                  // Otherwise use the first group found
+                  exercises.filter(ex => ex.group_id === Object.keys(exercisesByGroup)[0]) || 
+                  // Fallback to all exercises
+                  exercises;
+                
+                // Transform to Exercise type
+                const formattedExercises: Exercise[] = groupExercises.map(ex => ({
+                  id: ex.id,
+                  name: ex.name,
+                  description: ex.description || '',
+                  imageUrl: ex.thumbnail_url || 'https://via.placeholder.com/150',
+                  videoUrl: ex.video_url,
+                  steps: ex.steps || [],
+                  duration: ex.duration ? `${ex.duration} segundos` : '30 segundos',
+                  difficulty: ex.difficulty || 'Intermediário',
+                  // Store the group_id for proper navigation
+                  groupId: ex.group_id
+                }));
+                
+                setDbExercises(formattedExercises);
+                
+                // Update debug info with the actual group being used
+                if (formattedExercises.length > 0) {
+                  setDebugInfo(prev => ({ 
+                    ...prev, 
+                    categoryName: formattedExercises[0].groupId,
+                    exercisesCount: formattedExercises.length
+                  }));
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error in fetchExercisesFromDb:', error);
+          setDebugInfo(prev => ({ ...prev, error: 'Unexpected error: ' + (error as Error).message }));
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchExercisesFromDb();
+  }, [params.triagemId, params.categoryName]);
+
+  // Use exercises from params if available, otherwise use from database
+  const displayExercises = paramExercises.length > 0 ? paramExercises : dbExercises;
   
   // Check user authentication status
   useEffect(() => {
@@ -116,14 +220,45 @@ export default function ExerciseCategoryScreen() {
   
   // Check if we need to navigate directly to a specific exercise
   React.useEffect(() => {
-    if (params.goToExerciseIndex) {
+    if (params.goToExerciseIndex && displayExercises.length > 0) {
       const index = parseInt(params.goToExerciseIndex, 10);
       if (!isNaN(index) && index >= 0 && index < displayExercises.length) {
         // Navigate to the specified exercise
         handleExercisePress(displayExercises[index], index);
       }
     }
-  }, [params.goToExerciseIndex]);
+  }, [params.goToExerciseIndex, displayExercises]);
+  
+  // Show message if no exercises are available
+  if (displayExercises.length === 0 && !loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1 p-4">
+          <BackHeader 
+            title={params.categoryType || 'Exercícios'} 
+            onBackPress={() => router.back()} 
+          />
+          <View className="flex-1 justify-center items-center p-4">
+            <Text className="text-lg text-gray-700 text-center mb-4">
+              Nenhum exercício disponível para esta categoria.
+            </Text>
+            
+            {/* Debug information */}
+            <View className="bg-gray-100 p-4 rounded-lg w-full">
+              <Text className="text-sm text-gray-600 font-bold mb-2">Informações de Depuração:</Text>
+              <Text className="text-xs text-gray-600">Triagem ID: {debugInfo.triagemId || 'N/A'}</Text>
+              <Text className="text-xs text-gray-600">Categoria: {debugInfo.categoryName || 'N/A'}</Text>
+              <Text className="text-xs text-gray-600">Exercícios no grupo: {debugInfo.exercisesCount !== undefined ? debugInfo.exercisesCount : 'N/A'}</Text>
+              <Text className="text-xs text-gray-600">Exercícios do usuário: {debugInfo.userExercisesCount !== undefined ? debugInfo.userExercisesCount : 'N/A'}</Text>
+              {debugInfo.error && (
+                <Text className="text-xs text-red-500 mt-2">Erro: {debugInfo.error}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // Handle exercise press
   const handleExercisePress = (exercise: Exercise, index: number) => {
@@ -141,7 +276,8 @@ export default function ExerciseCategoryScreen() {
         exerciseDuration: durationInSeconds.toString(),
         exerciseIndex: index.toString(),
         totalExercises: displayExercises.length.toString(),
-        groupId: params.categoryName // Using category name as group ID for now
+        groupId: params.categoryName, // Using category name as group ID for now
+        triagemId: params.triagemId // Pass the triagem ID to track exercise completion
       }
     });
   };

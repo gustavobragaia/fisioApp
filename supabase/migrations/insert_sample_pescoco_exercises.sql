@@ -49,13 +49,13 @@ BEGIN
   (
     'Rotação controlada do pescoço',
     'Exercício para melhorar a mobilidade da região cervical e reduzir tensões acumuladas.',
-    'pescoco-mobilidade',
+    'pescoco-alongamento',
     'https://example.com/videos/rotacao-pescoco.mp4',
     'https://example.com/thumbnails/rotacao-pescoco.jpg',
     180,
     'Intermediário',
     pescoco_id,
-    'Alívio imediato da dor',
+    'Alongamento',
     '[
       {"title": "Posição inicial", "description": "Sente-se com a coluna ereta e ombros relaxados, olhando para frente."},
       {"title": "Rotação lenta", "description": "Gire lentamente a cabeça para a direita, mantendo o queixo paralelo ao chão."},

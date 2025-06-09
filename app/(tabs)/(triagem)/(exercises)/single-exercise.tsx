@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, ScrollView, Text, View, Alert } from 'react-native';
 import BackHeader from '../../../../components/BackHeader';
 import Exercise from '../../../../components/Exercise';
 import ExerciseFeedback from '../../../../components/ExerciseFeedback';
+import { supabase } from '../../../../lib/supabase';
 
 
 // FeedbackScreen component has been moved to /components/ExerciseFeedback.tsx
@@ -11,6 +12,20 @@ import ExerciseFeedback from '../../../../components/ExerciseFeedback';
 export default function SingleExerciseScreen() {
   const router = useRouter();
   const [showFeedback, setShowFeedback] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Get the current user on component mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data && data.user) {
+        setUserId(data.user.id);
+      }
+    };
+    
+    getUser();
+  }, []);
   
   const params = useLocalSearchParams<{
     exerciseId: string;
@@ -21,6 +36,7 @@ export default function SingleExerciseScreen() {
     exerciseIndex?: string; // Current index in the exercise list
     totalExercises?: string; // Total number of exercises in the group
     groupId?: string; // ID of the exercise group
+    triagemId?: string; // ID of the triagem this exercise is part of
   }>();
 
   // Parse exercise steps
@@ -85,6 +101,8 @@ export default function SingleExerciseScreen() {
           goToExerciseIndex: (currentIndex - 1).toString(),
           categoryName: params.groupId || '',
           categoryType: 'Exercícios',
+          // Ensure we pass the triagem ID to stay within current triagem
+          triagemId: params.triagemId,
           // Add a timestamp to force the component to remount with fresh state
           timestamp: Date.now().toString()
         }
@@ -105,6 +123,8 @@ export default function SingleExerciseScreen() {
           goToExerciseIndex: (currentIndex + 1).toString(),
           categoryName: params.groupId || '',
           categoryType: 'Exercícios',
+          // Ensure we pass the triagem ID to stay within current triagem
+          triagemId: params.triagemId,
           // Add a timestamp to force the component to remount with fresh state
           timestamp: Date.now().toString()
         }
@@ -112,17 +132,54 @@ export default function SingleExerciseScreen() {
     }
   };
 
-  // Return to exercise group screen
-  const handleReturnToGroup = () => {
-    // Reset feedback state first
-    setShowFeedback(false);
+  // Mark exercise as completed and return to exercise group screen
+  const handleReturnToGroup = async () => {
+    if (!userId || !params.exerciseId || !params.triagemId) {
+      // If we don't have the necessary data, just navigate back
+      navigateBackToGroup();
+      return;
+    }
     
+    setLoading(true);
+    
+    try {
+      // Update the user_exercises record to mark it as completed
+      const { error } = await supabase
+        .from('user_exercises')
+        .update({
+          completed: true,
+          completion_date: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('exercise_id', params.exerciseId)
+        .eq('triagem_id', params.triagemId);
+      
+      if (error) {
+        console.error('Error updating exercise completion status:', error);
+        Alert.alert('Erro', 'Não foi possível salvar o progresso do exercício.');
+      } else {
+        console.log('Exercise marked as completed successfully!');
+      }
+    } catch (error) {
+      console.error('Error in handleReturnToGroup:', error);
+    } finally {
+      setLoading(false);
+      // Reset feedback state and navigate back
+      setShowFeedback(false);
+      navigateBackToGroup();
+    }
+  };
+  
+  // Helper function to navigate back to the exercise group screen
+  const navigateBackToGroup = () => {
     // Use replace for consistency with other navigation functions
     router.replace({
       pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
       params: {
         categoryName: params.groupId || '',
         categoryType: 'Exercícios',
+        // Ensure we pass the triagem ID to stay within current triagem
+        triagemId: params.triagemId,
         // Add a timestamp to force the component to remount with fresh state
         timestamp: Date.now().toString()
       }

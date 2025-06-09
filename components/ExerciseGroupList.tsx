@@ -10,6 +10,7 @@ export type Exercise = {
   steps: string[];
   duration: string;
   difficulty: 'fácil' | 'médio' | 'difícil';
+  groupId?: string; // Store the group_id for proper navigation
 };
 
 type ExerciseGroupListProps = {
