@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { colors } from '../styles/colors';
+import colors from '../styles/colors';
 
 export type ExerciseRegion = {
   id: string;
@@ -121,14 +121,14 @@ export const getExerciseById = async (id: string): Promise<ExerciseWithRegion | 
 export const getGroupTypeColor = (groupType?: ExerciseGroupType): string => {
   switch (groupType) {
     case 'Alívio imediato da dor':
-      return colors.primary;
+      return colors.light.deepBlue;
     case 'Alongamento':
-      return colors.secondary;
+      return colors.light.lightBlue;
     case 'Aquecimento':
-      return colors.tertiary;
+      return colors.light.seafoam;
     case 'Fortalecimento muscular':
-      return colors.accent;
+      return colors.light.deepBlueBorder;
     default:
-      return colors.gray;
+      return colors.textPrimary;
   }
 };

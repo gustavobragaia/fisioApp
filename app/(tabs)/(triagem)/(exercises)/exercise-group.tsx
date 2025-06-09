@@ -1,18 +1,27 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { SafeAreaView, ScrollView, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, ScrollView, Text, View, ActivityIndicator } from 'react-native';
 import BackHeader from '../../../../components/BackHeader';
 import ExerciseGroupList, { Exercise } from '../../../../components/ExerciseGroupList';
+import RecommendedExercises from '../../../../components/RecommendedExercises';
+import { supabase } from '../../../../lib/supabase';
+import colors from '../../../../styles/colors';
 
 // Exercise type is now imported from the ExerciseGroupList component
 
 export default function ExerciseCategoryScreen() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [showRecommended, setShowRecommended] = useState(false);
+  
   const params = useLocalSearchParams<{
     categoryName: string;
     categoryType: string;
     exercises: string; // JSON stringified array of exercises
     goToExerciseIndex?: string; // Index of exercise to navigate to directly
+    triagemId?: string; // ID of the triagem to show recommendations for
+    isRecommended?: string; // Whether to show recommended exercises
   }>();
 
   // Parse exercises from params
@@ -76,6 +85,35 @@ export default function ExerciseCategoryScreen() {
   // Use mock exercises if none provided
   const displayExercises = exercises.length > 0 ? exercises : mockExercises;
   
+  // Check user authentication status
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user || null);
+      setLoading(false);
+    };
+    
+    checkUser();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Check if we should show recommended exercises
+  useEffect(() => {
+    if (params.isRecommended === 'true') {
+      setShowRecommended(true);
+    } else {
+      setShowRecommended(false);
+    }
+  }, [params.isRecommended]);
+  
   // Check if we need to navigate directly to a specific exercise
   React.useEffect(() => {
     if (params.goToExerciseIndex) {
@@ -131,21 +169,59 @@ export default function ExerciseCategoryScreen() {
     }
   };
 
+  // Handle completion of all recommended exercises
+  const handleRecommendationsComplete = () => {
+    // Navigate to a completion screen or show a success message
+    router.push({
+      pathname: '/(tabs)/(triagem)/diagnostic-ideal',
+      params: {
+        message: 'Parabéns! Você completou todos os exercícios recomendados.'
+      }
+    });
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color={colors.light.deepBlue} />
+        <Text className="mt-4 text-gray-600">Carregando exercícios...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1 p-4">
-        {/* Header with back button */}
-        <BackHeader 
-          title={params.categoryName || 'Categoria de Exercícios'}
-          subtitle={params.categoryType || 'Exercícios'}
-        />
+      {showRecommended && user ? (
+        // Show recommended exercises if isRecommended is true and user is logged in
+        <View className="flex-1">
+          <ScrollView className="flex-1 p-4">
+            <BackHeader 
+              title="Exercícios Recomendados"
+              subtitle="Baseados na sua avaliação"
+            />
+            <RecommendedExercises 
+              userId={user.id}
+              triagemId={params.triagemId}
+              onComplete={handleRecommendationsComplete}
+            />
+          </ScrollView>
+        </View>
+      ) : (
+        // Show regular exercise group
+        <ScrollView className="flex-1 p-4">
+          {/* Header with back button */}
+          <BackHeader 
+            title={params.categoryName || 'Categoria de Exercícios'}
+            subtitle={params.categoryType || 'Exercícios'}
+          />
 
-        {/* Exercise list */}
-        <ExerciseGroupList 
-          exercises={displayExercises}
-          onExercisePress={handleExercisePress}
-        />
-      </ScrollView>
+          {/* Exercise list */}
+          <ExerciseGroupList 
+            exercises={displayExercises}
+            onExercisePress={handleExercisePress}
+          />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

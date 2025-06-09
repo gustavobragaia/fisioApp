@@ -1,6 +1,7 @@
 
 import { User, PainSymptoms, Triagem } from '../types/supabase';
 import { supabase } from '../lib/supabase';
+import { generatePainExerciseRecommendations } from '../lib/recommendationUtils';
 
 // verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
@@ -58,6 +59,21 @@ const handlePainSendSymptomsToN8n = async(
           if (symptomsError) throw symptomsError;
           
           console.log('Pain symptoms data persisted successfully');
+          
+          // 3. Generate exercise recommendations based on pain location and level
+          try {
+            const recommendedExercises = await generatePainExerciseRecommendations(
+              triagemData.id,
+              user.id,
+              dorComMaisFreq, // Using pain location as a key factor
+              nivelDeDor     // Using pain level to determine exercise intensity
+            );
+            
+            console.log(`Generated ${recommendedExercises.length} exercise recommendations`);
+          } catch (recError) {
+            console.error('Error generating exercise recommendations:', recError);
+            // Continue with n8n integration even if recommendation generation fails
+          }
         } catch (dbError) {
           console.error('Error persisting pain symptoms data:', dbError);
           // Continue with n8n integration even if database persistence fails

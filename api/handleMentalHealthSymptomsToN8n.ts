@@ -1,5 +1,6 @@
 import { User, MentalHealthSymptoms, Triagem } from '../types/supabase';
 import { supabase } from '../lib/supabase';
+import { generateMentalHealthExerciseRecommendations } from '../lib/recommendationUtils';
 
 // verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
@@ -54,6 +55,21 @@ const handleMentalHealthSymptomsToN8n = async(
           if (symptomsError) throw symptomsError;
           
           console.log('Mental health symptoms data persisted successfully');
+          
+          // 3. Generate exercise recommendations based on mental state and impact level
+          try {
+            const recommendedExercises = await generateMentalHealthExerciseRecommendations(
+              triagemData.id,
+              user.id,
+              comoEstaSentindo,  // Using current mental state
+              impactoRotina      // Using impact on daily routine to determine intensity
+            );
+            
+            console.log(`Generated ${recommendedExercises.length} exercise recommendations`);
+          } catch (recError) {
+            console.error('Error generating exercise recommendations:', recError);
+            // Continue with n8n integration even if recommendation generation fails
+          }
         } catch (dbError) {
           console.error('Error persisting mental health symptoms data:', dbError);
           // Continue with n8n integration even if database persistence fails

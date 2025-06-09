@@ -1,6 +1,21 @@
 -- Create custom types
 CREATE TYPE triagem_type AS ENUM ('pain', 'mental');
 CREATE TYPE difficulty_level AS ENUM ('Iniciante', 'Intermediário', 'Avançado');
+CREATE TYPE exercise_group_type AS ENUM (
+  -- Physical health categories
+  'Alívio imediato da dor',
+  'Alongamento',
+  'Aquecimento',
+  'Fortalecimento muscular',
+  
+  -- Mental health categories
+  'Ansioso(a)',
+  'Estressado(a)',
+  'Com dificuldade para dormir',
+  'Triste ou desanimado(a)',
+  'Irritado(a)',
+  'Quero manter meu bem-estar'
+);
 
 -- Create tables
 -- Users table (extends Supabase auth.users)
@@ -14,12 +29,20 @@ CREATE TABLE public.users (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Exercise regions table
+CREATE TABLE public.exercise_regions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Triagem table
 CREATE TABLE public.triagens (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.users NOT NULL,
   type triagem_type NOT NULL,
   status TEXT DEFAULT 'completed',
+  progress JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -61,6 +84,9 @@ CREATE TABLE public.exercises (
   thumbnail_url TEXT,
   duration INTEGER NOT NULL,
   difficulty difficulty_level NOT NULL DEFAULT 'Iniciante',
+  region_id UUID REFERENCES public.exercise_regions(id),
+  group_type exercise_group_type,
+  is_published BOOLEAN DEFAULT TRUE,
   steps JSONB NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -70,6 +96,7 @@ CREATE TABLE public.user_exercises (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.users NOT NULL,
   exercise_id UUID REFERENCES public.exercises NOT NULL,
+  triagem_id UUID REFERENCES public.triagens(id),
   completed BOOLEAN DEFAULT FALSE,
   completion_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -84,6 +111,7 @@ ALTER TABLE public.pain_symptoms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mental_health_symptoms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_exercises ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exercise_regions ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
 -- Users can only read/write their own data
@@ -126,6 +154,10 @@ CREATE POLICY mental_health_symptoms_policy ON public.mental_health_symptoms
 CREATE POLICY exercises_read_policy ON public.exercises
   FOR SELECT USING (true);
 
+-- All users can read exercise regions
+CREATE POLICY exercise_regions_read_policy ON public.exercise_regions
+  FOR SELECT USING (true);
+
 -- Users can only read/write their own exercise progress
 CREATE POLICY user_exercises_policy ON public.user_exercises
   USING (auth.uid() = user_id)
@@ -153,3 +185,5 @@ CREATE INDEX idx_pain_symptoms_triagem_id ON public.pain_symptoms(triagem_id);
 CREATE INDEX idx_mental_health_symptoms_triagem_id ON public.mental_health_symptoms(triagem_id);
 CREATE INDEX idx_user_exercises_user_id ON public.user_exercises(user_id);
 CREATE INDEX idx_user_exercises_exercise_id ON public.user_exercises(exercise_id);
+CREATE INDEX idx_user_exercises_triagem_id ON public.user_exercises(triagem_id);
+CREATE INDEX idx_exercises_region_id ON public.exercises(region_id);
