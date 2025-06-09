@@ -100,8 +100,8 @@ export const generateMentalHealthExerciseRecommendations = async (
   impactLevel: string
 ): Promise<string[]> => {
   try {
-    // For mental health, we'll focus on exercises that help with relaxation and stress relief
-    // These are typically in the "Alongamento" and "Aquecimento" categories
+    // Map the mental state to appropriate exercise group type
+    const groupType = mapMentalStateToGroupType(mentalState);
     
     // Select appropriate exercises based on mental state and impact level
     const isHighImpact = isHighImpactLevel(impactLevel);
@@ -109,7 +109,7 @@ export const generateMentalHealthExerciseRecommendations = async (
     let exerciseQuery = supabase
       .from('exercises')
       .select('*')
-      .in('group_type', ['Alongamento', 'Aquecimento'])
+      .eq('group_type', groupType)
       .eq('is_published', true);
     
     if (isHighImpact) {
@@ -124,9 +124,53 @@ export const generateMentalHealthExerciseRecommendations = async (
       throw exercisesError;
     }
     
+    // If no specific exercises found for this mental state, fall back to general relaxation exercises
     if (!exercises || exercises.length === 0) {
-      console.warn('No exercises found for the criteria');
-      return [];
+      console.warn('No specific exercises found for mental state, falling back to general exercises');
+      
+      const fallbackQuery = supabase
+        .from('exercises')
+        .select('*')
+        .in('group_type', ['Alongamento', 'Aquecimento', 'Quero manter meu bem-estar'])
+        .eq('is_published', true);
+        
+      if (isHighImpact) {
+        fallbackQuery.eq('difficulty', 'Iniciante');
+      }
+      
+      const { data: fallbackExercises, error: fallbackError } = await fallbackQuery;
+      
+      if (fallbackError) {
+        console.error('Error finding fallback exercises:', fallbackError);
+        throw fallbackError;
+      }
+      
+      if (!fallbackExercises || fallbackExercises.length === 0) {
+        console.warn('No exercises found for the criteria');
+        return [];
+      }
+      
+      // Use fallback exercises
+      const selectedExerciseIds = fallbackExercises.map(ex => ex.id).slice(0, 5);
+      
+      // Create entries in user_exercises table
+      const userExercises = selectedExerciseIds.map(exerciseId => ({
+        user_id: userId,
+        exercise_id: exerciseId,
+        triagem_id: triagemId,
+        completed: false
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('user_exercises')
+        .insert(userExercises);
+      
+      if (insertError) {
+        console.error('Error creating user exercises:', insertError);
+        throw insertError;
+      }
+      
+      return selectedExerciseIds;
     }
     
     // Limit to a reasonable number of exercises (max 5)
@@ -209,6 +253,105 @@ const isHighImpactLevel = (impactLevel: string): boolean => {
   const lowerImpactLevel = impactLevel.toLowerCase();
   
   return highImpactKeywords.some(keyword => lowerImpactLevel.includes(keyword));
+};
+
+/**
+ * Helper function to map mental state to exercise group type
+ */
+const mapMentalStateToGroupType = (mentalState: string): string => {
+  // Direct mapping from form values to exercise group types
+  const formValueToGroupType: Record<string, string> = {
+    // Main feeling options from the form
+    'ansioso': 'Ansioso(a)',
+    'estressado': 'Estressado(a)',
+    'dificuldadeDormir': 'Com dificuldade para dormir',
+    'triste': 'Triste ou desanimado(a)',
+    'irritado': 'Irritado(a)',
+    'manterBemEstar': 'Quero manter meu bem-estar',
+    
+    // Additional form values related to objectives
+    'reduzirAnsiedade': 'Ansioso(a)',
+    'dormirMelhor': 'Com dificuldade para dormir',
+    'controlarPensamentos': 'Ansioso(a)',
+    'melhorarBemEstar': 'Quero manter meu bem-estar',
+    'criarRotina': 'Quero manter meu bem-estar',
+    
+    // Difficulty values that map to mental states
+    'pensamentosAcelerados': 'Ansioso(a)',
+    'preocupacoesExcessivas': 'Ansioso(a)',
+    'dificuldadeRelaxar': 'Estressado(a)',
+    'insonia': 'Com dificuldade para dormir',
+    'oscilacoesHumor': 'Triste ou desanimado(a)',
+    'esgotamentoEmocional': 'Estressado(a)',
+    
+    // Impact values that map to mental states
+    'dificultaConcentracao': 'Ansioso(a)',
+    'semEnergia': 'Triste ou desanimado(a)',
+    'afetaRelacionamentos': 'Irritado(a)',
+    'prejudicaSono': 'Com dificuldade para dormir',
+    'afetaSaudeFisica': 'Estressado(a)',
+    'naoImpacta': 'Quero manter meu bem-estar'
+  };
+  
+  // Check for direct match from form values
+  if (formValueToGroupType[mentalState]) {
+    return formValueToGroupType[mentalState];
+  }
+  
+  // If exact match not found, check for partial matches
+  const stateMap: Record<string, string> = {
+    // Anxiety related terms
+    'ansio': 'Ansioso(a)',
+    'ansiedad': 'Ansioso(a)',
+    'nervos': 'Ansioso(a)',
+    'preocupa': 'Ansioso(a)',
+    'tenso': 'Ansioso(a)',
+    
+    // Stress related terms
+    'stress': 'Estressado(a)',
+    'estress': 'Estressado(a)',
+    'pressão': 'Estressado(a)',
+    'pressao': 'Estressado(a)',
+    'cansad': 'Estressado(a)',
+    'esgotad': 'Estressado(a)',
+    
+    // Sleep related terms
+    'dorm': 'Com dificuldade para dormir',
+    'insônia': 'Com dificuldade para dormir',
+    'insonia': 'Com dificuldade para dormir',
+    'sono': 'Com dificuldade para dormir',
+    
+    // Sadness related terms
+    'triste': 'Triste ou desanimado(a)',
+    'desanima': 'Triste ou desanimado(a)',
+    'deprimi': 'Triste ou desanimado(a)',
+    'melancol': 'Triste ou desanimado(a)',
+    'desanim': 'Triste ou desanimado(a)',
+    
+    // Irritability related terms
+    'irritad': 'Irritado(a)',
+    'raiva': 'Irritado(a)',
+    'nerv': 'Irritado(a)',
+    'impacien': 'Irritado(a)',
+    
+    // Well-being related terms
+    'bem-estar': 'Quero manter meu bem-estar',
+    'bem estar': 'Quero manter meu bem-estar',
+    'relaxa': 'Quero manter meu bem-estar',
+    'tranquil': 'Quero manter meu bem-estar',
+    'equilibr': 'Quero manter meu bem-estar'
+  };
+  
+  // Try to find a match in our map
+  const lowerMentalState = mentalState.toLowerCase();
+  for (const [key, value] of Object.entries(stateMap)) {
+    if (lowerMentalState.includes(key)) {
+      return value;
+    }
+  }
+  
+  // Default to a general well-being if no match found
+  return 'Quero manter meu bem-estar';
 };
 
 /**
