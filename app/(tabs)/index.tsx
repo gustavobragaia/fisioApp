@@ -7,12 +7,13 @@ import ProfileAvatar from '../../components/ProfileAvatar';
 import { supabase } from '../../lib/supabase';
 
 // Types for our data
-type TriagemItem = {
+interface TriagemItem {
   id: string;
   date: string;
   type: string;
   location: string;
-  progress: { completed: number, total: number };
+  groupId: string;
+  progress: { completed: number; total: number };
   status: string;
 };
 
@@ -21,6 +22,7 @@ type UserStats = {
   triagemCount: number;
   consecutiveDays: number;
   lastTriagem?: string;
+  name: string;
 };
 
 // First Access Dashboard Component
@@ -56,7 +58,7 @@ export default function Dashboard() {
   const router = useRouter();
   // State to track if this is the user's first access
   const [isFirstAccess, setIsFirstAccess] = useState<boolean | null>(null);
-  const [userStats, setUserStats] = useState<UserStats>({ exercisesDone: 0, triagemCount: 0, consecutiveDays: 0 });
+  const [userStats, setUserStats] = useState<UserStats>({ exercisesDone: 0, triagemCount: 0, consecutiveDays: 0, name: '' });
   const [triagemHistory, setTriagemHistory] = useState<TriagemItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -77,6 +79,18 @@ export default function Dashboard() {
         
         const userId = userData.user.id;
         
+        // Get user data to retrieve the name
+        const { data: userData2, error: userDataError } = await supabase
+          .from('users')
+          .select('name')
+          .eq('id', userId)
+          .single();
+          
+        if (userDataError) {
+          console.error('Error fetching user data:', userDataError);
+          // Continue with the rest of the data loading even if user data fetch fails
+        }
+        
         // Get user's triagens
         const { data: triagemData, error: triagemError } = await supabase
           .from('triagens')
@@ -96,6 +110,7 @@ export default function Dashboard() {
         for (const triagem of triagemData || []) {
           // Get location/symptom details based on triagem type
           let location = '';
+          let groupId = '';
           
           if (triagem.type === 'pain') {
             const { data: painData } = await supabase
@@ -105,6 +120,10 @@ export default function Dashboard() {
               .single();
               
             location = painData?.dor_com_mais_freq || 'Dor';
+            
+            // For pain type, we'll use the location as the group_id
+            // Common group_ids for pain: 'Pescoço', 'Lombar', 'Ombro', etc.
+            groupId = location;
           } else if (triagem.type === 'mental') {
             const { data: mentalData } = await supabase
               .from('mental_health_symptoms')
@@ -113,6 +132,10 @@ export default function Dashboard() {
               .single();
               
             location = mentalData?.como_esta_sentindo || 'Saúde Mental';
+            
+            // For mental health, use the feeling as the group_id
+            // Common group_ids for mental health: 'Ansioso(a)', 'Estressado(a)', etc.
+            groupId = location;
           }
           
           // Get progress (completed vs total exercises)
@@ -130,6 +153,7 @@ export default function Dashboard() {
             date: triagem.created_at,
             type: triagem.type === 'pain' ? 'Dor' : 'Saúde Mental',
             location: location,
+            groupId: groupId, // Include the groupId field
             progress: { completed, total },
             status: triagem.status || 'Em andamento'
           });
@@ -140,7 +164,8 @@ export default function Dashboard() {
           exercisesDone: 0,
           triagemCount: formattedTriagemHistory.length,
           consecutiveDays: 0,
-          lastTriagem: formattedTriagemHistory[0]?.date
+          lastTriagem: formattedTriagemHistory[0]?.date,
+          name: userData2?.name || userData.user.email?.split('@')[0] || 'Usuário'
         };
         
         // Count total completed exercises
@@ -210,9 +235,9 @@ export default function Dashboard() {
     <SafeAreaView className="flex-1 bg-paleSand">
       <ScrollView className="flex-1 px-4">
         <View className="items-center pt-6 pb-4">
-          <ProfileAvatar name="Gustavo" size={120} />
-          <Text className="text-textPrimary text-xl font-bold mt-4">Olá, Gustavo!</Text>
-        </View>
+          <ProfileAvatar name={userStats.name} size={120} />
+          <Text className="text-textPrimary text-xl font-bold mt-4">{userStats.name}</Text>
+        </View> 
         
         {isFirstAccess ? (
           <FirstAccessDashboard />
@@ -268,7 +293,17 @@ export default function Dashboard() {
                 
                 <View className="flex-row justify-between items-center">
                   <Text className="text-textPrimary text-sm">{triagemHistory[0].progress.completed} de {triagemHistory[0].progress.total} exercícios concluídos</Text>
-                  <TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      console.log('Continuar button - navigating to triagem with ID:', triagemHistory[0].id);
+                      const params = {
+                        id: triagemHistory[0].id,
+                        type: triagemHistory[0].type === 'Dor' ? 'pain' : 'mental'
+                      };
+                      const queryString = `?id=${encodeURIComponent(params.id)}&type=${encodeURIComponent(params.type)}`;
+                      router.push(`/(tabs)/(triagem)/diagnostic-ideal${queryString}`);
+                    }}
+                  >
                     <Text className="text-deepBlue font-medium">Continuar</Text>
                   </TouchableOpacity>
                 </View>
@@ -282,10 +317,21 @@ export default function Dashboard() {
               {triagemHistory.length > 0 ? (
                 <FlatList
                   data={triagemHistory}
-                  renderItem={({ item }) => (
+                  renderItem={({ item }) => {
+                    console.log('Rendering triagem item with ID:', item.id);
+                    return (
                     <TouchableOpacity 
                       className="bg-white rounded-lg p-4 mb-3 shadow-sm flex-row justify-between items-center"
-                      onPress={() => router.push({ pathname: '/(tabs)/(triagem)/diagnostic-ideal', params: { id: item.id } })}
+                      onPress={() => {
+                        console.log('Navigating to triagem with ID:', item.id);
+                        // Use a different approach for passing parameters
+                        const params = {
+                          id: item.id,
+                          type: item.type === 'Dor' ? 'pain' : 'mental'
+                        };
+                        const queryString = `?id=${encodeURIComponent(item.id)}&type=${encodeURIComponent(params.type)}`;
+                        router.push(`/(tabs)/(triagem)/diagnostic-ideal${queryString}`);
+                      }}
                     >
                       <View>
                         <Text className="font-bold text-deepBlue">Triagem - {item.location}</Text>
@@ -298,7 +344,8 @@ export default function Dashboard() {
                         </View>
                       </View>
                     </TouchableOpacity>
-                  )}
+                    );
+                  }}
                   keyExtractor={item => item.id}
                   scrollEnabled={false}
                   nestedScrollEnabled={true}

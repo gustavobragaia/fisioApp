@@ -39,20 +39,24 @@ type ApiResponseData = {
 
 type ResultDiagnosticProps = {
   type?: 'pain' | 'mental';
+  triagemId?: string; // Add triagemId prop
 };
 
 
-function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProps) {
+function ResultDiagnostic({ type = 'pain', triagemId: propTriagemId }: ResultDiagnosticProps) {
   // Get the params from the route and router for navigation
   const params = useLocalSearchParams<PainDiagnosticParams & MentalHealthParams>();
   const router = useRouter();
+  
+  console.log('ResultDiagnostic received triagemId prop:', propTriagemId);
+  console.log('ResultDiagnostic type:', type);
   
   // State for storing actual exercises from database
   const [actualExercises, setActualExercises] = useState<Record<string, any[]>>({});
   const [exerciseCategories, setExerciseCategories] = useState<any[]>([]);
   const [loadingExercises, setLoadingExercises] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [triagemId, setTriagemId] = useState<string | null>(null);
+  const [triagemId, setTriagemId] = useState<string | null>(propTriagemId || null);
   
   // Parse the API response
   const parseApiResponse = () => {
@@ -170,30 +174,37 @@ function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProps) {
         
         setUserId(user.id);
         
-        // Get the latest triagem for this user
-        const { data: triagens, error: triagemError } = await supabase
-          .from('triagens')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('type', type)
-          .order('created_at', { ascending: false })
-          .limit(1);
+        // Use the triagemId from props if available, otherwise get the latest triagem
+        let currentTriagemId = triagemId;
         
-        if (triagemError || !triagens || triagens.length === 0) {
-          console.error('Error fetching triagem:', triagemError);
-          setLoadingExercises(false);
-          return;
+        if (!currentTriagemId) {
+          // If no triagemId provided, get the latest triagem for this user
+          const { data: triagens, error: triagemError } = await supabase
+            .from('triagens')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('type', type)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (triagemError || !triagens || triagens.length === 0) {
+            console.error('Error fetching triagem:', triagemError);
+            setLoadingExercises(false);
+            return;
+          }
+          
+          currentTriagemId = triagens[0].id;
+          setTriagemId(currentTriagemId);
         }
         
-        const latestTriagemId = triagens[0].id;
-        setTriagemId(latestTriagemId);
+        console.log('Fetching exercises for triagem ID:', currentTriagemId);
         
         // Get user exercises for this triagem
         const { data: userExercises, error: userExercisesError } = await supabase
           .from('user_exercises')
           .select('exercise_id')
           .eq('user_id', user.id)
-          .eq('triagem_id', latestTriagemId);
+          .eq('triagem_id', currentTriagemId);
         
         if (userExercisesError) {
           console.error('Error fetching user exercises:', userExercisesError);
@@ -255,7 +266,7 @@ function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProps) {
     };
     
     fetchUserData();
-  }, [type]);
+  }, [type, triagemId]);
   
   // Helper function to get a friendly name for group types
   const getGroupTypeName = (groupType: string): string => {
