@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, ScrollView, SafeAreaView, FlatList, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, SafeAreaView, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import colors from '../styles/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { supabase } from '../lib/supabase';
 
 type PainDiagnosticParams = {
   dorComMaisFreq: string;
@@ -41,10 +42,17 @@ type ResultDiagnosticProps = {
 };
 
 
-export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProps) {
+function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProps) {
   // Get the params from the route and router for navigation
   const params = useLocalSearchParams<PainDiagnosticParams & MentalHealthParams>();
   const router = useRouter();
+  
+  // State for storing actual exercises from database
+  const [actualExercises, setActualExercises] = useState<Record<string, any[]>>({});
+  const [exerciseCategories, setExerciseCategories] = useState<any[]>([]);
+  const [loadingExercises, setLoadingExercises] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [triagemId, setTriagemId] = useState<string | null>(null);
   
   // Parse the API response
   const parseApiResponse = () => {
@@ -124,7 +132,10 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
     },
   ];
   
-  const exercicios = parsedResponse?.output?.Exercicios || (type === 'pain' ? painExercises : mentalExercises);
+  // Use exercise categories from database if available, otherwise fall back to mock data
+  const exercicios = exerciseCategories.length > 0 ? 
+    exerciseCategories : 
+    (parsedResponse?.output?.Exercicios || (type === 'pain' ? painExercises : mentalExercises));
   
   // Get exercise type class for NativeWind
   const getExerciseTypeClass = (tipo: string) => {
@@ -146,8 +157,166 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
     return typeClasses[tipo] || {bg: 'bg-[#F4F1EE]', text: 'text-textPrimary'};
   };
 
-  // Mock exercises for each category
-  const mockExercisesForCategory = (categoryType: string) => {
+  // Fetch user exercises from the database
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoadingExercises(false);
+          return;
+        }
+        
+        setUserId(user.id);
+        
+        // Get the latest triagem for this user
+        const { data: triagens, error: triagemError } = await supabase
+          .from('triagens')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('type', type)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (triagemError || !triagens || triagens.length === 0) {
+          console.error('Error fetching triagem:', triagemError);
+          setLoadingExercises(false);
+          return;
+        }
+        
+        const latestTriagemId = triagens[0].id;
+        setTriagemId(latestTriagemId);
+        
+        // Get user exercises for this triagem
+        const { data: userExercises, error: userExercisesError } = await supabase
+          .from('user_exercises')
+          .select('exercise_id')
+          .eq('user_id', user.id)
+          .eq('triagem_id', latestTriagemId);
+        
+        if (userExercisesError) {
+          console.error('Error fetching user exercises:', userExercisesError);
+          setLoadingExercises(false);
+          return;
+        }
+        
+        if (!userExercises || userExercises.length === 0) {
+          console.log('No exercises found for this triagem');
+          setLoadingExercises(false);
+          return;
+        }
+        
+        // Get the actual exercises
+        const exerciseIds = userExercises.map(ue => ue.exercise_id);
+        const { data: exercises, error: exercisesError } = await supabase
+          .from('exercises')
+          .select('*')
+          .in('id', exerciseIds);
+        
+        if (exercisesError) {
+          console.error('Error fetching exercises:', exercisesError);
+          setLoadingExercises(false);
+          return;
+        }
+        
+        // Group exercises by group_type
+        const groupedExercises: Record<string, any[]> = {};
+        exercises?.forEach(exercise => {
+          const groupType = exercise.group_type;
+          if (!groupedExercises[groupType]) {
+            groupedExercises[groupType] = [];
+          }
+          groupedExercises[groupType].push(exercise);
+        });
+        
+        // Create exercise category items from the grouped exercises
+        const exerciseCategories = Object.keys(groupedExercises).map(groupType => {
+          const exercisesInGroup = groupedExercises[groupType];
+          return {
+            nome: getGroupTypeName(groupType),
+            descricao: `${exercisesInGroup.length} exercício(s) recomendado(s)`,
+            tipo: groupType,
+            imageUrl: 'https://via.placeholder.com/150'
+          };
+        });
+        
+        // If we have exercise categories, use them instead of mock data
+        if (exerciseCategories.length > 0) {
+          setExerciseCategories(exerciseCategories);
+        }
+        
+        setActualExercises(groupedExercises);
+        setLoadingExercises(false);
+      } catch (error) {
+        console.error('Error in fetchUserData:', error);
+        setLoadingExercises(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [type]);
+  
+  // Helper function to get a friendly name for group types
+  const getGroupTypeName = (groupType: string): string => {
+    const groupTypeNames: Record<string, string> = {
+      'Alívio imediato da dor': 'Alívio de Dor',
+      'Alongamento': 'Alongamento',
+      'Aquecimento': 'Aquecimento',
+      'Fortalecimento muscular': 'Fortalecimento',
+      'Ansioso(a)': 'Exercícios para Ansiedade',
+      'Estressado(a)': 'Alívio de Estresse',
+      'Com dificuldade para dormir': 'Melhoria do Sono',
+      'Triste ou desanimado(a)': 'Elevação do Humor',
+      'Irritado(a)': 'Controle da Irritabilidade',
+      'Quero manter meu bem-estar': 'Bem-estar Geral'
+    };
+    
+    return groupTypeNames[groupType] || groupType;
+  };
+  
+  // Get exercises for a specific category - use actual data if available, fallback to mock
+  const getExercisesForCategory = (categoryType: string) => {
+    // If we have actual exercises for this category, use them
+    if (actualExercises[categoryType] && actualExercises[categoryType].length > 0) {
+      return actualExercises[categoryType].map(ex => {
+        // Parse steps if it's a string (JSONB from database)
+        let parsedSteps = [];
+        try {
+          if (Array.isArray(ex.steps)) {
+            // Keep steps as objects if they are objects
+            parsedSteps = ex.steps;
+          } else if (typeof ex.steps === 'string') {
+            const parsed = JSON.parse(ex.steps);
+            if (Array.isArray(parsed)) {
+              parsedSteps = parsed;
+            } else {
+              // If it's an object but not an array, convert to array
+              parsedSteps = Object.values(parsed);
+            }
+          } else if (ex.steps && typeof ex.steps === 'object') {
+            // Handle case where steps might already be parsed as object
+            parsedSteps = Object.values(ex.steps);
+          }
+        } catch (error) {
+          console.error('Error parsing exercise steps:', error);
+          parsedSteps = [];
+        }
+        
+        return {
+          id: ex.id,
+          name: ex.name,
+          description: ex.description,
+          imageUrl: ex.thumbnail_url || 'https://via.placeholder.com/150',
+          videoUrl: ex.video_url,
+          steps: parsedSteps,
+          duration: `${ex.duration || 30} segundos`,
+          difficulty: ex.difficulty
+        };
+      });
+    }
+    
+    // Otherwise fall back to mock data
     // Mental health specific exercises
     const mentalExercisesByType: Record<string, any[]> = {
       'meditacao': [
@@ -308,13 +477,14 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
         className="bg-slate-50 p-4 rounded-lg shadow-sm mb-4"
         onPress={() => {
           // Navigate to exercise category screen with the category data
-          const exercises = mockExercisesForCategory(item.tipo);
+          const exercises = getExercisesForCategory(item.tipo);
           router.push({
             pathname: '/(tabs)/(triagem)/(exercises)/exercise-group',
             params: {
               categoryName: item.nome,
               categoryType: item.tipo,
-              exercises: JSON.stringify(exercises)
+              exercises: JSON.stringify(exercises),
+              triagemId: triagemId || undefined
             }
           });
         }}
@@ -344,20 +514,20 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1 p-4">
 
-        {/* Motivational Phrase */}
+        {/* App Logo */}
         <View className="items-center mb-6">
-          <Text className="text-2xl font-bold text-textPrimary text-left">
-            {fraseMotivacional}
-          </Text>
-        </View>
-        
-        {/* Image Space */}
-        <View className={`h-40 ${type === 'pain' ? 'bg-[#CDEFE8]' : 'bg-[#8E9BFF40]'} rounded-xl mb-6 items-center justify-center`}>
           <Image 
             source={require('../assets/images/favicon.png')} 
             className="w-20 h-20"
             resizeMode="contain"
           />
+        </View>
+        
+        {/* Motivational Phrase */}
+        <View className="items-center mb-6">
+          <Text className="text-2xl font-bold text-textPrimary text-left">
+            {fraseMotivacional}
+          </Text>
         </View>
         
         {/* Personalized Message */}
@@ -376,13 +546,28 @@ export default function ResultDiagnostic({ type = 'pain' }: ResultDiagnosticProp
         <Text className="text-xl font-bold text-deepBlue mb-4">
           {type === 'pain' ? 'Exercícios Recomendados' : 'Práticas Recomendadas'}
         </Text>
-        <FlatList
-          data={exercicios}
-          renderItem={renderExerciseItem}
-          keyExtractor={(item, index) => `exercise-${index}`}
-          scrollEnabled={false} // Disable scrolling as we're inside a ScrollView
-        />
+        
+        {loadingExercises ? (
+          <View className="items-center py-8">
+            <ActivityIndicator size="large" color={colors.light.deepBlue} />
+            <Text className="text-textPrimary mt-2">Carregando exercícios...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={exercicios}
+            renderItem={renderExerciseItem}
+            keyExtractor={(item, index) => `exercise-${index}`}
+            scrollEnabled={false} // Disable scrolling as we're inside a ScrollView
+            ListEmptyComponent={
+              <View className="items-center py-8">
+                <Text className="text-textPrimary">Nenhum exercício encontrado</Text>
+              </View>
+            }
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
+
+export default ResultDiagnostic;

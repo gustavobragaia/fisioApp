@@ -27,7 +27,15 @@ export default function SingleExerciseScreen() {
   const exerciseSteps = React.useMemo(() => {
     try {
       if (params.exerciseSteps) {
-        return JSON.parse(params.exerciseSteps) as string[];
+        const parsed = JSON.parse(params.exerciseSteps);
+        
+        // Keep the objects intact for proper rendering
+        if (Array.isArray(parsed)) {
+          return parsed;
+        } else if (typeof parsed === 'object') {
+          // If it's an object but not an array, convert to array
+          return Object.values(parsed);
+        }
       }
       return [];
     } catch (error) {

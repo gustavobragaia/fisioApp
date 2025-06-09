@@ -5,11 +5,16 @@ import colors from '../styles/colors';
 
 const { width } = Dimensions.get('window');
 
+export type StepType = {
+  title?: string;
+  description?: string;
+} | string;
+
 export type ExerciseProps = {
   id: string;
   name: string;
   videoUrl?: string;
-  steps?: string[];
+  steps?: StepType[];
   onComplete?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
@@ -135,12 +140,29 @@ export default function Exercise({
       {steps.length > 0 && (
         <View className="bg-white p-4 rounded-lg shadow-sm">
           <Text className="text-lg font-bold text-deepBlue mb-2">Como fazer:</Text>
-          {steps.map((step, index) => (
-            <View key={index} className="flex-row mb-2">
-              <Text className="text-deepBlue font-bold mr-2">{index + 1}.</Text>
-              <Text className="text-textPrimary flex-1">{step}</Text>
-            </View>
-          ))}
+          {steps.map((step, index) => {
+            // Check if step is an object with title and description
+            const isStepObject = typeof step === 'object' && step !== null;
+            const title = isStepObject && 'title' in step ? step.title : '';
+            const description = isStepObject && 'description' in step ? step.description : '';
+            
+            // If step is a string or can't be parsed as an object, just show it as is
+            const stepContent = isStepObject ? (
+              <View>
+                {title && <Text className="text-textPrimary font-bold">{title}</Text>}
+                {description && <Text className="text-textPrimary">{description}</Text>}
+              </View>
+            ) : (
+              <Text className="text-textPrimary flex-1">{String(step)}</Text>
+            );
+            
+            return (
+              <View key={index} className="flex-row mb-4">
+                <Text className="text-deepBlue font-bold mr-2">{index + 1}.</Text>
+                <View className="flex-1">{stepContent}</View>
+              </View>
+            );
+          })}
         </View>
       )}
       

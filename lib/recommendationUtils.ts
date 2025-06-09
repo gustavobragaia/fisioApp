@@ -205,25 +205,40 @@ export const generateMentalHealthExerciseRecommendations = async (
  * Helper function to map pain location to anatomical region
  */
 const mapPainLocationToRegion = (painLocation: string): string => {
-  // Map common pain locations to our anatomical regions
+  // Direct mapping from UI values to database region names
   const locationMap: Record<string, string> = {
+    // UI values to database region names
+    'pescoco': 'Pescoço',
+    'ombros': 'Ombros',
+    'colunaToracica': 'Coluna Torácica',
+    'lombar': 'Coluna Lombar',
+    'quadril': 'Quadril',
+    'joelhos': 'Joelhos',
+    'tornozelos': 'Tornozelos e Pés',
+    'cotovelos': 'Cotovelos',
+    'punhos': 'Punhos e Mãos',
+    
+    // Also keep the partial matching for flexibility
     'pé': 'Tornozelos e Pés',
     'tornozelo': 'Tornozelos e Pés',
     'joelho': 'Joelhos',
-    'quadril': 'Quadril',
-    'lombar': 'Coluna Lombar',
     'costas baixas': 'Coluna Lombar',
     'costas': 'Coluna Torácica',
     'torácica': 'Coluna Torácica',
-    'pescoço': 'Coluna Cervical',
-    'cervical': 'Coluna Cervical',
+    'pescoço': 'Pescoço',
+    'cervical': 'Pescoço',
     'ombro': 'Ombros',
     'cotovelo': 'Cotovelos',
     'punho': 'Punhos e Mãos',
     'mão': 'Punhos e Mãos'
   };
   
-  // Try to find a match in our map
+  // First try exact match with UI values
+  if (locationMap[painLocation]) {
+    return locationMap[painLocation];
+  }
+  
+  // Then try partial matching for flexibility
   const lowerPainLocation = painLocation.toLowerCase();
   for (const [key, value] of Object.entries(locationMap)) {
     if (lowerPainLocation.includes(key)) {
@@ -232,6 +247,7 @@ const mapPainLocationToRegion = (painLocation: string): string => {
   }
   
   // Default to a common region if no match found
+  console.log(`No region mapping found for: ${painLocation}, defaulting to Coluna Lombar`);
   return 'Coluna Lombar';
 };
 
