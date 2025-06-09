@@ -83,9 +83,10 @@ export default function SingleExerciseScreen() {
     if (currentIndex === totalExercises - 1) {
       setShowFeedback(true);
     }
-    // No automatic navigation to the next exercise
-    // The user will need to click the "Next" button which is now enabled after completion
-    console.log('Exercise completed!');
+    
+    // Exercise is now complete, but we'll only mark it as completed in the database
+    // when the user clicks the "PRÓXIMO" button
+    console.log('Exercise completed! Ready for user to click PRÓXIMO');
   };
 
   const handlePreviousExercise = () => {
@@ -110,8 +111,32 @@ export default function SingleExerciseScreen() {
     }
   };
   
-  const handleNextExercise = () => {
+  const handleNextExercise = async () => {
     if (currentIndex < totalExercises - 1) {
+      // Mark the current exercise as completed in the database
+      if (userId && params.exerciseId && params.triagemId) {
+        try {
+          // Update the user_exercises record to mark it as completed
+          const { error } = await supabase
+            .from('user_exercises')
+            .update({
+              completed: true,
+              completion_date: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('exercise_id', params.exerciseId)
+            .eq('triagem_id', params.triagemId);
+          
+          if (error) {
+            console.error('Error updating exercise completion status:', error);
+          } else {
+            console.log('Exercise marked as completed successfully!');
+          }
+        } catch (error) {
+          console.error('Error in handleNextExercise:', error);
+        }
+      }
+      
       // Reset feedback state first
       setShowFeedback(false);
       
