@@ -1,5 +1,6 @@
 
-import { User } from '../types/supabase';
+import { User, PainSymptoms, Triagem } from '../types/supabase';
+import { supabase } from '../lib/supabase';
 
 // verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
@@ -23,6 +24,45 @@ const handlePainSendSymptomsToN8n = async(
       console.log(nivelDeDor)
       console.log(comoAfetaMinhaVida)
       console.log(oQueGostariaDeAlcançarComAlivio)
+      
+      // Only persist data if user is authenticated
+      if (user?.id) {
+        try {
+          // 1. Create triagem record
+          const { data: triagemData, error: triagemError } = await supabase
+            .from('triagens')
+            .insert({
+              user_id: user.id,
+              type: 'pain',
+              status: 'completed'
+            })
+            .select()
+            .single();
+            
+          if (triagemError) throw triagemError;
+          
+          // 2. Create pain symptoms record
+          const { error: symptomsError } = await supabase
+            .from('pain_symptoms')
+            .insert({
+              triagem_id: triagemData.id,
+              dor_com_mais_freq: dorComMaisFreq,
+              dor_aparece_em_qual_situacao: dorApareceEmQualSituacao,
+              tipo_de_dor: tipoDeDor,
+              quando_dor_comecou: quandoDorComecou,
+              nivel_de_dor: nivelDeDor,
+              como_afeta_minha_vida: comoAfetaMinhaVida,
+              o_que_gostaria_de_alcancar_com_alivio: oQueGostariaDeAlcançarComAlivio
+            });
+            
+          if (symptomsError) throw symptomsError;
+          
+          console.log('Pain symptoms data persisted successfully');
+        } catch (dbError) {
+          console.error('Error persisting pain symptoms data:', dbError);
+          // Continue with n8n integration even if database persistence fails
+        }
+      }
 
       // Prepare user data if available
       const userData = user ? {

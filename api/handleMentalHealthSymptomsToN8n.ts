@@ -1,4 +1,5 @@
-import { User } from '../types/supabase';
+import { User, MentalHealthSymptoms, Triagem } from '../types/supabase';
+import { supabase } from '../lib/supabase';
 
 // verify if emulator is with wifi active
 const API_URL = 'https://fisioapplesgo.app.n8n.cloud';
@@ -20,6 +21,44 @@ const handleMentalHealthSymptomsToN8n = async(
       console.log(impactoRotina)
       console.log(buscouAjuda)
       console.log(objetivoAlivio)
+      
+      // Only persist data if user is authenticated
+      if (user?.id) {
+        try {
+          // 1. Create triagem record
+          const { data: triagemData, error: triagemError } = await supabase
+            .from('triagens')
+            .insert({
+              user_id: user.id,
+              type: 'mental',
+              status: 'completed'
+            })
+            .select()
+            .single();
+            
+          if (triagemError) throw triagemError;
+          
+          // 2. Create mental health symptoms record
+          const { error: symptomsError } = await supabase
+            .from('mental_health_symptoms')
+            .insert({
+              triagem_id: triagemData.id,
+              como_esta_sentindo: comoEstaSentindo,
+              frequencia_sentimento: frequenciaSentimento,
+              dificuldade_frequente: dificuldadeFrequente,
+              impacto_rotina: impactoRotina,
+              buscou_ajuda: buscouAjuda,
+              objetivo_alivio: objetivoAlivio
+            });
+            
+          if (symptomsError) throw symptomsError;
+          
+          console.log('Mental health symptoms data persisted successfully');
+        } catch (dbError) {
+          console.error('Error persisting mental health symptoms data:', dbError);
+          // Continue with n8n integration even if database persistence fails
+        }
+      }
 
       // Prepare user data if available
       const userData = user ? {
