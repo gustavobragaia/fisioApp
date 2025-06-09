@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../styles/colors';
 import ProfileAvatar from '../../components/ProfileAvatar';
+import { supabase } from '../../lib/supabase';
 
 // Types for our data
 type TriagemItem = {
@@ -60,56 +61,135 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching data from Supabase
+    // Fetch real data from Supabase
     const fetchData = async () => {
       try {
-        // This would be replaced with actual Supabase queries
-        setTimeout(() => {
-          // Mock data - in real app, this would come from Supabase
-          const mockTriagemHistory = [
-            { 
-              id: '1', 
-              date: '2025-05-28', 
-              type: 'Triagem', 
-              location: 'Dor nas Costas',
-              progress: { completed: 3, total: 8 },
-              status: 'Em andamento' 
-            },
-            { 
-              id: '2', 
-              date: '2025-05-20', 
-              type: 'Triagem', 
-              location: 'Dor no Joelho',
-              progress: { completed: 6, total: 6 },
-              status: 'Concluído' 
-            },
-            { 
-              id: '3', 
-              date: '2025-05-15', 
-              type: 'Triagem', 
-              location: 'Dor no Ombro',
-              progress: { completed: 5, total: 5 },
-              status: 'Concluído' 
-            }
-          ];
-          
-          const mockUserStats = {
-            exercisesDone: 14,
-            triagemCount: 3,
-            consecutiveDays: 5,
-            lastTriagem: '2025-05-28'
-          };
-
-          // Check if user has any previous triagem
-          const hasTriagemHistory = mockTriagemHistory.length > 0;
-          
-          setIsFirstAccess(!hasTriagemHistory);
-          setUserStats(mockUserStats);
-          setTriagemHistory(mockTriagemHistory);
+        setIsLoading(true);
+        
+        // Get current user
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !userData.user) {
+          console.error('Error fetching user:', userError);
           setIsLoading(false);
-        }, 1000); // Simulate network delay
+          return;
+        }
+        
+        const userId = userData.user.id;
+        
+        // Get user's triagens
+        const { data: triagemData, error: triagemError } = await supabase
+          .from('triagens')
+          .select('id, created_at, type, status')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+          
+        if (triagemError) {
+          console.error('Error fetching triagens:', triagemError);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Format triagem data and get additional details for each triagem
+        const formattedTriagemHistory: TriagemItem[] = [];
+        
+        for (const triagem of triagemData || []) {
+          // Get location/symptom details based on triagem type
+          let location = '';
+          
+          if (triagem.type === 'pain') {
+            const { data: painData } = await supabase
+              .from('pain_symptoms')
+              .select('dor_com_mais_freq')
+              .eq('triagem_id', triagem.id)
+              .single();
+              
+            location = painData?.dor_com_mais_freq || 'Dor';
+          } else if (triagem.type === 'mental') {
+            const { data: mentalData } = await supabase
+              .from('mental_health_symptoms')
+              .select('como_esta_sentindo')
+              .eq('triagem_id', triagem.id)
+              .single();
+              
+            location = mentalData?.como_esta_sentindo || 'Saúde Mental';
+          }
+          
+          // Get progress (completed vs total exercises)
+          const { data: exercisesData } = await supabase
+            .from('user_exercises')
+            .select('completed')
+            .eq('triagem_id', triagem.id)
+            .eq('user_id', userId);
+            
+          const total = exercisesData?.length || 0;
+          const completed = exercisesData?.filter((ex: { completed: boolean }) => ex.completed).length || 0;
+          
+          formattedTriagemHistory.push({
+            id: triagem.id,
+            date: triagem.created_at,
+            type: triagem.type === 'pain' ? 'Dor' : 'Saúde Mental',
+            location: location,
+            progress: { completed, total },
+            status: triagem.status || 'Em andamento'
+          });
+        }
+        
+        // Calculate user stats
+        const stats: UserStats = {
+          exercisesDone: 0,
+          triagemCount: formattedTriagemHistory.length,
+          consecutiveDays: 0,
+          lastTriagem: formattedTriagemHistory[0]?.date
+        };
+        
+        // Count total completed exercises
+        const { data: completedExercises } = await supabase
+          .from('user_exercises')
+          .select('completion_date')
+          .eq('user_id', userId)
+          .eq('completed', true);
+          
+        stats.exercisesDone = completedExercises?.length || 0;
+        
+        // Calculate consecutive days (simplified version)
+        // For a more accurate version, we would need to check each day
+        if (completedExercises && completedExercises.length > 0) {
+          // Get unique dates when exercises were completed
+          const uniqueDates = new Set<string>();
+          completedExercises.forEach((ex: { completion_date: string | null }) => {
+            if (ex.completion_date) {
+              uniqueDates.add(new Date(ex.completion_date).toDateString());
+            }
+          });
+          
+          // Count consecutive days from today backwards
+          const today = new Date();
+          let consecutiveDays = 0;
+          
+          for (let i = 0; i < 30; i++) { // Check up to 30 days back
+            const checkDate = new Date(today);
+            checkDate.setDate(today.getDate() - i);
+            
+            if (uniqueDates.has(checkDate.toDateString())) {
+              consecutiveDays++;
+            } else if (i > 0) { // If we find a gap after the first day, stop counting
+              break;
+            }
+          }
+          
+          stats.consecutiveDays = consecutiveDays;
+        }
+
+        // Check if user has any previous triagem
+        const hasTriagemHistory = formattedTriagemHistory.length > 0;
+        
+        setIsFirstAccess(!hasTriagemHistory);
+        setUserStats(stats);
+        setTriagemHistory(formattedTriagemHistory);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
         setIsLoading(false);
       }
     };
