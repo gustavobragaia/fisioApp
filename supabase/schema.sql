@@ -3,10 +3,10 @@ CREATE TYPE triagem_type AS ENUM ('pain', 'mental');
 CREATE TYPE difficulty_level AS ENUM ('Iniciante', 'Intermediário', 'Avançado');
 CREATE TYPE exercise_group_type AS ENUM (
   -- Physical health categories
-  'Alívio imediato da dor',
+  'Alívio Imediato da Dor',
   'Alongamento',
   'Aquecimento',
-  'Fortalecimento muscular',
+  'Fortalecimento Muscular',
   
   -- Mental health categories
   'Ansioso(a)',
