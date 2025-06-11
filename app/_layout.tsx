@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
 import { Stack } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 import "./global.css";
-import { View, Text } from "react-native";
 
 // Import the proper AuthProvider from contexts
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
@@ -19,7 +19,7 @@ export default function RootLayout() {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <Text className="text-lg text-primary font-medium">Carregando...</Text>
-      </View>
+        </View>
     );
   }
 
@@ -33,16 +33,11 @@ export default function RootLayout() {
 
 // Separate component for navigation that can access the auth context
 function AppNavigator() {
-  const { session, isLoading } = useAuth();
+  // Get auth context but don't depend on isLoading
+  const { session } = useAuth();
   
-  // Show loading screen while checking authentication
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <Text className="text-lg text-primary font-medium">Carregando...</Text>
-      </View>
-    );
-  }
+  // Force the app to continue regardless of authentication state
+  // This is a temporary fix to bypass the infinite loading issue
   
   // Use Expo Router's Stack for navigation
   return (

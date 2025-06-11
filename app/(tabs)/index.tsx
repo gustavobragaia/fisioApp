@@ -108,42 +108,55 @@ export default function Dashboard() {
         const formattedTriagemHistory: TriagemItem[] = [];
         
         for (const triagem of triagemData || []) {
-          // Get location/symptom details based on triagem type
-          let location = '';
-          let groupId = '';
-          
-          if (triagem.type === 'pain') {
-            const { data: painData } = await supabase
-              .from('pain_symptoms')
-              .select('dor_com_mais_freq')
-              .eq('triagem_id', triagem.id)
-              .single();
-              
-            location = painData?.dor_com_mais_freq || 'Dor';
+          try {
+            // Get location/symptom details based on triagem type
+            let location = '';
+            let groupId = '';
             
-            // For pain type, we'll use the location as the group_id
-            // Common group_ids for pain: 'Pescoço', 'Lombar', 'Ombro', etc.
-            groupId = location;
-          } else if (triagem.type === 'mental') {
-            const { data: mentalData } = await supabase
-              .from('mental_health_symptoms')
-              .select('como_esta_sentindo')
-              .eq('triagem_id', triagem.id)
-              .single();
+            if (triagem.type === 'pain') {
+              const { data: painData, error: painError } = await supabase
+                .from('pain_symptoms')
+                .select('dor_com_mais_freq')
+                .eq('triagem_id', triagem.id)
+                .single();
+                
+              if (painError) {
+                console.error('Error fetching pain data:', painError);
+              }
               
-            location = mentalData?.como_esta_sentindo || 'Saúde Mental';
+              location = painData?.dor_com_mais_freq || 'Dor';
+              
+              // For pain type, we'll use the location as the group_id
+              // Common group_ids for pain: 'Pescoço', 'Lombar', 'Ombro', etc.
+              groupId = location;
+            } else if (triagem.type === 'mental') {
+              const { data: mentalData, error: mentalError } = await supabase
+                .from('mental_health_symptoms')
+                .select('como_esta_sentindo')
+                .eq('triagem_id', triagem.id)
+                .single();
+                
+              if (mentalError) {
+                console.error('Error fetching mental health data:', mentalError);
+              }
+              
+              location = mentalData?.como_esta_sentindo || 'Saúde Mental';
+              
+              // For mental health, use the feeling as the group_id
+              // Common group_ids for mental health: 'Ansioso(a)', 'Estressado(a)', etc.
+              groupId = location;
+            }
             
-            // For mental health, use the feeling as the group_id
-            // Common group_ids for mental health: 'Ansioso(a)', 'Estressado(a)', etc.
-            groupId = location;
-          }
-          
-          // Get progress (completed vs total exercises)
-          const { data: exercisesData } = await supabase
-            .from('user_exercises')
-            .select('completed')
-            .eq('triagem_id', triagem.id)
-            .eq('user_id', userId);
+            // Get progress (completed vs total exercises)
+            const { data: exercisesData, error: exercisesError } = await supabase
+              .from('user_exercises')
+              .select('completed')
+              .eq('triagem_id', triagem.id)
+              .eq('user_id', userId);
+              
+            if (exercisesError) {
+              console.error('Error fetching exercises data:', exercisesError);
+            }
             
           const total = exercisesData?.length || 0;
           const completed = exercisesData?.filter((ex: { completed: boolean }) => ex.completed).length || 0;
@@ -157,6 +170,10 @@ export default function Dashboard() {
             progress: { completed, total },
             status: triagem.status || 'Em andamento'
           });
+          } catch (error) {
+            console.error('Error processing triagem item:', error);
+            // Continue with next triagem item
+          }
         }
         
         // Calculate user stats
@@ -169,11 +186,16 @@ export default function Dashboard() {
         };
         
         // Count total completed exercises
-        const { data: completedExercises } = await supabase
+        const { data: completedExercises, error: completedExercisesError } = await supabase
           .from('user_exercises')
           .select('completion_date')
           .eq('user_id', userId)
           .eq('completed', true);
+          
+        if (completedExercisesError) {
+          console.error('Error fetching completed exercises:', completedExercisesError);
+          // Continue with default values
+        }
           
         stats.exercisesDone = completedExercises?.length || 0;
         
@@ -215,6 +237,7 @@ export default function Dashboard() {
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
+        // Always set loading to false, even if there were errors
         setIsLoading(false);
       }
     };

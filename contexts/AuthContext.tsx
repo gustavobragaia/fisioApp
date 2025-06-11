@@ -59,17 +59,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         
         if (session) {
-          // Get user profile data
-          const { profile } = await getCurrentUser();
-          setUser(profile);
+          try {
+            // Get user profile data
+            const { profile } = await getCurrentUser();
+            setUser(profile);
+          } catch (profileError) {
+            // If we can't get the profile, just continue with the session
+            console.error('Error fetching user profile:', profileError);
+            // Set a minimal user object with available data from session
+            setUser({
+              id: session.user.id,
+              name: session.user.email?.split('@')[0] || 'Usuário',
+              email: session.user.email || '',
+              created_at: new Date().toISOString()
+            } as User);
+          }
         }
       } catch (error) {
         console.error('Error checking session:', error);
       } finally {
+        // Always set loading to false to prevent infinite loading
         setIsLoading(false);
       }
     };
-
+    
+    // Add a safety timeout to ensure isLoading is set to false
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+    
     checkSession();
 
     // Set up auth state listener
@@ -78,17 +96,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         
         if (session) {
-          // Get user profile data when session changes
-          const { profile } = await getCurrentUser();
-          setUser(profile);
+          try {
+            // Get user profile data when session changes
+            const { profile } = await getCurrentUser();
+            setUser(profile);
+          } catch (profileError) {
+            // If we can't get the profile, just continue with the session
+            console.error('Error fetching user profile on auth change:', profileError);
+            // Set a minimal user object with available data from session
+            setUser({
+              id: session.user.id,
+              name: session.user.email?.split('@')[0] || 'Usuário',
+              email: session.user.email || '',
+              created_at: new Date().toISOString()
+            } as User);
+          }
         } else {
           setUser(null);
         }
       }
     );
 
-    // Clean up subscription
+    // Clean up subscription and timer
     return () => {
+      clearTimeout(safetyTimer);
       if (authListener && authListener.subscription) {
         authListener.subscription.unsubscribe();
       }
