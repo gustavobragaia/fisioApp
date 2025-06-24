@@ -2,8 +2,11 @@ const colors = {
 
     background: '#fff',
 
-    textPrimary: '#000',
-    textSecondary: '#F5F5F5',
+    textPrimary: '#101010',
+    textSecondary: '#636363',
+
+    primary: "#2FC44F",
+    secondary: "#939393",
     
     light: {
         

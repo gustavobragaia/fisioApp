@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../contexts/AuthContext';
-import colors from '../../styles/colors';
-import ProfileAvatar from '../../components/ProfileAvatar';
 import HistoryItem from '../../components/HistoryItem';
+import ProfileAvatar from '../../components/ProfileAvatar';
+import { useAuth } from '../../contexts/AuthContext';
 import { getUserTriagens, updateUserProfile } from '../../lib/supabaseUtils';
+import colors from '../../styles/colors';
 import { Triagem, User } from '../../types/supabase';
 
 // Convert Triagem to DiagnosticItem for display
