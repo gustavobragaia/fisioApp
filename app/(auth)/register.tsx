@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { Link, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Building, IdCard, Lock, Mail, User } from "lucide-react-native";
+import { Building, Factory, IdCard, Lock, Mail, User } from "lucide-react-native";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -33,6 +33,7 @@ const registerSchema = z
       .min(1, "CPF é obrigatório")
       .refine((val) => cpfValidator.isValid(val), "CPF inválido"),
     empresa: z.string().min(1, "Nome da empresa é obrigatório"),
+    setor: z.string().min(1, "Setor da empresa é obrigatório"),
     password: z
       .string()
       .min(1, "Senha é obrigatória")
@@ -224,6 +225,22 @@ export default function RegisterScreen() {
                 value={value}
                 autoCapitalize="words"
                 error={errors.empresa?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="setor"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Factory}
+                placeholder="Setor"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="words"
+                error={errors.setor?.message}
               />
             )}
           />
