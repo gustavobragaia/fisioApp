@@ -16,7 +16,6 @@ import {
   View
 } from "react-native";
 import { z } from "zod";
-import ForgotPasswordModal from "../../components/ForgotPasswordModal";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -35,7 +34,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const router = useRouter();
 
   const { signIn } = useAuth();
@@ -161,7 +159,7 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             className="self-end mt-2"
-            onPress={() => setForgotPasswordVisible(true)}
+            onPress={() => router.navigate('/(auth)/forgot-password')}
           >
             <Text
               className="text-sm font-medium"
@@ -170,11 +168,6 @@ export default function LoginScreen() {
               Esqueceu a senha?
             </Text>
           </TouchableOpacity>
-
-          <ForgotPasswordModal
-            visible={forgotPasswordVisible}
-            onClose={() => setForgotPasswordVisible(false)}
-          />
 
           <Button
             title="Entrar"
