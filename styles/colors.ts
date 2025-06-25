@@ -7,6 +7,9 @@ const colors = {
 
     primary: "#2FC44F",
     secondary: "#939393",
+    error: '#ff7675',
+
+    input: "#8D90A1",
     
     light: {
         

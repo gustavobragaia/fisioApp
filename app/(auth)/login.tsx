@@ -1,119 +1,198 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useAuth } from '../../contexts/AuthContext';
-import colors from '../../styles/colors';
-import ForgotPasswordModal from '../../components/ForgotPasswordModal';
+import { Button } from "@/components/Button";
+import colors from "@/styles/colors";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Lock, Mail } from "lucide-react-native";
+import React, { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { z } from "zod";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal";
+import { Input } from "../../components/Input";
+import { useAuth } from "../../contexts/AuthContext";
+
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email é obrigatório")
+    .email("Email inválido"),
+  password: z
+    .string()
+    .min(1, "Senha é obrigatória")
+    .min(6, "Senha deve ter pelo menos 6 caracteres"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const router = useRouter();
 
-  // Import the auth context
   const { signIn } = useAuth();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
-      return;
-    }
-    
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      
-      // Use the auth context to sign in with Supabase
-      const { error } = await signIn(email, password);
-      
+
+      const { error } = await signIn(data.email, data.password);
+
       if (error) {
-        Alert.alert('Erro de login', error.message || 'Falha na autenticação. Verifique seu email e senha.');
+        Alert.alert(
+          "Erro de login",
+          error.message || "Falha na autenticação. Verifique seu email e senha."
+        );
         return;
       }
-      
-      // Navigate to the main app on successful login
-      router.replace('/(tabs)');
+
+      router.replace("/(tabs)");
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Erro', 'Ocorreu um erro durante o login. Tente novamente.');
+      console.error("Login error:", error);
+      Alert.alert("Erro", "Ocorreu um erro durante o login. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      className="flex-1 bg-paleSand"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ backgroundColor: colors.background }}
     >
       <StatusBar style="dark" />
-      <View className="absolute top-0 h-64 w-full bg-deepBlue rounded-b-3xl" />
-      <ScrollView contentContainerClassName="flex-grow justify-center px-6 py-10">
-        <View className="items-center mb-10">
-          <View className="w-20 h-20 rounded-full bg-white items-center justify-center mb-4 shadow-lg">
-            <Text className="text-4xl font-bold text-deepBlue">F</Text>
-          </View>
-          <Text className="text-3xl font-bold text-slate-900 mt-2">FisioApp</Text>
-          <Text className="text-base text-slate-900 mt-1">Seu assistente de fisioterapia</Text>
+
+      <View
+        className="absolute top-0 right-0 w-40 h-40 rounded-full"
+        style={{
+          backgroundColor: colors.primary,
+          opacity: 0.1,
+          transform: [{ translateX: 50 }, { translateY: -50 }],
+        }}
+      />
+      <View
+        className="absolute bottom-0 right-0 w-60 h-60 rounded-full"
+        style={{
+          backgroundColor: colors.secondary,
+          opacity: 0.1,
+          transform: [{ translateX: 100 }, { translateY: 100 }],
+        }}
+      />
+      <View
+        className="absolute bottom-20 left-0 w-32 h-32 rounded-full"
+        style={{
+          backgroundColor: colors.primary,
+          opacity: 0.4,
+          transform: [{ translateX: -40 }],
+        }}
+      />
+
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          paddingHorizontal: 24,
+          paddingVertical: 40,
+        }}
+      >
+        <View className="items-center mb-12">
+          <Text className="text-2xl font-bold text-gray-800 mb-2">
+            Seja bem-vindo(a) de volta
+          </Text>
+          <Text className="text-base text-gray-600 text-center">
+            Acesse sua jornada para uma vida ativa e sem dores.
+          </Text>
         </View>
 
-        <View className="space-y-4 w-full bg-white p-6 rounded-2xl shadow-md">
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Email</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Seu email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
+        <View className="space-y-4">
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Mail}
+                placeholder="Digite seu e-mail"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email?.message}
+              />
+            )}
+          />
 
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Senha</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Sua senha"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-          
-          <TouchableOpacity 
-            className="self-end"
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Lock}
+                placeholder="Digite sua senha"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                isPassword
+                error={errors.password?.message}
+              />
+            )}
+          />
+
+          <TouchableOpacity
+            className="self-end mt-2"
             onPress={() => setForgotPasswordVisible(true)}
           >
-            <Text className="text-sm text-deepBlue font-medium">Esqueceu a senha?</Text>
+            <Text
+              className="text-sm font-medium"
+              style={{ color: colors.primary }}
+            >
+              Esqueceu a senha?
+            </Text>
           </TouchableOpacity>
-          
+
           <ForgotPasswordModal
             visible={forgotPasswordVisible}
             onClose={() => setForgotPasswordVisible(false)}
           />
 
-          <TouchableOpacity 
-            className="w-full h-12 bg-deepBlue rounded-lg items-center justify-center mt-6 shadow-sm"
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text className="text-white font-semibold text-base">Entrar</Text>
-            )}
-          </TouchableOpacity>
+          <Button
+            title="Entrar"
+            onPress={handleSubmit(onSubmit)}
+            loading={isLoading}
+            className="mt-8"
+          />
 
-          <View className="flex-row justify-center mt-6">
+          <View className="flex-row justify-center mt-8">
             <Text className="text-gray-600">Não tem uma conta? </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
-                <Text className="text-deepBlue font-semibold">Cadastre-se</Text>
+                <Text
+                  className="font-semibold"
+                  style={{ color: colors.primary }}
+                >
+                  Cadastre-se
+                </Text>
               </TouchableOpacity>
             </Link>
           </View>
