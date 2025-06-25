@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Header } from '@/components/Header';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../../styles/colors';
-import ProfileAvatar from '../../components/ProfileAvatar';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import colors from '../../styles/colors';
 
 // Types for our data
 interface TriagemItem {
@@ -34,7 +34,7 @@ const FirstAccessDashboard = () => {
       <View className="bg-white rounded-2xl p-8 shadow-md w-full items-center">
         <Ionicons name="fitness-outline" size={80} color="#4F46E5" />
         <Text className="text-2xl font-bold text-center mt-4 text-gray-800">
-          Bem-vindo ao FisioApp!
+          Bem-vindo ao FisioApp2x!
         </Text>
         <Text className="text-base text-center mt-2 mb-6 text-gray-600">
           Vamos começar sua jornada para uma vida mais saudável com uma avaliação inicial.
@@ -257,10 +257,9 @@ export default function Dashboard() {
   return (
     <SafeAreaView className="flex-1 bg-paleSand">
       <ScrollView className="flex-1 px-4">
-        <View className="items-center pt-6 pb-4">
-          <ProfileAvatar name={userStats.name} size={120} />
-          <Text className="text-textPrimary text-xl font-bold mt-4">{userStats.name}</Text>
-        </View> 
+        <Header 
+          name={userStats.name + "oi"}
+        />
         
         {isFirstAccess ? (
           <FirstAccessDashboard />
