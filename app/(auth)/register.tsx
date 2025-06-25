@@ -1,175 +1,282 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useAuth } from '../../contexts/AuthContext';
-import colors from '../../styles/colors';
+import { Button } from "@/components/Button";
+import colors from "@/styles/colors";
+import { cpfMask } from "@/utils/cpfMask";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { cpf as cpfValidator } from "cpf-cnpj-validator";
+import { Link, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Building, IdCard, Lock, Mail, User } from "lucide-react-native";
+import React, { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { z } from "zod";
+import { Input } from "../../components/Input";
+import { useAuth } from "../../contexts/AuthContext";
+
+const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Nome é obrigatório")
+      .min(2, "Nome deve ter pelo menos 2 caracteres"),
+    email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
+    cpf: z
+      .string()
+      .min(1, "CPF é obrigatório")
+      .refine((val) => cpfValidator.isValid(val), "CPF inválido"),
+    empresa: z.string().min(1, "Nome da empresa é obrigatório"),
+    password: z
+      .string()
+      .min(1, "Senha é obrigatória")
+      .min(6, "Senha deve ter pelo menos 6 caracteres"),
+    confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [empresa, setEmpresa] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Import the auth context
   const { signUp } = useAuth();
 
-  const handleRegister = async () => {
-    // Validate inputs
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      Alert.alert('Erro', 'As senhas não coincidem');
-      return;
-    }
-    
-    if (password.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres');
-      return;
-    }
-    
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      cpf: "",
+      empresa: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      
-      // Use the auth context to sign up with Supabase
-      const { error } = await signUp(email, password, name, cpf, empresa);
-      
+
+      const { error } = await signUp(
+        data.email,
+        data.password,
+        data.name,
+        data.cpf,
+        data.empresa
+      );
+
       if (error) {
-        Alert.alert('Erro no cadastro', error.message || 'Não foi possível criar sua conta. Tente novamente.');
+        Alert.alert(
+          "Erro no cadastro",
+          error.message || "Não foi possível criar sua conta. Tente novamente."
+        );
         return;
       }
-      
-      // Show success message
+
       Alert.alert(
-        'Cadastro realizado',
-        'Sua conta foi criada com sucesso! Verifique seu email para confirmar o cadastro.',
+        "Cadastro realizado",
+        "Sua conta foi criada com sucesso! Verifique seu email para confirmar o cadastro.",
         [
-          { 
-            text: 'OK', 
-            onPress: () => router.replace('/(auth)/login')
-          }
+          {
+            text: "OK",
+            onPress: () => router.replace("/(auth)/login"),
+          },
         ]
       );
     } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert('Erro', 'Ocorreu um erro durante o cadastro. Tente novamente.');
+      console.error("Registration error:", error);
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro durante o cadastro. Tente novamente."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      className="flex-1 bg-paleSand"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ backgroundColor: colors.background }}
     >
       <StatusBar style="dark" />
-      <View className="absolute top-0 h-64 w-full bg-deepBlue rounded-b-3xl" />
-      <ScrollView contentContainerClassName="flex-grow justify-center px-6 py-10">
-        <View className="items-center mb-6">
-          <View className="w-16 h-16 rounded-full bg-white items-center justify-center mb-2 shadow-lg">
-            <Text className="text-3xl font-bold text-deepBlue">F</Text>
-          </View>
-          <Text className="text-2xl font-bold text-white mt-2">Criar Conta</Text>
-          <Text className="text-base text-white/80 mt-1">Preencha seus dados para começar</Text>
+
+      <View
+        className="absolute top-0 right-0 w-40 h-40 rounded-full"
+        style={{
+          backgroundColor: colors.primary,
+          opacity: 0.1,
+          transform: [{ translateX: 50 }, { translateY: -50 }],
+        }}
+      />
+      <View
+        className="absolute bottom-0 right-0 w-60 h-60 rounded-full"
+        style={{
+          backgroundColor: colors.secondary,
+          opacity: 0.1,
+          transform: [{ translateX: 100 }, { translateY: 100 }],
+        }}
+      />
+      <View
+        className="absolute bottom-20 left-0 w-32 h-32 rounded-full"
+        style={{
+          backgroundColor: colors.primary,
+          opacity: 0.4,
+          transform: [{ translateX: -40 }],
+        }}
+      />
+
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          paddingHorizontal: 24,
+          paddingVertical: 40,
+        }}
+      >
+        <View className="items-center mt-32 mb-12">
+          <Text className="text-2xl font-bold text-gray-800 mb-2">
+            Criar sua conta
+          </Text>
+          <Text className="text-base text-gray-600 text-center">
+            Preencha seus dados para começar sua jornada para uma vida ativa e
+            sem dores.
+          </Text>
         </View>
 
-        <View className="space-y-3 w-full bg-white p-6 rounded-2xl shadow-md">
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Nome completo</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Seu nome completo"
-              value={name}
-              onChangeText={setName}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Email</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Seu email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">CPF</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Seu CPF"
-              value={cpf}
-              onChangeText={setCpf}
-              keyboardType="numeric"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Empresa</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Nome da empresa"
-              value={empresa}
-              onChangeText={setEmpresa}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Senha</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Crie uma senha"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <View>
-            <Text className="text-sm font-medium text-deepBlue mb-1">Confirmar senha</Text>
-            <TextInput
-              className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary"
-              placeholder="Confirme sua senha"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <TouchableOpacity 
-            className="w-full h-12 bg-deepBlue rounded-lg items-center justify-center mt-4 shadow-sm"
-            onPress={handleRegister}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text className="text-white font-semibold text-base">Criar conta</Text>
+        <View className="space-y-4">
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={User}
+                placeholder="Digite seu nome completo"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="words"
+                error={errors.name?.message}
+              />
             )}
-          </TouchableOpacity>
+          />
 
-          <View className="flex-row justify-center mt-4">
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Mail}
+                placeholder="Digite seu e-mail"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="cpf"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={IdCard}
+                placeholder="Digite seu CPF"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="numeric"
+                maxLength={14}
+                mask={cpfMask}
+                error={errors.cpf?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="empresa"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Building}
+                placeholder="Nome da empresa"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="words"
+                error={errors.empresa?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Lock}
+                placeholder="Crie uma senha"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                isPassword
+                error={errors.password?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="confirmPassword"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Lock}
+                placeholder="Confirme sua senha"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                isPassword
+                error={errors.confirmPassword?.message}
+              />
+            )}
+          />
+
+          <Button
+            title="Criar conta"
+            onPress={handleSubmit(onSubmit)}
+            loading={isLoading}
+            className="mt-8"
+          />
+
+          <View className="flex-row justify-center mt-8 mb-32">
             <Text className="text-gray-600">Já tem uma conta? </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text className="text-deepBlue font-semibold">Entrar</Text>
+                <Text
+                  className="font-semibold"
+                  style={{ color: colors.primary }}
+                >
+                  Entrar
+                </Text>
               </TouchableOpacity>
             </Link>
           </View>
