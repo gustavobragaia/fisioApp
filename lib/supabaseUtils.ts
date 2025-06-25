@@ -1,5 +1,5 @@
+import { Triagem, User } from '../types/supabase';
 import { supabase, supabaseAdmin } from './supabase';
-import { User, Triagem, PainSymptoms, Exercise, UserExercise } from '../types/supabase';
 
 // Authentication functions
 export const signUp = async (email: string, password: string, name: string, cpf?: string, empresa?: string) => {

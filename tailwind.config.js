@@ -13,8 +13,10 @@ module.exports = {
       colors: {
         // Main colors
         background: colors.background,
+        subBackground: colors.subBackground,
         textPrimary: colors.textPrimary,
         textSecondary: colors.textSecondary,
+        primary: colors.primary,
         
         // Light theme colors
         deepBlue: colors.light.deepBlue,

@@ -2,6 +2,7 @@ import { ButtonOnboarding } from "@/components/onboarding/ButtonOnboarding";
 import { ListItem } from "@/components/onboarding/ListItem";
 import { PaginationElement } from "@/components/onboarding/PaginationElement";
 import colors from "@/styles/colors";
+import { Redirect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { Dimensions, SafeAreaView, View } from "react-native";
 import {
@@ -145,6 +146,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <Redirect href="/(tabs)" />
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
