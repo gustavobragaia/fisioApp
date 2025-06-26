@@ -1,12 +1,12 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { HeartTick, Home2, Profile } from 'iconsax-react-native';
 import colors from "../../styles/colors";
 
 export default function TabsLayout() {
   return (
     <Tabs screenOptions={{
-      tabBarActiveTintColor: colors.light.deepBlue,
-      tabBarInactiveTintColor: "#888",
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.secondary,
     }}>
       <Tabs.Screen 
         name="index" 
@@ -14,7 +14,7 @@ export default function TabsLayout() {
           title: "Home", 
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Home2 size={size} color={color} />
           ),
         }} 
       />
@@ -24,7 +24,7 @@ export default function TabsLayout() {
           title: "Triagem", 
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="fitness-outline" size={size} color={color} />
+            <HeartTick size={size} color={color} />
           ),
         }} 
       />
@@ -34,7 +34,7 @@ export default function TabsLayout() {
           title: "Perfil", 
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Profile size={size} color={color} />
           ),
         }} 
       />

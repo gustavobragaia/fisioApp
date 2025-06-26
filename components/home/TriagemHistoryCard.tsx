@@ -1,6 +1,6 @@
 import { TriagemItem } from "@/app/(tabs)";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ArrowRight2 } from "iconsax-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
@@ -34,8 +34,7 @@ export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
           {item.progress.completed}/{item.progress.total}
         </Text>
         <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
-          <Ionicons
-            name="chevron-forward"
+          <ArrowRight2
             size={16}
             color="#6B7280"
           />

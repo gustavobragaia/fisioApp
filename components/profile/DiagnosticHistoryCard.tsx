@@ -1,7 +1,7 @@
 import { DiagnosticItem } from "@/app/(tabs)/profile";
 import colors from "@/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ArrowRight2 } from "iconsax-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export const DiagnosticHistoryCard = ({ item }: { item: DiagnosticItem }) => {
@@ -95,7 +95,7 @@ export const DiagnosticHistoryCard = ({ item }: { item: DiagnosticItem }) => {
         </View>
 
         <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
-          <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+          <ArrowRight2 size={16} color={colors.primary} />
         </View>
       </View>
     </TouchableOpacity>

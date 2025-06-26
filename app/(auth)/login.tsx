@@ -3,7 +3,7 @@ import colors from "@/styles/colors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Lock, Mail } from "lucide-react-native";
+import { Lock, Sms } from "iconsax-react-native";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -129,7 +129,7 @@ export default function LoginScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={Mail}
+                Icon={Sms}
                 placeholder="Digite seu e-mail"
                 onChangeText={onChange}
                 onBlur={onBlur}

@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import {
-  ColorValue,
   KeyboardTypeOptions,
   StyleSheet,
   Text,
   TextInput,
   TextInputProps,
-  View,
+  View
 } from 'react-native'
 import Animated, {
   interpolateColor,
@@ -16,23 +15,25 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import colors from '@/styles/colors'
-import { Eye, EyeOff } from 'lucide-react-native'
+import { Eye, EyeSlash } from 'iconsax-react-native'
 import MaskInput from 'react-native-mask-input'
 
-interface LucideIconProps {
+interface IconProps {
   size?: number
-  color?: ColorValue
+  color?: string
+  variant?: 'Linear' | 'Outline' | 'Bold' | 'Bulk' | 'Broken' | 'TwoTone'
   onPress?: () => void
 }
 
 interface InputProps extends TextInputProps {
-  Icon?: React.ComponentType<LucideIconProps>
+  Icon?: React.ComponentType<IconProps>
   placeholder: string
   isPassword?: boolean
   error?: string | null
   keyboardType?: KeyboardTypeOptions
   mask?: (string | RegExp)[]
 }
+
 
 export function Input({
   Icon,
@@ -100,7 +101,7 @@ export function Input({
   })
 
   const iconColor = error ? colors.error : colors.input
-  const PasswordToggleIcon = showPassword ? EyeOff : Eye
+  const PasswordToggleIcon = showPassword ? EyeSlash : Eye
   const TextInputComponent = mask ? MaskInput : TextInput
 
   const showStaticPlaceholder = !value || value.length === 0

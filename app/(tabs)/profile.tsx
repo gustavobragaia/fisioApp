@@ -2,13 +2,14 @@
 import { Header } from "@/components/Header";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ArrowRight2,
   Building,
-  Factory,
-  IdCard,
-  LogOut,
-  Mail,
-  User,
-} from "lucide-react-native";
+  LogoutCurve,
+  Personalcard,
+  Shop,
+  Sms,
+  User
+} from 'iconsax-react-native';
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -26,7 +27,6 @@ import { useAuth } from "../../contexts/AuthContext";
 // import { getUserTriagens } from "../../lib/supabaseUtils";
 import { Input } from "@/components/Input";
 import { DiagnosticHistorySection } from "@/components/profile/DiagnosticHistorySection";
-import { Ionicons } from "@expo/vector-icons";
 import colors from "../../styles/colors";
 import { User as UserType } from "../../types/supabase";
 
@@ -251,7 +251,7 @@ export default function ProfileScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={Mail}
+                Icon={Sms}
                 placeholder="Digite seu e-mail"
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -268,7 +268,7 @@ export default function ProfileScreen() {
             name="cpf"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={IdCard}
+                Icon={Personalcard}
                 placeholder="Digite seu CPF"
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -301,7 +301,7 @@ export default function ProfileScreen() {
             name="setor"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={Factory}
+                Icon={Shop}
                 placeholder="Setor"
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -330,7 +330,7 @@ export default function ProfileScreen() {
             Sobre o App
           </Text>
           <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
-            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+            <ArrowRight2 size={16} color={colors.primary} />
           </View>
         </TouchableOpacity>
 
@@ -343,7 +343,7 @@ export default function ProfileScreen() {
             Sair
           </Text>
           <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
-            <LogOut size={16} color={colors.primary} />
+            <LogoutCurve size={16} color={colors.primary} />
           </View>
         </TouchableOpacity>
       </View>

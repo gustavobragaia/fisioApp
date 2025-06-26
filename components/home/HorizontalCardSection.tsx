@@ -1,5 +1,4 @@
-import colors from "@/styles/colors";
-import { Home } from "lucide-react-native";
+import { ReactNode } from "react";
 import { Dimensions, FlatList, Text, View } from "react-native";
 
 export const HorizontalCardSection = ({ 
@@ -7,7 +6,10 @@ export const HorizontalCardSection = ({
   data = Array.from({ length: 10 }) 
 }: { 
   title: string; 
-  data?: any[]; 
+  data: {
+    icon: ReactNode
+    title: string
+  }[]; 
 }) => {
   const { width } = Dimensions.get("window");
   const cardWidth = (width - 60) / 3;
@@ -29,15 +31,15 @@ export const HorizontalCardSection = ({
         decelerationRate="fast"
         snapToAlignment="start"
         snapToInterval={120}
-        renderItem={(index) => (
+        renderItem={(data) => (
           <View
-            key={Number(index)}
-            className="p-4 bg-white shadow-[0_3px_30px_rgba(16,16,16,0.03)] rounded-xl"
+            key={Number(data.item.title)}
+            className="h-[108px] p-4 bg-white shadow-[0_3px_30px_rgba(16,16,16,0.03)] rounded-xl justify-between"
             style={{ width: cardWidth }}
           >
-            <Home size={24} color={colors.primary} />
-            <Text className="font-semibold text-base text-textPrimary mt-4">
-              Ansiedade e cansaço
+            {data.item.icon}
+            <Text className="font-semibold text-base text-textPrimary mt-4 line-clamp-2">
+              {data.item.title}
             </Text>
           </View>
         )}

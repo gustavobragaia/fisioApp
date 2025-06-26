@@ -1,6 +1,6 @@
 import colors from '@/styles/colors'
 import { useRouter } from 'expo-router'
-import { ChevronRight } from 'lucide-react-native'
+import { ArrowRight2 } from 'iconsax-react-native'
 import React from 'react'
 import { Pressable, StyleSheet } from 'react-native'
 import Animated, {
@@ -66,7 +66,7 @@ export const ButtonOnboarding = ({ currentIndex, length, onPress }: Props) => {
         Começar
       </Animated.Text>
       <Animated.View style={iconStyle}>
-        <ChevronRight size={24} color="#ffffff" />
+        <ArrowRight2 size={24} color="#ffffff" />
       </Animated.View>
     </AnimatedPressable>
   )

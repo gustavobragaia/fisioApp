@@ -5,7 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { Link, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Building, Factory, IdCard, Lock, Mail, User } from "lucide-react-native";
+import {
+  Building,
+  Lock,
+  Personalcard,
+  Shop,
+  Sms,
+  User
+} from 'iconsax-react-native';
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -183,7 +190,7 @@ export default function RegisterScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={Mail}
+                Icon={Sms}
                 placeholder="Digite seu e-mail"
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -200,7 +207,7 @@ export default function RegisterScreen() {
             name="cpf"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={IdCard}
+                Icon={Personalcard}
                 placeholder="Digite seu CPF"
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -234,7 +241,7 @@ export default function RegisterScreen() {
             name="setor"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={Factory}
+                Icon={Shop}
                 placeholder="Setor"
                 onChangeText={onChange}
                 onBlur={onBlur}

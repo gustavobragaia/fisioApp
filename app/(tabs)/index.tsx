@@ -3,6 +3,16 @@ import { DashboardHeader } from "@/components/home/DashboardHeader";
 import { FirstAccessDashboard } from "@/components/home/FirstAccessDashboard";
 import { HorizontalCardSection } from "@/components/home/HorizontalCardSection";
 import { TriagemHistorySection } from "@/components/home/TriagemHistorySection";
+import colors from "@/styles/colors";
+import {
+  Activity,
+  ArrowSquareLeft,
+  Health,
+  Heart,
+  Location,
+  Profile,
+  User
+} from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 // import { supabase } from "../../lib/supabase";
@@ -56,6 +66,59 @@ const mockTriagemHistory: TriagemItem[] = [
   },
 ];
 
+const mockRoutine = [
+  {
+    icon: <Heart size={24} color={colors.primary} />,
+    title: "Dores no corpo"
+  },
+  {
+    icon: <Health size={24} color={colors.primary} />,
+    title: "Ansiedade e cansaço"
+  },
+  {
+    icon: <Activity size={24} color={colors.primary} />,
+    title: "Exercícios"
+  },
+  {
+    icon: <Profile size={24} color={colors.primary} />,
+    title: "Meditação e relaxamento"
+  },
+  {
+    icon: <Heart size={24} color={colors.primary} />,
+    title: "Alongamentos matinais"
+  },
+  {
+    icon: <Activity size={24} color={colors.primary} />,
+    title: "Respiração profunda"
+  },
+]
+
+const mockWhereYouFeelPain = [
+  {
+    icon: <User size={24} color={colors.primary} />,
+    title: "Pescoço"
+  },
+  {
+    icon: <ArrowSquareLeft size={24} color={colors.primary} />,
+    title: "Lombar"
+  },
+  {
+    icon: <Location size={24} color={colors.primary} />,
+    title: "Tornozelos / Pés"
+  },
+  {
+    icon: <User size={24} color={colors.primary} />,
+    title: "Cabeça / Enxaqueca"
+  },
+  {
+    icon: <Heart size={24} color={colors.primary} />,
+    title: "Ombros"
+  },
+  {
+    icon: <Location size={24} color={colors.primary} />,
+    title: "Joelhos"
+  },
+]
 const mockUserStats: UserStats = {
   exercisesDone: 12,
   triagemCount: 3,
@@ -133,14 +196,14 @@ export default function Dashboard() {
     <ScrollView className="flex-1 bg-background">
       <DashboardHeader userStats={userStats} />
 
-      {true && (
+      {isFirstAccess && (
         <View className="mx-6">
           <FirstAccessDashboard />
         </View>
       )}
 
-      <HorizontalCardSection title="Feito para a sua rotina" />
-      <HorizontalCardSection title="Onde você sente mais dor?" />
+      <HorizontalCardSection title="Feito para sua rotina" data={mockRoutine} />
+      <HorizontalCardSection title="Onde você sente mais dor?" data={mockWhereYouFeelPain} />
 
       <View className="flex-1 px-6">
         {!isFirstAccess && (

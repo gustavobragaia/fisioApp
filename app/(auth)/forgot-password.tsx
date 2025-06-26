@@ -3,7 +3,8 @@ import colors from "@/styles/colors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { CheckCircle, ChevronLeft, Mail } from "lucide-react-native";
+import { ArrowLeft2, Sms, TickCircle } from "iconsax-react-native";
+
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -123,7 +124,7 @@ export default function ForgotPasswordScreen() {
               className="w-20 h-20 rounded-full items-center justify-center mb-6"
               style={{ backgroundColor: colors.primary + "20" }}
             >
-              <CheckCircle size={40} color={colors.primary} />
+              <TickCircle size={40} color={colors.primary} />
             </View>
             
             <Text className="text-2xl font-bold text-gray-800 mb-2 text-center">
@@ -179,7 +180,7 @@ export default function ForgotPasswordScreen() {
           className="w-16 h-16 rounded-full items-center justify-center"
           style={{ backgroundColor: colors.primary + "20" }}
         >
-          <ChevronLeft size={32} color={colors.primary} />
+          <ArrowLeft2 size={32} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -221,7 +222,7 @@ export default function ForgotPasswordScreen() {
             className="w-20 h-20 rounded-full items-center justify-center mb-6"
             style={{ backgroundColor: colors.primary + "20" }}
           >
-            <Mail size={40} color={colors.primary} />
+            <Sms size={40} color={colors.primary} />
           </View>
           
           <Text className="text-2xl font-bold text-gray-800 mb-2 text-center">
@@ -238,7 +239,7 @@ export default function ForgotPasswordScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={Mail}
+                Icon={Sms}
                 placeholder="Digite seu e-mail"
                 onChangeText={onChange}
                 onBlur={onBlur}
