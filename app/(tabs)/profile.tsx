@@ -1,24 +1,36 @@
-import Header from "@/components/Header";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Header } from "@/components/Header";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Building,
+  Factory,
+  IdCard,
+  LogOut,
+  Mail,
+  User,
+} from "lucide-react-native";
 import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Alert,
-  Modal,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import HistoryItem from "../../components/HistoryItem";
+import { z } from "zod";
 import { useAuth } from "../../contexts/AuthContext";
-import { getUserTriagens, updateUserProfile } from "../../lib/supabaseUtils";
+// import { getUserTriagens } from "../../lib/supabaseUtils";
+import { Input } from "@/components/Input";
+import { DiagnosticHistorySection } from "@/components/profile/DiagnosticHistorySection";
+import { Ionicons } from "@expo/vector-icons";
 import colors from "../../styles/colors";
-import { Triagem, User } from "../../types/supabase";
+import { User as UserType } from "../../types/supabase";
 
-// Convert Triagem to DiagnosticItem for display
-interface DiagnosticItem {
+export interface DiagnosticItem {
   id: string;
   date: string;
   title: string;
@@ -26,159 +38,158 @@ interface DiagnosticItem {
   status: string;
 }
 
-// Modal component for editing user name
-const EditNameModal = ({
-  visible,
-  onClose,
-  onSave,
-  initialName,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onSave: (name: string) => void;
-  initialName: string;
-}) => {
-  const [name, setName] = useState(initialName);
+const mockDiagnosticHistory: DiagnosticItem[] = [
+  {
+    id: "1",
+    date: "15/06/2025",
+    title: "Dor nas Costas",
+    painLevel: 7,
+    status: "Concluído",
+  },
+  {
+    id: "2",
+    date: "10/06/2025",
+    title: "Dor de Cabeça",
+    painLevel: 5,
+    status: "Concluído",
+  },
+  {
+    id: "3",
+    date: "05/06/2025",
+    title: "Dor no Joelho",
+    painLevel: 6,
+    status: "Em andamento",
+  },
+  {
+    id: "4",
+    date: "28/05/2025",
+    title: "Saúde Mental",
+    status: "Concluído",
+  },
+  {
+    id: "5",
+    date: "20/05/2025",
+    title: "Dor no Pescoço",
+    painLevel: 4,
+    status: "Concluído",
+  },
+  {
+    id: "6",
+    date: "15/05/2025",
+    title: "Dor Abdominal",
+    painLevel: 8,
+    status: "Concluído",
+  },
+];
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 justify-center items-center bg-black/50">
-        <View className="w-5/6 bg-white p-6 rounded-xl shadow-lg">
-          <Text className="text-lg font-bold text-deepBlue mb-4">
-            Alterar Nome
-          </Text>
+const editProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Nome deve ter pelo menos 2 caracteres")
+    .max(50, "Nome deve ter no máximo 50 caracteres"),
+  email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
+  cpf: z
+    .string()
+    .regex(
+      /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+      "CPF deve estar no formato XXX.XXX.XXX-XX"
+    )
+    .optional()
+    .or(z.literal("")),
+  empresa: z
+    .string()
+    .max(100, "Nome da empresa deve ter no máximo 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+  setor: z
+    .string()
+    .max(50, "Setor deve ter no máximo 50 caracteres")
+    .optional()
+    .or(z.literal("")),
+});
 
-          <TextInput
-            className="w-full h-12 px-4 border border-lightBlue rounded-lg bg-white text-textPrimary mb-4"
-            value={name}
-            onChangeText={setName}
-            placeholder="Seu nome completo"
-            placeholderTextColor="#9CA3AF"
-          />
+type EditProfileFormData = z.infer<typeof editProfileSchema>;
 
-          <View className="flex-row justify-end space-x-3">
-            <TouchableOpacity
-              onPress={onClose}
-              className="px-4 py-2 rounded-lg border border-lightBlue"
-            >
-              <Text className="text-deepBlue">Cancelar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (name.trim()) {
-                  onSave(name);
-                  onClose();
-                } else {
-                  Alert.alert("Erro", "Por favor, insira um nome válido");
-                }
-              }}
-              className="px-4 py-2 rounded-lg bg-deepBlue"
-            >
-              <Text className="text-white">Salvar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
+// Função para formatar CPF
+const cpfMask = (value: string) => {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .replace(/(-\d{2})\d+?$/, "$1");
 };
 
 export default function ProfileScreen() {
   const { signOut, user } = useAuth();
-  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserType | null>(null);
   const [diagnosticHistory, setDiagnosticHistory] = useState<DiagnosticItem[]>(
-    []
+    mockDiagnosticHistory
   );
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("history"); // 'history' or 'settings'
-  const [editNameModalVisible, setEditNameModalVisible] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("history");
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting, isDirty },
+    setValue,
+    watch,
+    reset,
+  } = useForm<EditProfileFormData>({
+    resolver: zodResolver(editProfileSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      cpf: "",
+      empresa: "",
+      setor: "",
+    },
+  });
+
+  const cpfValue = watch("cpf");
 
   useEffect(() => {
-    // Fetch user data and history from Supabase
-    const fetchUserData = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-
-        // Set user profile from auth context
-        setUserProfile(user);
-
-        // Fetch user's diagnostic history
-        const { data: triagens, error } = await getUserTriagens(user.id);
-
-        if (error) {
-          console.error("Error fetching triagens:", error);
-        } else if (triagens) {
-          // Convert Triagem objects to DiagnosticItem format
-          const diagnostics: DiagnosticItem[] = triagens.map(
-            (triagem: Triagem) => ({
-              id: triagem.id,
-              date: new Date(triagem.created_at).toLocaleDateString("pt-BR"),
-              title: `Diagnóstico de ${
-                triagem.type === "pain"
-                  ? triagem.location
-                    ? triagem.location.charAt(0).toUpperCase() +
-                      triagem.location.slice(1)
-                    : "Dor"
-                  : "Saúde Mental"
-              }`,
-              status:
-                triagem.status === "completed" ? "Concluído" : "Em andamento",
-              // For pain triagens, we could fetch the pain level from pain_symptoms table if needed
-            })
-          );
-
-          setDiagnosticHistory(diagnostics);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [user]);
-
-  // Handle name update
-  const handleUpdateName = async (newName: string) => {
-    if (!user || !userProfile) return;
-
-    try {
-      setIsSaving(true);
-
-      const { data, error } = await updateUserProfile(user.id, {
-        name: newName,
+    if (user) {
+      setUserProfile(user);
+      reset({
+        name: user.name || "",
+        email: user.email || "",
+        cpf: user.cpf || "",
+        empresa: user.empresa || "",
+        // setor: !user?.setor || ""
       });
+    }
+  }, [user, reset]);
 
-      if (error) {
-        Alert.alert(
-          "Erro",
-          "Não foi possível atualizar seu nome. Tente novamente."
-        );
-        return;
+  useEffect(() => {
+    if (cpfValue) {
+      const maskedCpf = cpfMask(cpfValue);
+      if (maskedCpf !== cpfValue) {
+        setValue("cpf", maskedCpf);
       }
+    }
+  }, [cpfValue, setValue]);
 
-      if (data) {
-        setUserProfile({ ...userProfile, name: newName });
-        Alert.alert("Sucesso", "Nome atualizado com sucesso!");
-      }
+  const onSubmitProfile = async (data: EditProfileFormData) => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // const { error } = await updateUserProfile(userProfile?.id, data);
+      // if (error) throw error;
+
+      setUserProfile((prev) => (prev ? { ...prev, ...data } : null));
+
+      Alert.alert("Sucesso", "Perfil atualizado com sucesso!", [
+        { text: "OK" },
+      ]);
     } catch (error) {
-      console.error("Error updating name:", error);
-      Alert.alert("Erro", "Ocorreu um erro ao atualizar seu nome.");
-    } finally {
-      setIsSaving(false);
+      console.error("Erro ao atualizar perfil:", error);
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro ao atualizar o perfil. Tente novamente.",
+        [{ text: "OK" }]
+      );
     }
   };
 
@@ -186,7 +197,7 @@ export default function ProfileScreen() {
     if (isLoading) {
       return (
         <View className="flex-1 items-center justify-center py-6">
-          <ActivityIndicator size="large" color={colors.light.deepBlue} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       );
     }
@@ -202,10 +213,8 @@ export default function ProfileScreen() {
     }
 
     return (
-      <View className="flex-1">
-        {diagnosticHistory.map((item) => (
-          <HistoryItem key={item.id} diagnostic={item} />
-        ))}
+      <View className="flex-1 mt-6">
+        <DiagnosticHistorySection diagnosticHistory={diagnosticHistory} />
       </View>
     );
   };
@@ -220,62 +229,109 @@ export default function ProfileScreen() {
     }
 
     return (
-      <View className="flex-1 mt-4">
+      <View className="flex-1 mt-6">
+        <View className="space-y-4">
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={User}
+                placeholder="Digite seu nome completo"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="words"
+                error={errors.name?.message}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Mail}
+                placeholder="Digite seu e-mail"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="cpf"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={IdCard}
+                placeholder="Digite seu CPF"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="numeric"
+                maxLength={14}
+                error={errors.cpf?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="empresa"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Building}
+                placeholder="Nome da empresa"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="words"
+                error={errors.empresa?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="setor"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Factory}
+                placeholder="Setor"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="words"
+                error={errors.setor?.message}
+              />
+            )}
+          />
+        </View>
+
+        {/* <Button
+          title="Salvar Alterações"
+          loading={isSubmitting}
+          onPress={handleSubmit(onSubmitProfile)}
+        /> */}
+
         <TouchableOpacity
-          className="flex-row items-center p-4 bg-white rounded-lg mb-3 shadow-sm"
+          className="flex-row items-center justify-between p-4 bg-white rounded-lg mb-3 shadow-sm h-14"
           activeOpacity={0.7}
-          onPress={() => setEditNameModalVisible(true)}
-          disabled={isSaving}
+          onPress={() => {
+            console.log("Navegar para Sobre o App");
+          }}
         >
-          <View className="flex-1">
-            <Text className="text-textPrimary text-base">Alterar Nome</Text>
-            <Text className="text-gray-500 text-sm mt-1">
-              {userProfile?.name || "Não definido"}
-            </Text>
+          <Text className="text-textPrimary text-base font-medium flex-1">
+            Sobre o App
+          </Text>
+          <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
           </View>
-          {isSaving && (
-            <ActivityIndicator size="small" color={colors.light.deepBlue} />
-          )}
-        </TouchableOpacity>
-
-        {userProfile?.email && (
-          <View className="flex-row items-center p-4 bg-white rounded-lg mb-3 shadow-sm">
-            <View className="flex-1">
-              <Text className="text-textPrimary text-base">Email</Text>
-              <Text className="text-gray-500 text-sm mt-1">
-                {userProfile.email}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {userProfile?.cpf && (
-          <View className="flex-row items-center p-4 bg-white rounded-lg mb-3 shadow-sm">
-            <View className="flex-1">
-              <Text className="text-textPrimary text-base">CPF</Text>
-              <Text className="text-gray-500 text-sm mt-1">
-                {userProfile.cpf}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {userProfile?.empresa && (
-          <View className="flex-row items-center p-4 bg-white rounded-lg mb-3 shadow-sm">
-            <View className="flex-1">
-              <Text className="text-textPrimary text-base">Empresa</Text>
-              <Text className="text-gray-500 text-sm mt-1">
-                {userProfile.empresa}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        <TouchableOpacity
-          className="flex-row items-center p-4 bg-white rounded-lg mb-3 shadow-sm"
-          activeOpacity={0.7}
-        >
-          <Text className="text-textPrimary text-base flex-1">Sobre o App</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -283,63 +339,74 @@ export default function ProfileScreen() {
           onPress={signOut}
           activeOpacity={0.7}
         >
-          <Text className="text-red-500 text-base flex-1">Sair</Text>
+          <Text className="text-textPrimary text-base font-medium flex-1">
+            Sair
+          </Text>
+          <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
+            <LogOut size={16} color={colors.primary} />
+          </View>
         </TouchableOpacity>
       </View>
     );
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paleSand">
-      <ScrollView className="flex-1 px-4">
-        <View className="items-center pt-6 pb-4">
-          <Header name={userProfile?.name || "Usuário"} />
-          <Text className="text-textPrimary text-xl font-bold mt-4">
-            {userProfile?.name || "Usuário"}
-          </Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
+      <ScrollView
+        className="flex-1 bg-background"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Header name={userProfile?.name || "Usuário"} />
+
+        <View className="flex-1 px-6">
+          <View className="flex-row justify-center gap-2 mt-6">
+            <TouchableOpacity
+              className={`py-3 px-6 items-center border-b-2 ${
+                activeTab === "history"
+                  ? "border-primary"
+                  : "border-transparent"
+              }`}
+              onPress={() => setActiveTab("history")}
+              activeOpacity={0.8}
+            >
+              <Text
+                className={`font-medium ${
+                  activeTab === "history" ? "text-primary" : "text-secondary"
+                }`}
+              >
+                Histórico
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className={`py-3 px-6 items-center border-b-2 ${
+                activeTab === "settings"
+                  ? "border-primary"
+                  : "border-transparent"
+              }`}
+              onPress={() => setActiveTab("settings")}
+              activeOpacity={0.8}
+            >
+              <Text
+                className={`font-medium ${
+                  activeTab === "settings" ? "text-primary" : "text-secondary"
+                }`}
+              >
+                Configurações
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {activeTab === "history" ? renderHistoryTab() : renderSettingsTab()}
         </View>
 
-        <EditNameModal
-          visible={editNameModalVisible}
-          onClose={() => setEditNameModalVisible(false)}
-          onSave={handleUpdateName}
-          initialName={userProfile?.name || ""}
-        />
-
-        <View className="flex-row bg-white rounded-lg overflow-hidden mb-4">
-          <TouchableOpacity
-            className={`flex-1 py-3 items-center ${
-              activeTab === "history" ? "bg-deepBlue" : "bg-white"
-            }`}
-            onPress={() => setActiveTab("history")}
-          >
-            <Text
-              className={`font-medium ${
-                activeTab === "history" ? "text-white" : "text-textPrimary"
-              }`}
-            >
-              Histórico
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className={`flex-1 py-3 items-center ${
-              activeTab === "settings" ? "bg-deepBlue" : "bg-white"
-            }`}
-            onPress={() => setActiveTab("settings")}
-          >
-            <Text
-              className={`font-medium ${
-                activeTab === "settings" ? "text-white" : "text-textPrimary"
-              }`}
-            >
-              Configurações
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {activeTab === "history" ? renderHistoryTab() : renderSettingsTab()}
+        {activeTab === "settings" && <View className="h-20" />}
       </ScrollView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }

@@ -15,6 +15,7 @@ export interface TriagemItem {
   groupId: string;
   progress: { completed: number; total: number };
   status: string;
+  painLevel?: "Alta" | "Média" | "Baixa";
 }
 
 export type UserStats = {
@@ -28,28 +29,28 @@ export type UserStats = {
 const mockTriagemHistory: TriagemItem[] = [
   {
     id: "1",
-    location: "Lombar",
+    location: "Triagem -Lombar",
     date: "2025-06-15",
     progress: { completed: 4, total: 8 },
-    type: "Dor",
+    type: "progress",
     groupId: "lombar",
     status: "Em andamento",
   },
   {
     id: "2",
-    location: "Joelhos",
+    location: "Triagem -Joelhos",
     date: "2025-06-15",
     progress: { completed: 2, total: 8 },
-    type: "Dor",
+    type: "progress",
     groupId: "joelhos",
     status: "Em andamento",
   },
   {
     id: "3",
-    location: "Ombros",
+    location: "Triagem -Ombros",
     date: "2025-06-15",
     progress: { completed: 3, total: 6 },
-    type: "Dor",
+    type: "progress",
     groupId: "ombros",
     status: "Em andamento",
   },
@@ -147,7 +148,13 @@ export default function Dashboard() {
             {triagemHistory.length > 0 && (
               <CurrentProgressCard triagem={triagemHistory[0]} />
             )}
-            <TriagemHistorySection triagemHistory={triagemHistory} />
+            <View className="flex-1 my-6">
+              <Text className="font-semibold text-textPrimary text-xl mb-4">
+                Histórico de Triagens
+              </Text>
+
+              <TriagemHistorySection triagemHistory={triagemHistory} />
+            </View>
           </>
         )}
       </View>

@@ -15,7 +15,7 @@ export const CurrentProgressCard = ({ triagem }: { triagem: TriagemItem }) => {
 
       <View className="flex-row justify-between mb-1">
         <Text className="font-bold text-textPrimary">
-          Triagem - {triagem.location}
+          {triagem.location}
         </Text>
         <Text className="text-textSecondary">
           {new Date(triagem.date).toLocaleDateString("pt-BR")}
