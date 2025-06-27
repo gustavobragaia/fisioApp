@@ -1,15 +1,16 @@
 import { ReactNode } from "react";
 import { Dimensions, FlatList, Text, View } from "react-native";
+import { OptionCard } from "../OptionCard";
 
-export const HorizontalCardSection = ({ 
-  title, 
-  data = Array.from({ length: 10 }) 
-}: { 
-  title: string; 
+export const HorizontalCardSection = ({
+  title,
+  data = Array.from({ length: 10 }),
+}: {
+  title: string;
   data: {
-    icon: ReactNode
-    title: string
-  }[]; 
+    icon: ReactNode;
+    title: string;
+  }[];
 }) => {
   const { width } = Dimensions.get("window");
   const cardWidth = (width - 60) / 3;
@@ -32,16 +33,12 @@ export const HorizontalCardSection = ({
         snapToAlignment="start"
         snapToInterval={120}
         renderItem={(data) => (
-          <View
+          <OptionCard
             key={Number(data.item.title)}
-            className="h-[108px] p-4 bg-white shadow-[0_3px_30px_rgba(16,16,16,0.03)] rounded-xl justify-between"
-            style={{ width: cardWidth }}
-          >
-            {data.item.icon}
-            <Text className="font-semibold text-base text-textPrimary mt-4 line-clamp-2">
-              {data.item.title}
-            </Text>
-          </View>
+            icon={data.item.icon}
+            title={data.item.title}
+            cardWidth={cardWidth}
+          />
         )}
       />
     </View>

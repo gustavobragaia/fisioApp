@@ -31,7 +31,7 @@ const colors = {
         seafoam: '#CDEFE8',
 
         // for bg use paleSand
-        paleSand: '#F4F1EE',
+        paleSand: '#ECECF6',
 
     }
 }
