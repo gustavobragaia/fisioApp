@@ -1,21 +1,20 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { User } from '../types/supabase';
-import { 
-  signIn, 
-  signUp, 
-  signOut, 
-  getCurrentUser, 
-  signUpWithPhone,
-  signInWithMagicLink,
-  signInWithSmsOtp,
-  verifySmsOtp,
-  signInWithOAuth,
+import {
+  getCurrentUser,
   resetPassword,
-  updateUser
+  signIn,
+  signInWithMagicLink,
+  signInWithOAuth,
+  signInWithSmsOtp,
+  signOut,
+  signUp,
+  signUpWithPhone,
+  updateUser,
+  verifySmsOtp
 } from '../lib/supabaseUtils';
+import { User } from '../types/supabase';
 
 type AuthContextType = {
   session: Session | null;

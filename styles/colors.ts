@@ -1,9 +1,16 @@
 const colors = {
 
-    background: '#fff',
+    background: '#FAFAFF',
+    subBackground: '#F8F8FE',
 
-    textPrimary: '#000',
-    textSecondary: '#F5F5F5',
+    textPrimary: '#092810',
+    textSecondary: '#636363',
+
+    primary: "#2FC44F",
+    secondary: "#939393",
+    error: '#ff7675',
+
+    input: "#8D90A1",
     
     light: {
         
