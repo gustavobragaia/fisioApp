@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import colors from '../styles/colors';
+import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 
 interface ExerciseFeedbackProps {
   onRepeat: () => void;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { Exercise, getGroupTypeColor } from '../lib/exerciseUtils';
 import { fetchUserRecommendedExercises, markExerciseCompleted } from '../lib/recommendationUtils';
 import colors from '../styles/colors';
@@ -96,7 +96,7 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
             )}
           </View>
           <View className="w-2/3 p-3">
-            <Text className="text-lg font-bold text-gray-800">{item.name}</Text>
+            <Text className="text-lg font-bold text-gray-800">{item.name}2</Text>
             <View className="flex-row items-center mt-1">
               <View 
                 className="h-2 w-2 rounded-full mr-2" 

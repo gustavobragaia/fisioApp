@@ -25,6 +25,7 @@ import {
 import { z } from "zod";
 import { useAuth } from "../../contexts/AuthContext";
 // import { getUserTriagens } from "../../lib/supabaseUtils";
+import { EmptyState } from "@/components/EmptyState";
 import { Input } from "@/components/Input";
 import { DiagnosticHistorySection } from "@/components/profile/DiagnosticHistorySection";
 import colors from "../../styles/colors";
@@ -205,9 +206,10 @@ export default function ProfileScreen() {
     if (diagnosticHistory.length === 0) {
       return (
         <View className="flex-1 items-center justify-center py-10">
-          <Text className="text-textPrimary text-lg">
-            Nenhum diagnóstico encontrado
-          </Text>
+          <EmptyState
+            title="Nenhum diagnóstico encontrado"
+            variant="sad"
+          />
         </View>
       );
     }

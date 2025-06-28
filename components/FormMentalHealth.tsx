@@ -1,15 +1,16 @@
 /* eslint-disable react/display-name */
+import colors from "@/styles/colors";
 import { useRouter } from "expo-router";
 import { ArrowRight2, ExportCircle } from "iconsax-react-native";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import handleMentalHealthSymptomsToN8n from "../api/handleMentalHealthSymptomsToN8n";
 import { useAuth } from "../contexts/AuthContext";
@@ -436,7 +437,7 @@ const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
 
   const renderLoadingState = () => (
     <View className="flex-1 justify-center items-center p-6">
-      <ActivityIndicator size="large" color="#0066CC" />
+      <ActivityIndicator size="large" color={colors.primary} />
       <Text className="text-lg text-center mt-4 text-textPrimary">
         Colhendo dados da triagem...
       </Text>
@@ -492,9 +493,9 @@ const FormMentalHealth = forwardRef<FormMentalHealthRefType>((props, ref) => {
   };
 
   const renderMainContent = () => {
-    if (isLoading) {
-      return renderLoadingState();
-    }
+    // if (isLoading) {
+    //   return renderLoadingState();
+    // }
 
     if (currentScreen >= questions.length) {
       return renderCompletionState();

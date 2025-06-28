@@ -6,7 +6,7 @@ const colors = {
     textPrimary: '#092810',
     textSecondary: '#636363',
 
-    primary: "#2FC44F",
+    primary: "#09454F",
     secondary: "#939393",
     error: '#ff7675',
 

@@ -1,4 +1,5 @@
 import { TriagemItem } from "@/app/(tabs)";
+import colors from "@/styles/colors";
 import { useRouter } from "expo-router";
 import { ArrowRight2 } from "iconsax-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -30,13 +31,13 @@ export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
       </View>
 
       <View className="flex-row items-center">
-        <Text className="font-medium text-green-500 text-lg mr-3">
+        <Text className="font-medium text-primary text-lg mr-3">
           {item.progress.completed}/{item.progress.total}
         </Text>
         <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
           <ArrowRight2
             size={16}
-            color="#6B7280"
+            color={colors.primary}
           />
         </View>
       </View>

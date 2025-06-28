@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import colors from '@/styles/colors';
 import { useRouter } from 'expo-router';
+import { ArrowLeft2 } from 'iconsax-react-native';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 type BackHeaderProps = {
   title: string;
@@ -20,16 +22,16 @@ export default function BackHeader({ title, subtitle, onBackPress }: BackHeaderP
   };
 
   return (
-    <View className="flex-row items-center mb-6">
+    <View className="items-start mb-6">
       <TouchableOpacity 
-        className="mr-4" 
+        className="w-10 h-10 rounded-full bg-white shadow-[0_3px_30px_rgba(16,16,16,0.03)] items-center justify-center" 
         onPress={handleBackPress}
       >
-        <Text className="text-deepBlue text-2xl">←</Text>
+        <ArrowLeft2 size={24} color={colors.primary} />
       </TouchableOpacity>
-      <View>
-        {subtitle && <Text className="text-sm text-textPrimary">{subtitle}</Text>}
-        <Text className="text-2xl font-bold text-deepBlue">{title}</Text>
+      <View className='mt-6'>
+        <Text className="text-4xl font-bold text-textPrimary">{title}</Text>
+        {subtitle && <Text className="text-sm text-secondary">{subtitle}</Text>}
       </View>
     </View>
   );
