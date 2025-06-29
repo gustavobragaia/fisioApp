@@ -91,9 +91,7 @@ export function Button({
         break;
       case "secondary":
         variantStyle = {
-          backgroundColor: "#F8F8FE",
-          borderWidth: 1,
-          borderColor: colors.primary,
+          backgroundColor: colors.greenLight,
         };
         break;
     }

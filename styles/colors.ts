@@ -7,6 +7,7 @@ const colors = {
     textSecondary: '#636363',
 
     primary: "#09454F",
+    greenLight: "#7FDEB7",
     secondary: "#939393",
     error: '#ff7675',
 

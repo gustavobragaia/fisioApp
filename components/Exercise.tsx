@@ -1,14 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
-import colors from '../styles/colors';
+import { ResizeMode, Video } from "expo-av";
+import { Back, Pause, Play, Repeat } from "iconsax-react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Dimensions, Text, View } from "react-native";
+import { Button } from "./Button";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
-export type StepType = {
-  title?: string;
-  description?: string;
-} | string;
+export type StepType =
+  | {
+      title?: string;
+      description?: string;
+    }
+  | string;
 
 export type ExerciseProps = {
   id: string;
@@ -21,46 +24,40 @@ export type ExerciseProps = {
   duration?: number; // Duration in seconds
 };
 
-export default function Exercise({ 
-  id, 
-  name, 
-  videoUrl = 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4', 
+export default function Exercise({
+  id,
+  name,
+  videoUrl = "https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
   steps = [],
   onComplete,
   onPrevious,
   onNext,
-  duration = 30 // Default 30 seconds
+  duration = 30,
 }: ExerciseProps) {
-  // Video player reference
   const videoRef = useRef<Video>(null);
-  
-  // Timer state
+
   const [timerRunning, setTimerRunning] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [exerciseComplete, setExerciseComplete] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
-  // Reset timer and state when exercise ID changes
   useEffect(() => {
-    // Reset timer to initial duration
     setTimeRemaining(duration);
-    // Reset timer running state
     setTimerRunning(false);
-    // Reset exercise completion state
     setExerciseComplete(false);
-    
-    // Reset video if available
+    setIsPaused(false);
+
     if (videoRef.current) {
-      videoRef.current.stopAsync().catch(error => {
-        console.error('Error stopping video:', error);
+      videoRef.current.stopAsync().catch((error) => {
+        console.error("Error stopping video:", error);
       });
     }
-  }, [id, duration]); // Depend on exercise ID and duration
+  }, [id, duration]);
 
-  // Timer effect
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
 
-    if (timerRunning && timeRemaining > 0) {
+    if (timerRunning && timeRemaining > 0 && !isPaused) {
       interval = setInterval(() => {
         setTimeRemaining((prevTime) => prevTime - 1);
       }, 1000);
@@ -73,40 +70,61 @@ export default function Exercise({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerRunning, timeRemaining, onComplete]);
+  }, [timerRunning, timeRemaining, onComplete, isPaused]);
 
-  // Start exercise
   const startExercise = async () => {
     try {
-      // Reset timer if it was already completed
       if (exerciseComplete) {
         setTimeRemaining(duration);
         setExerciseComplete(false);
       }
 
-      // Start the timer
       setTimerRunning(true);
+      setIsPaused(false);
 
-      // Play the video
       if (videoRef.current) {
         await videoRef.current.playAsync();
       }
     } catch (error) {
-      console.error('Error starting exercise:', error);
+      console.error("Error starting exercise:", error);
     }
   };
 
-  // Format time as MM:SS
+  const pauseExercise = async () => {
+    try {
+      setIsPaused(true);
+
+      if (videoRef.current) {
+        await videoRef.current.pauseAsync();
+      }
+    } catch (error) {
+      console.error("Error pausing exercise:", error);
+    }
+  };
+
+  const resumeExercise = async () => {
+    try {
+      setIsPaused(false);
+
+      if (videoRef.current) {
+        await videoRef.current.playAsync();
+      }
+    } catch (error) {
+      console.error("Error resuming exercise:", error);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return (
-    <View className="flex-1">
-      {/* Video Player */}
-      <View className="items-center mb-6 rounded-xl overflow-hidden">
+    <View className="flex-1 bg-white">
+      <View className="items-center mb-6 rounded-xl overflow-hidden bg-primary/5">
         <Video
           ref={videoRef}
           source={{ uri: videoUrl }}
@@ -117,75 +135,120 @@ export default function Exercise({
         />
       </View>
 
-      {/* Timer */}
-      <View className="items-center mb-6">
-        <Text className="text-lg text-textPrimary mb-2">Tempo restante:</Text>
-        <View className="bg-[#F4F1EE] p-4 rounded-full w-32 h-32 items-center justify-center">
-          <Text className="text-3xl font-bold text-deepBlue">{formatTime(timeRemaining)}</Text>
-        </View>
-      </View>
-
-      {/* Start Button */}
-      <TouchableOpacity 
-        className={`p-4 rounded-lg items-center justify-center mb-6 ${timerRunning ? 'bg-[#CDEFE8]' : exerciseComplete ? 'bg-[#AEE1F9]' : 'bg-[#4A6FA5]'}`}
-        onPress={startExercise}
-        disabled={timerRunning}
-      >
-        <Text className={`text-lg font-bold ${timerRunning ? 'text-textPrimary' : 'text-white'}`}>
-          {timerRunning ? 'Em andamento...' : exerciseComplete ? 'Repetir exercício' : 'Iniciar exercício'}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Exercise Steps */}
       {steps.length > 0 && (
-        <View className="bg-white p-4 rounded-lg shadow-sm">
-          <Text className="text-lg font-bold text-deepBlue mb-2">Como fazer:</Text>
+        <View className="mb-8">
           {steps.map((step, index) => {
-            // Check if step is an object with title and description
-            const isStepObject = typeof step === 'object' && step !== null;
-            const title = isStepObject && 'title' in step ? step.title : '';
-            const description = isStepObject && 'description' in step ? step.description : '';
-            
-            // If step is a string or can't be parsed as an object, just show it as is
+            const isStepObject = typeof step === "object" && step !== null;
+            const title = isStepObject && "title" in step ? step.title : "";
+            const description =
+              isStepObject && "description" in step ? step.description : "";
+
             const stepContent = isStepObject ? (
               <View>
-                {title && <Text className="text-textPrimary font-bold">{title}</Text>}
-                {description && <Text className="text-textPrimary">{description}</Text>}
+                {title && (
+                  <Text className="text-textPrimary font-bold">{title}</Text>
+                )}
+                {description && (
+                  <Text className="text-textPrimary">{description}</Text>
+                )}
               </View>
             ) : (
               <Text className="text-textPrimary flex-1">{String(step)}</Text>
             );
-            
+
             return (
-              <View key={index} className="flex-row mb-4">
-                <Text className="text-deepBlue font-bold mr-2">{index + 1}.</Text>
+              <View key={index} className="mb-4">
+                <Text className="text-textPrimary font-bold mb-1">
+                  Passo {index + 1}.
+                </Text>
                 <View className="flex-1">{stepContent}</View>
               </View>
             );
           })}
         </View>
       )}
-      
-      {/* Navigation buttons */}
-      <View className="flex-row justify-between mt-4">
-        {onPrevious && (
-          <TouchableOpacity 
-            className="bg-[#F4F1EE] p-3 rounded-lg flex-1 mr-2 items-center"
-            onPress={onPrevious}
-          >
-            <Text className="text-deepBlue font-medium">Anterior</Text>
-          </TouchableOpacity>
-        )}
-        {onNext && (
-          <TouchableOpacity 
-            className={`p-3 rounded-lg flex-1 ml-2 items-center ${exerciseComplete ? 'bg-[#4A6FA5]' : 'bg-gray-300'}`}
-            onPress={exerciseComplete ? onNext : undefined}
-            disabled={!exerciseComplete}
-          >
-            <Text className={`font-medium ${exerciseComplete ? 'text-white' : 'text-gray-500'}`}>Próximo</Text>
-          </TouchableOpacity>
+
+      <View className="items-center mb-8">
+        <View className="relative items-center justify-center">
+          <View className="w-96 h-96 rounded-full bg-[#7FDEB7]/20 items-center justify-center">
+            <View className="w-72 h-72 rounded-full bg-[#7FDEB7] items-center justify-center">
+              <View className="w-48 h-48 rounded-full bg-primary items-center justify-center">
+                <Text className="text-4xl font-bold text-white">
+                  {formatTime(timeRemaining)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <View className="mb-28">
+        {!timerRunning ? (
+          <Button
+            title={exerciseComplete ? "Repetir exercício" : "Iniciar exercício"}
+            onPress={startExercise}
+            iconPosition="left"
+            Icon={exerciseComplete ? Repeat : Play}
+          />
+        ) : (
+          <Button
+            title={isPaused ? "Retomar" : "Pausar"}
+            onPress={isPaused ? resumeExercise : pauseExercise}
+            variant="secondary"
+            iconPosition="left"
+            Icon={isPaused ? Back : Pause}
+          />
         )}
       </View>
+
+      <View style={{ position: "absolute", top: -1000, left: -1000 }}>
+        <Video
+          ref={videoRef}
+          source={{ uri: videoUrl }}
+          resizeMode={ResizeMode.CONTAIN}
+          isLooping
+          style={{ width: 1, height: 1 }}
+        />
+      </View>
+
+      {/* Exercise Steps - Hidden in this layout but keeping for compatibility */}
+      {steps.length > 0 && false && (
+        <View className="bg-white p-4 rounded-lg shadow-sm mx-6 mt-6">
+          <Text className="text-lg font-bold text-deepBlue mb-2">
+            Como fazer:
+          </Text>
+          {steps.map((step, index) => {
+            // Check if step is an object with title and description
+            const isStepObject = typeof step === "object" && step !== null;
+            const title = isStepObject && "title" in step ? step.title : "";
+            const description =
+              isStepObject && "description" in step ? step.description : "";
+
+            // If step is a string or can't be parsed as an object, just show it as is
+            const stepContent = isStepObject ? (
+              <View>
+                {title && (
+                  <Text className="text-textPrimary font-bold">{title}</Text>
+                )}
+                {description && (
+                  <Text className="text-textPrimary">{description}</Text>
+                )}
+              </View>
+            ) : (
+              <Text className="text-textPrimary flex-1">{String(step)}</Text>
+            );
+
+            return (
+              <View key={index} className="flex-row mb-4">
+                <Text className="text-deepBlue font-bold mr-2">
+                  {index + 1}.
+                </Text>
+                <View className="flex-1">{stepContent}</View>
+              </View>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }

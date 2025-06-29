@@ -1,5 +1,8 @@
-import React from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { EmojiHappy, Repeat } from "iconsax-react-native";
+import React from "react";
+import { Dimensions, SafeAreaView, Text, View } from "react-native";
+import Rafiki from "../assets/images/workout/Rafiki";
+import { Button } from "./Button";
 
 interface ExerciseFeedbackProps {
   onRepeat: () => void;
@@ -7,66 +10,46 @@ interface ExerciseFeedbackProps {
   onNext?: () => void;
 }
 
-/**
- * Feedback component that shows after exercise completion
- */
-const ExerciseFeedback = ({ 
-  onRepeat, 
-  onComplete, 
-  onNext 
+const ExerciseFeedback = ({
+  onRepeat,
+  onComplete,
+  onNext,
 }: ExerciseFeedbackProps) => {
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 justify-between px-6 pt-10 pb-8">
-        {/* Header */}
-        <View className="items-center">
-          <Text className="text-4xl font-bold text-center text-deepBlue">Alívio</Text>
-        </View>
-        
-        {/* Main Content */}
-        <View className="flex-1 justify-center items-center my-6">
-          {/* Success Icon */}
-          <View className="w-24 h-24 rounded-full bg-[#E6F7FF] border-4 border-[#AEE1F9] items-center justify-center mb-8 shadow-sm">
-            <Text className="text-4xl">☺️</Text>
+        <View className="flex-1 justify-center items-center">
+          <View className="items-center mb-4">
+            <Rafiki width={Dimensions.get("window").width - 48} />
           </View>
-          
-          {/* Feedback Message */}
-          <View className="w-full items-center">
-            <Text className="text-3xl font-bold text-center mb-3 text-deepBlue">Você melhorou?</Text>
-            <Text className="text-lg text-center text-textPrimary mb-2 max-w-xs">
+
+          <View className="w-full items-start">
+            <Text className="text-3xl font-bold text-center mb-3 text-textPrimary">
+              Você melhorou?
+            </Text>
+            <Text className="text-lg text-textPrimary">
               Você está se tornando sua melhor versão!
             </Text>
           </View>
         </View>
-        
-        {/* Action Buttons */}
-        <View className="w-full">
-          <TouchableOpacity 
-            className="w-full bg-[#AEE1F9] p-5 rounded-2xl mb-4 items-center shadow-sm"
+
+        <View className="w-full gap-2">
+          <Button
+            title="Sim, estou aliviado"
             onPress={onComplete}
-            activeOpacity={0.8}
-          >
-            <Text className="text-lg font-bold text-deepBlue">Sim, estou aliviado 😊</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            className="w-full bg-[#CDEFE8] p-5 rounded-2xl mb-4 items-center shadow-sm"
+            iconPosition="left"
+            Icon={EmojiHappy}
+          />
+          <Button
+            title="Quero repetir"
             onPress={onRepeat}
-            activeOpacity={0.8}
-          >
-            <Text className="text-lg font-bold text-deepBlue flex-row items-center">
-              Quero repetir <Text>🔄</Text>
-            </Text>
-          </TouchableOpacity>
-          
+            variant="secondary"
+            iconPosition="left"
+            Icon={Repeat}
+          />
+
           {onNext && (
-            <TouchableOpacity 
-              className="w-full bg-[#4A6FA5] p-5 rounded-2xl items-center shadow-sm"
-              onPress={onNext}
-              activeOpacity={0.8}
-            >
-              <Text className="text-lg font-bold text-white">Mais um alongamento/meditação</Text>
-            </TouchableOpacity>
+            <Button title="Mais um alongamento/meditação" onPress={onNext} />
           )}
         </View>
       </View>
