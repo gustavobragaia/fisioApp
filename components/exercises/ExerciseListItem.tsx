@@ -1,18 +1,15 @@
 import React from "react";
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
-type ExerciseStatus = "pending" | "advanced" | "completed" | "fácil" | "médio" | "difícil";
+type ExerciseDifficulty = "fácil" | "médio" | "difícil";
+type ExerciseProgress = "pending" | "advanced" | "completed";
 
 type ExerciseListItemProps = {
   title: string;
   description: string;
   duration: string;
-  status: ExerciseStatus;
+  difficulty: ExerciseDifficulty;
+  progress: ExerciseProgress;
   imageUrl?: string;
   onPress?: () => void;
   disabled?: boolean;
@@ -22,66 +19,60 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   title,
   description,
   duration,
-  status,
+  difficulty,
+  progress,
   imageUrl,
   onPress,
   disabled = false,
 }) => {
-  const getStatusConfig = (status: ExerciseStatus) => {
-    switch (status) {
-      case "completed":
-        return {
-          badgeText: "Concluído",
-          badgeStyle: "bg-green-500",
-          textColor: "text-green-700",
-          opacity: 1,
-        };
-      case "advanced":
-        return {
-          badgeText: "Avançado",
-          badgeStyle: "bg-red-400",
-          textColor: "text-red-600",
-          opacity: 1,
-        };
-      case "pending":
-        return {
-          badgeText: "Iniciar",
-          badgeStyle: "bg-blue-500",
-          textColor: "text-blue-600",
-          opacity: 1,
-        };
+  const getDifficultyConfig = (difficulty: ExerciseDifficulty) => {
+    switch (difficulty) {
       case "fácil":
         return {
           badgeText: "Fácil",
           badgeStyle: "bg-green-100",
           textColor: "text-green-700",
-          opacity: 1,
         };
       case "médio":
         return {
           badgeText: "Médio",
           badgeStyle: "bg-yellow-100",
           textColor: "text-yellow-700",
-          opacity: 1,
         };
       case "difícil":
         return {
           badgeText: "Difícil",
           badgeStyle: "bg-red-100",
           textColor: "text-red-700",
-          opacity: 1,
-        };
-      default:
-        return {
-          badgeText: "Iniciar",
-          badgeStyle: "bg-blue-500",
-          textColor: "text-blue-600",
-          opacity: 1,
         };
     }
   };
 
-  const statusConfig = getStatusConfig(status);
+  const getProgressConfig = (progress: ExerciseProgress) => {
+    switch (progress) {
+      case "completed":
+        return {
+          badgeText: "Concluído",
+          badgeStyle: "bg-green-100",
+          textColor: "text-green-700",
+        };
+      case "advanced":
+        return {
+          badgeText: "Em Progresso",
+          badgeStyle: "bg-red-100",
+          textColor: "text-red-700",
+        };
+      case "pending":
+        return {
+          badgeText: "Em andamento",
+          badgeStyle: "bg-yellow-100",
+          textColor: "text-yellow-700",
+        };
+    }
+  };
+
+  const difficultyConfig = getDifficultyConfig(difficulty);
+  const progressConfig = getProgressConfig(progress);
   const imageSize = 80;
 
   return (
@@ -115,29 +106,38 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       </View>
 
       <View className="flex-1 items-start">
-        <Text
-          className="text-lg font-semibold mb-1 text-textPrimary"
-        >
+        <Text className="text-lg font-semibold mb-1 text-textPrimary">
           {title}
         </Text>
 
-        <Text
-          className="text-textPrimary text-sm mb-1"
-          numberOfLines={3}
-        >
+        <Text className="text-textPrimary text-sm mb-1" numberOfLines={3}>
           {description}
         </Text>
 
-        <Text className="text-textSecondary text-sm font-medium mb-2">
+        <Text className="text-textSecondary text-sm font-medium mb-3">
           Duração: {duration}
         </Text>
 
-        <View
-          className={`px-2 py-1 rounded-full ${statusConfig.badgeStyle}`}
-        >
-          <Text className={`text-sm font-semibold ${statusConfig.textColor}`}>
-            {statusConfig.badgeText}
-          </Text>
+        <View className="flex-row gap-2">
+          <View
+            className={`px-2 py-1 rounded-full ${difficultyConfig.badgeStyle}`}
+          >
+            <Text
+              className={`text-xs font-semibold ${difficultyConfig.textColor}`}
+            >
+              {difficultyConfig.badgeText}
+            </Text>
+          </View>
+
+          <View
+            className={`px-2 py-1 rounded-full ${progressConfig.badgeStyle}`}
+          >
+            <Text
+              className={`text-xs font-semibold ${progressConfig.textColor}`}
+            >
+              {progressConfig.badgeText}
+            </Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>

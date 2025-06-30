@@ -38,7 +38,8 @@ export default function ExerciseGroupList({
         title={item.name}
         description={item.description}
         duration={item.duration}
-        status={item.difficulty}
+        progress="pending"
+        difficulty={item.difficulty}
         imageUrl={item.imageUrl}
         onPress={() => onExercisePress?.(item, index)}
         disabled={disabled}
