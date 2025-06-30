@@ -146,7 +146,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Redirect href="/(tabs)" />
+      {/* <Redirect href="/(tabs)" /> */}
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
