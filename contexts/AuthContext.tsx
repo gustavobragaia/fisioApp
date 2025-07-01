@@ -22,7 +22,7 @@ type AuthContextType = {
   isLoading: boolean;
   signUp: (email: string, password: string, name: string, cpf?: string, empresa?: string) => Promise<{ error: any }>;
   signUpWithPhone: (phone: string, password: string, name: string, empresa?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ session: Session | null; user: User | null; error: Error | null }>;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signInWithSmsOtp: (phone: string) => Promise<{ error: any }>;
   verifySmsOtp: (phone: string, token: string) => Promise<{ error: any }>;

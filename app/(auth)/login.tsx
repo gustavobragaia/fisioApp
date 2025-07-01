@@ -54,7 +54,7 @@ export default function LoginScreen() {
     try {
       setIsLoading(true);
 
-      const { error } = await signIn(data.email, data.password);
+      const { session, error } = await signIn(data.email, data.password);
 
       if (error) {
         Alert.alert(
@@ -62,6 +62,14 @@ export default function LoginScreen() {
           error.message || "Falha na autenticação. Verifique seu email e senha."
         );
         return;
+      }
+
+      // Wait for the session to be updated in AuthContext
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Give time for auth state change
+
+      // Check if we have a valid session
+      if (!session) {
+        throw new Error('Sessão não foi estabelecida');
       }
 
       router.replace("/(tabs)");

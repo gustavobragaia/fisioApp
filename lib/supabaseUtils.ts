@@ -103,17 +103,46 @@ export const signUpWithPhone = async (phone: string, password: string, name: str
 
 export const signIn = async (email: string, password: string) => {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data: { session, user: authUser }, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (authError || !authUser) throw authError || new Error('Usuário não encontrado');
 
-    return { session: data.session, user: data.user, error: null };
+    // Get user profile from our users table
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+
+    if (profileError) throw profileError;
+
+    // Log user and session data for debugging
+    console.log('Auth User Data:', {
+      authUserId: authUser.id,
+      authUserEmail: authUser.email
+    });
+    console.log('Profile Data:', profile);
+    console.log('Session Data:', {
+      sessionAccessToken: session?.access_token,
+      sessionRefreshToken: session?.refresh_token,
+      sessionExpiresIn: session?.expires_in
+    });
+
+    return { 
+      session,
+      user: profile,
+      error: null 
+    };
   } catch (error) {
     console.error('Error signing in:', error);
-    return { session: null, user: null, error };
+    return { 
+      session: null,
+      user: null,
+      error: error instanceof Error ? error : new Error('Erro desconhecido')
+    };
   }
 };
 
