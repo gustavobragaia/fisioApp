@@ -20,7 +20,7 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, name: string, cpf?: string, empresa?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, cpf: string, empresa: string, work_sector: string) => Promise<{ error: any }>;
   signUpWithPhone: (phone: string, password: string, name: string, empresa?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ session: Session | null; user: User | null; error: Error | null }>;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
@@ -52,11 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkSession = async () => {
       try {
         setIsLoading(true);
-        
+
         // Get current session
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
-        
+
         if (session) {
           try {
             // Get user profile data
@@ -81,19 +81,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     };
-    
+
     // Add a safety timeout to ensure isLoading is set to false
     const safetyTimer = setTimeout(() => {
       setIsLoading(false);
     }, 3000);
-    
+
     checkSession();
 
     // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
         setSession(session);
-        
+
         if (session) {
           try {
             // Get user profile data when session changes
@@ -126,9 +126,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Auth methods
-  const handleSignUp = async (email: string, password: string, name: string, cpf?: string, empresa?: string) => {
+  const handleSignUp = async (email: string, password: string, name: string, cpf: string, empresa: string, work_sector: string) => {
     setIsLoading(true);
-    const result = await signUp(email, password, name, cpf, empresa);
+    const result = await signUp(email, password, name, cpf, empresa, work_sector);
     setIsLoading(false);
     return result;
   };

@@ -40,7 +40,7 @@ const registerSchema = z
       .min(1, "CPF é obrigatório")
       .refine((val) => cpfValidator.isValid(val), "CPF inválido"),
     empresa: z.string().min(1, "Nome da empresa é obrigatório"),
-    setor: z.string().min(1, "Setor da empresa é obrigatório"),
+    work_sector: z.string().min(1, "Work_sector da empresa é obrigatório"),
     password: z
       .string()
       .min(1, "Senha é obrigatória")
@@ -71,6 +71,7 @@ export default function RegisterScreen() {
       email: "",
       cpf: "",
       empresa: "",
+      work_sector: "",
       password: "",
       confirmPassword: "",
     },
@@ -85,7 +86,8 @@ export default function RegisterScreen() {
         data.password,
         data.name,
         data.cpf,
-        data.empresa
+        data.empresa,
+        data.work_sector
       );
 
       if (error) {
@@ -244,16 +246,16 @@ export default function RegisterScreen() {
 
           <Controller
             control={control}
-            name="setor"
+            name="work_sector"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 Icon={Shop}
-                placeholder="Setor"
+                placeholder="Setor de atuação"
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
                 autoCapitalize="words"
-                error={errors.setor?.message}
+                error={errors.work_sector?.message}
               />
             )}
           />

@@ -2,7 +2,7 @@ import { Triagem, User } from '../types/supabase';
 import { supabase, supabaseAdmin } from './supabase';
 
 // Authentication functions
-export const signUp = async (email: string, password: string, name: string, cpf?: string, empresa?: string) => {
+export const signUp = async (email: string, password: string, name: string, cpf: string, empresa: string, work_sector: string) => {
   try {
     // Sign up with Supabase Auth and include user metadata
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -12,13 +12,14 @@ export const signUp = async (email: string, password: string, name: string, cpf?
         data: {
           name,
           cpf,
-          empresa
+          empresa,
+          work_sector
         }
       }
     });
 
     if (authError) throw authError;
-    
+
     if (!authData.user) throw new Error('No user returned from sign up');
 
     // The database trigger should handle creating the user profile
@@ -68,7 +69,7 @@ export const signUpWithPhone = async (phone: string, password: string, name: str
     });
 
     if (authError) throw authError;
-    
+
     if (!authData.user) throw new Error('No user returned from sign up');
 
     // The database trigger should handle creating the user profile
@@ -131,14 +132,14 @@ export const signIn = async (email: string, password: string) => {
       sessionExpiresIn: session?.expires_in
     });
 
-    return { 
+    return {
       session,
       user: profile,
-      error: null 
+      error: null
     };
   } catch (error) {
     console.error('Error signing in:', error);
-    return { 
+    return {
       session: null,
       user: null,
       error: error instanceof Error ? error : new Error('Erro desconhecido')
@@ -254,7 +255,7 @@ export const signOut = async () => {
 export const getCurrentUser = async () => {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    
+
     if (error) throw error;
     if (!user) return { user: null, profile: null, error: null };
 
@@ -508,14 +509,14 @@ export const getUserExerciseStats = async (userId: string) => {
     // In a real app, you'd need a more sophisticated algorithm
     const consecutiveDays = 0; // Placeholder
 
-    return { 
+    return {
       data: {
         exercisesDone: exercisesDone || 0,
         triagemCount: triagemCount || 0,
         consecutiveDays,
         lastTriagem: latestTriagem?.created_at
-      }, 
-      error: null 
+      },
+      error: null
     };
   } catch (error) {
     console.error('Error getting user exercise stats:', error);
