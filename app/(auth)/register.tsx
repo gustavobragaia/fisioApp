@@ -3,7 +3,7 @@ import colors from "@/styles/colors";
 import { cpfMask } from "@/utils/cpfMask";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
-import { Link, useRouter } from "expo-router";
+import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   Building,
@@ -16,14 +16,14 @@ import {
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 import { z } from "zod";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../contexts/AuthContext";
@@ -56,7 +56,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const toast = useToast();
 
   const { signUp } = useAuth();
 
@@ -89,29 +89,35 @@ export default function RegisterScreen() {
       );
 
       if (error) {
-        Alert.alert(
-          "Erro no cadastro",
-          error.message || "Não foi possível criar sua conta. Tente novamente."
+        toast.show(
+          error.message || "Não foi possível criar sua conta. Tente novamente.",
+          {
+            type: "danger",
+            placement: "bottom",
+            duration: 3000,
+            animationType: "slide-in",
+          }
         );
         return;
       }
-
-      Alert.alert(
-        "Cadastro realizado",
-        "Sua conta foi criada com sucesso! Verifique seu email para confirmar o cadastro.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)/login"),
-          },
-        ]
+      toast.show(
+        "Cadastro realizado com sucesso! Verifique seu email para confirmar.",
+        {
+          type: "success",
+          placement: "bottom",
+          duration: 3000,
+          animationType: "slide-in",
+        }
       );
+      router.replace("/(auth)/login");
     } catch (error) {
       console.error("Registration error:", error);
-      Alert.alert(
-        "Erro",
-        "Ocorreu um erro durante o cadastro. Tente novamente."
-      );
+      toast.show("Ocorreu um erro durante o cadastro. Tente novamente.", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+        animationType: "slide-in",
+      });
     } finally {
       setIsLoading(false);
     }

@@ -7,7 +7,6 @@ import { Lock, Sms } from "iconsax-react-native";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 import { z } from "zod";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../contexts/AuthContext";
@@ -35,6 +35,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   const { signIn } = useAuth();
 
@@ -57,10 +58,12 @@ export default function LoginScreen() {
       const { session, error } = await signIn(data.email, data.password);
 
       if (error) {
-        Alert.alert(
-          "Erro de login",
-          error.message || "Falha na autenticação. Verifique seu email e senha."
-        );
+        toast.show(error.message || "Falha na autenticação. Verifique seu email e senha.", {
+          type: "danger",
+          placement: "bottom",
+          duration: 3000,
+          animationType: "slide-in",
+        });
         return;
       }
 
@@ -75,7 +78,12 @@ export default function LoginScreen() {
       router.replace("/(tabs)");
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert("Erro", "Ocorreu um erro durante o login. Tente novamente.");
+      toast.show("Ocorreu um erro ao fazer login. Tente novamente.", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+        animationType: "slide-in",
+      });
     } finally {
       setIsLoading(false);
     }
