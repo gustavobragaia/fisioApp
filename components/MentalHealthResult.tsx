@@ -16,12 +16,12 @@ type ApiResponseData = {
   output: {
     "Frase Motivacional": string;
     "Diagnostico": string;
-    "Exercicios": Array<{
+    "Exercicios": {
       nome: string;
       descricao: string;
       tipo: string;
       imageUrl?: string;
-    }>;
+    }[];
   }
 };
 
