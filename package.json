@@ -36,6 +36,7 @@
     "expo-web-browser": "~14.1.6",
     "iconsax-react-native": "^0.0.8",
     "joi": "^17.13.3",
+    "json": "^11.0.0",
     "lucide-react-native": "^0.522.0",
     "nativewind": "^4.1.23",
     "react": "19.0.0",

@@ -1,0 +1,82 @@
+// --- Sign up: Allow your users to sign up and create a new account ---
+let { data, error } = await supabase.auth.signUp({
+  email: 'someone@email.com', // User email
+  password: 'gOZEXmuXXAcxybgvzkhC' // User password
+})
+
+// --- Log in with Email/Password: If an account is created, users can login to your app ---
+let { data, error } = await supabase.auth.signInWithPassword({
+  email: 'someone@email.com', // User email
+  password: 'gOZEXmuXXAcxybgvzkhC' // User password
+})
+
+// --- Log in with Magic Link via Email: Send a user a passwordless link which they can use to redeem an access_token ---
+let { data, error } = await supabase.auth.signInWithOtp({
+  email: 'someone@email.com' // User email to send the magic link to
+})
+
+// --- Sign up with Phone/Password: A phone number can be used instead of an email as a primary account confirmation mechanism ---
+let { data, error } = await supabase.auth.signUp({
+  phone: '+13334445555', // User phone number
+  password: 'some-password' // User password
+})
+
+// --- Login via SMS OTP: SMS OTPs work like magic links, except you have to provide an interface for the user to verify the 6 digit number they receive ---
+let { data, error } = await supabase.auth.signInWithOtp({
+  phone: '+13334445555' // User phone number
+})
+
+// --- Verify an SMS OTP: Once the user has received the OTP, have them enter it in a form and send it for verification ---
+let { data, error } = await supabase.auth.verifyOtp({
+  phone: '+13334445555', // User phone number
+  token: '123456', // OTP received by user
+  type: 'sms' // OTP type (SMS)
+})
+
+// --- Log in with Third Party OAuth: Users can log in with Third Party OAuth like Google, Facebook, GitHub, and more ---
+let { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'github' // OAuth provider (e.g., 'github', 'google', etc.)
+})
+
+// --- Get User: Get the JSON object for the logged in user ---
+const { data: { user } } = await supabase.auth.getUser()
+
+// --- Forgotten Password Email: Sends the user a log in link via email. Once logged in you should direct the user to a new password form ---
+let { data, error } = await supabase.auth.resetPasswordForEmail('someone@email.com')
+
+// --- Update User: Update the user with a new email or password ---
+const { data, error } = await supabase.auth.updateUser({
+  email: "new@email.com", // New email (optional)
+  password: "new-password", // New password (optional)
+  data: { hello: 'world' } // Custom user data (optional)
+})
+
+// --- Log out: After calling log out, all interactions using the Supabase JS client will be "anonymous" ---
+let { error } = await supabase.auth.signOut()
+
+// --- Send a User an Invite over Email: Send a user a passwordless link which they can use to sign up and log in ---
+let { data, error } = await supabase.auth.admin.inviteUserByEmail('someone@email.com')
+Descriptions:
+Sign up: Allow your users to sign up and create a new account.
+
+Log in with Email/Password: If an account is created, users can login to your app.
+
+Log in with Magic Link via Email: Send a user a passwordless link which they can use to redeem an access_token.
+
+Sign up with Phone/Password: A phone number can be used instead of an email as a primary account confirmation mechanism.
+
+Login via SMS OTP: SMS OTPs work like magic links, except you have to provide an interface for the user to verify the 6 digit number they receive.
+
+Verify an SMS OTP: Once the user has received the OTP, have them enter it in a form and send it for verification.
+
+Log in with Third Party OAuth: Users can log in with Third Party OAuth like Google, Facebook, GitHub, and more.
+
+Get User: Get the JSON object for the logged in user.
+
+Forgotten Password Email: Sends the user a log in link via email. Once logged in you should direct the user to a new password form.
+
+Update User: Update the user with a new email or password.
+
+Log out: After calling log out, all interactions using the Supabase JS client will be "anonymous".
+
+Send a User an Invite over Email: Send a user a passwordless link which they can use to sign up and log in.
