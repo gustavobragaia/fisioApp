@@ -64,15 +64,10 @@ export default function LoginScreen() {
         return;
       }
 
-      // Wait for the session to be updated in AuthContext
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Give time for auth state change
-
-      // Check if we have a valid session
-      if (!session) {
-        throw new Error('Sessão não foi estabelecida');
+      // If we have a valid session, navigation will be handled by AuthContext's auth state change listener
+      if (session) {
+        router.replace("/(tabs)");
       }
-
-      router.replace("/(tabs)");
     } catch (error) {
       console.error("Login error:", error);
       Alert.alert("Erro", "Ocorreu um erro durante o login. Tente novamente.");
