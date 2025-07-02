@@ -4,7 +4,7 @@ import ExerciciosHeaderIcon from "@/assets/images/home/ExerciciosHeaderIcon";
 import TriagensHeaderIcon from "@/assets/images/home/TriagensHeaderIcon";
 import { ImageBackground, SafeAreaView, Text, View } from "react-native";
 
-export const DashboardHeader = ({ userStats }: { userStats: UserStats }) => (
+export const DashboardHeader = ({ userStats }: { userStats: UserStats | undefined }) => (
   <SafeAreaView className="bg-primary rounded-b-3xl overflow-hidden">
     <ImageBackground
       source={require('@/assets/images/banner-background.png')}
@@ -13,29 +13,29 @@ export const DashboardHeader = ({ userStats }: { userStats: UserStats }) => (
       imageStyle={{ borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}
     >
       <View className="absolute inset-0 bg-primary/60 rounded-b-3xl" />
-      
+
       <View className="p-6 pt-24 relative z-10">
         <Text className="text-4xl font-bold text-white">
           Bem-vindo de volta,
         </Text>
         <Text className="text-3xl font-bold text-white">
-          {userStats.name} 👋
+          {userStats?.name} 👋
         </Text>
-        
+
         <View className="flex-row justify-around items-center mt-6">
-          <StatItem 
+          <StatItem
             icon={<ExerciciosHeaderIcon />}
-            value={userStats.exercisesDone}
+            value={userStats?.exercisesDone}
             label="Exercícios"
           />
-          <StatItem 
+          <StatItem
             icon={<TriagensHeaderIcon />}
-            value={userStats.triagemCount}
+            value={userStats?.triagemCount}
             label="Triagens"
           />
-          <StatItem 
+          <StatItem
             icon={<DiasSeguidosHeaderIcon />}
-            value={userStats.consecutiveDays}
+            value={userStats?.consecutiveDays}
             label="Dias seguidos"
           />
         </View>
@@ -44,10 +44,10 @@ export const DashboardHeader = ({ userStats }: { userStats: UserStats }) => (
   </SafeAreaView>
 );
 
-const StatItem = ({ icon, value, label }: { 
-  icon: any; 
-  value: number; 
-  label: string; 
+const StatItem = ({ icon, value, label }: {
+  icon: any;
+  value: number | undefined;
+  label: string;
 }) => (
   <View className="items-center gap-2">
     {icon}
