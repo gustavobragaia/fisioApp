@@ -1,233 +1,36 @@
-import { CurrentProgressCard } from "@/components/home/CurrentProgressCard";
-import { DashboardHeader } from "@/components/home/DashboardHeader";
-import { FirstAccessDashboard } from "@/components/home/FirstAccessDashboard";
-import { HorizontalCardSection } from "@/components/home/HorizontalCardSection";
-import { TriagemHistorySection } from "@/components/home/TriagemHistorySection";
-import { supabase } from "@/lib/supabase";
-import colors from "@/styles/colors";
-import {
-  Activity,
-  ArrowSquareLeft,
-  Health,
-  Heart,
-  Location,
-  Profile,
-  User
-} from "iconsax-react-native";
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-// import { supabase } from "../../lib/supabase";
-
-export interface TriagemItem {
-  id: string;
-  date: string;
-  type: string;
-  location: string;
-  groupId: string;
-  progress: { completed: number; total: number };
-  status: string;
-  painLevel?: "Alta" | "Média" | "Baixa";
-}
-
-export type UserStats = {
-  exercisesDone: number;
-  triagemCount: number;
-  consecutiveDays: number;
-  lastTriagem?: string;
-  name: string;
-};
-
-const mockTriagemHistory: TriagemItem[] = [
-  {
-    id: "1",
-    location: "Triagem -Lombar",
-    date: "2025-06-15",
-    progress: { completed: 4, total: 8 },
-    type: "progress",
-    groupId: "lombar",
-    status: "Em andamento",
-  },
-  {
-    id: "2",
-    location: "Triagem -Joelhos",
-    date: "2025-06-15",
-    progress: { completed: 2, total: 8 },
-    type: "progress",
-    groupId: "joelhos",
-    status: "Em andamento",
-  },
-  {
-    id: "3",
-    location: "Triagem -Ombros",
-    date: "2025-06-15",
-    progress: { completed: 3, total: 6 },
-    type: "progress",
-    groupId: "ombros",
-    status: "Em andamento",
-  },
-];
-
-const mockRoutine = [
-  {
-    icon: <Heart size={24} color={colors.primary} />,
-    title: "Dores no corpo"
-  },
-  {
-    icon: <Health size={24} color={colors.primary} />,
-    title: "Ansiedade e cansaço"
-  },
-  {
-    icon: <Activity size={24} color={colors.primary} />,
-    title: "Exercícios"
-  },
-  {
-    icon: <Profile size={24} color={colors.primary} />,
-    title: "Meditação e relaxamento"
-  },
-  {
-    icon: <Heart size={24} color={colors.primary} />,
-    title: "Alongamentos matinais"
-  },
-  {
-    icon: <Activity size={24} color={colors.primary} />,
-    title: "Respiração profunda"
-  },
-]
-
-const mockWhereYouFeelPain = [
-  {
-    icon: <User size={24} color={colors.primary} />,
-    title: "Pescoço"
-  },
-  {
-    icon: <ArrowSquareLeft size={24} color={colors.primary} />,
-    title: "Lombar"
-  },
-  {
-    icon: <Location size={24} color={colors.primary} />,
-    title: "Tornozelos / Pés"
-  },
-  {
-    icon: <User size={24} color={colors.primary} />,
-    title: "Cabeça / Enxaqueca"
-  },
-  {
-    icon: <Heart size={24} color={colors.primary} />,
-    title: "Ombros"
-  },
-  {
-    icon: <Location size={24} color={colors.primary} />,
-    title: "Joelhos"
-  },
-]
+import { DashboardContent } from '@/components/home/DashboardContent';
+import { DashboardError } from '@/components/home/DashboardError';
+import { DashboardHeader } from '@/components/home/DashboardHeader';
+import { Loading } from '@/components/Loading';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import React from 'react';
 
 export default function Dashboard() {
-  const [isFirstAccess, setIsFirstAccess] = useState<boolean>(false);
-  const [userStats, setUserStats] = useState<UserStats | undefined>();
-  const [triagemHistory, setTriagemHistory] =
-    useState<TriagemItem[]>(mockTriagemHistory);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-
-    setTriagemHistory(mockTriagemHistory);
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) {
-        console.error("Error fetching user:", userError);
-        setIsLoading(false);
-        return;
-      }
-
-      const userId = userData.user.id;
-
-      const { data: userData2, error: userDataError } = await supabase
-        .from("users")
-        .select("name")
-        .eq("id", userId)
-        .single();
-
-      console.log("User Data:", userData2);
-
-      const { data: triagemData, error: triagemError } = await supabase
-        .from("triagens")
-        .select("id, created_at, type, status")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if(triagemData?.length === 0) {
-        setIsFirstAccess(true);
-      }
-
-      console.log("Triagem Data:", triagemData);
-
-      const { data: exercisesData, error: exercisesError } = await supabase
-        .from("exercises")
-        .select("id, created_at, type, status")
-        .eq("user_id", userId)
-        .eq("completed", 'TRUE')
-        .order("created_at", { ascending: false });
-
-      console.log("Exercises Data:", exercisesData);
-
-      setUserStats({
-        exercisesDone: exercisesData ? exercisesData.length : 0,
-        triagemCount: triagemData ? triagemData.length : 0,
-        // TO DO
-        consecutiveDays: 5,
-        name: "Gustavo",
-      })
-
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch
+  } = useDashboardData();
 
   if (isLoading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-background">
-        <Text>Carregando...</Text>
-      </View>
-    );
+    return <Loading />;
   }
 
+  if (isError || !data) {
+    return <DashboardError onRetry={refetch} />;
+  }
+
+  const { userStats, triagemHistory, isFirstAccess } = data;
+
   return (
-    <ScrollView className="flex-1 bg-background">
+    <>
       <DashboardHeader userStats={userStats} />
-
-      {isFirstAccess && (
-        <View className="mx-6">
-          <FirstAccessDashboard />
-        </View>
-      )}
-
-      <HorizontalCardSection title="Feito para sua rotina" data={mockRoutine} />
-      <HorizontalCardSection title="Onde você sente mais dor?" data={mockWhereYouFeelPain} />
-
-      <View className="flex-1 px-6">
-        {!isFirstAccess && (
-          <>
-            {triagemHistory.length > 0 && (
-              <CurrentProgressCard triagem={triagemHistory[0]} />
-            )}
-            <View className="flex-1 my-6">
-              <Text className="font-semibold text-textPrimary text-xl mb-4">
-                Histórico de Triagens
-              </Text>
-
-              <TriagemHistorySection triagemHistory={triagemHistory} />
-            </View>
-          </>
-        )}
-      </View>
-    </ScrollView>
+      <DashboardContent
+        userStats={userStats}
+        triagemHistory={triagemHistory}
+        isFirstAccess={isFirstAccess}
+      />
+    </>
   );
-}
+};

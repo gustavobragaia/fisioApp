@@ -65,7 +65,7 @@ export function EmptyState({
   };
 
   return (
-    <View className="bg-white border border-[#DFDFF1] border-dashed rounded-2xl p-6 shadow-md w-full items-center">
+    <View className="bg-white border border-[#DFDFF1] border-dashed rounded-2xl p-6 shadow-[0_3px_30px_rgba(16,16,16,0.03)]  w-full items-center">
       <View className="bg-[#F3FEF3] rounded-full px-3 py-2 flex-row items-center justify-center gap-3">
         {getIcons()}
       </View>

@@ -1,7 +1,7 @@
-import { UserStats } from "@/app/(tabs)";
 import DiasSeguidosHeaderIcon from "@/assets/images/home/DiasSeguidosHeaderIcon";
 import ExerciciosHeaderIcon from "@/assets/images/home/ExerciciosHeaderIcon";
 import TriagensHeaderIcon from "@/assets/images/home/TriagensHeaderIcon";
+import { UserStats } from "@/types/dashboard";
 import { ImageBackground, SafeAreaView, Text, View } from "react-native";
 
 export const DashboardHeader = ({ userStats }: { userStats: UserStats | undefined }) => (

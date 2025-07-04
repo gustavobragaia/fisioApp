@@ -1,5 +1,5 @@
-import { TriagemItem } from "@/app/(tabs)";
 import colors from "@/styles/colors";
+import { TriagemItem } from "@/types/dashboard";
 import { useRouter } from "expo-router";
 import { ArrowRight2 } from "iconsax-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -22,7 +22,7 @@ export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
       activeOpacity={0.7}
     >
       <View>
-        <Text className="font-semibold text-lg text-gray-800 mb-1">
+        <Text className="font-semibold text-lg text-gray-800 mb-1 capitalize">
           Triagem - {item.location}
         </Text>
         <Text className="text-gray-500 text-sm">

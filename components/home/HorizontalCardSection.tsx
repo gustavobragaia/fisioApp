@@ -1,5 +1,4 @@
-import { ReactNode } from "react";
-import { Dimensions, FlatList, Text, View } from "react-native";
+import { Dimensions, FlatList, Image, Text, View } from "react-native";
 import { OptionCard } from "../OptionCard";
 
 export const HorizontalCardSection = ({
@@ -8,8 +7,11 @@ export const HorizontalCardSection = ({
 }: {
   title: string;
   data: {
-    icon: ReactNode;
-    title: string;
+    label: string;
+    value: string;
+    imageSource: {
+      uri: string;
+    };
   }[];
 }) => {
   const { width } = Dimensions.get("window");
@@ -34,9 +36,16 @@ export const HorizontalCardSection = ({
         snapToInterval={120}
         renderItem={(data) => (
           <OptionCard
-            key={Number(data.item.title)}
-            icon={data.item.icon}
-            title={data.item.title}
+            key={Number(data.item.label)}
+            icon={
+              <Image
+                source={data.item.imageSource}
+                width={24}
+                height={24}
+                alt={data.item.label}
+              />
+            }
+            title={data.item.label}
             cardWidth={cardWidth}
           />
         )}

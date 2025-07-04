@@ -1,8 +1,8 @@
-import { TriagemItem } from "@/app/(tabs)";
 import { useRouter } from "expo-router";
 import { FlatList, View } from "react-native";
 import { EmptyState } from "../EmptyState";
 import { TriagemHistoryCard } from "./TriagemHistoryCard";
+import { TriagemItem } from "@/types/dashboard";
 
 export const TriagemHistorySection = ({
   triagemHistory,

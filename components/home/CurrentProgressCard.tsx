@@ -1,4 +1,4 @@
-import { TriagemItem } from "@/app/(tabs)";
+import { TriagemItem } from "@/types/dashboard";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 import { Button } from "../Button";
@@ -14,7 +14,7 @@ export const CurrentProgressCard = ({ triagem }: { triagem: TriagemItem }) => {
       </Text>
 
       <View className="flex-row justify-between mb-1">
-        <Text className="font-bold text-textPrimary">
+        <Text className="font-bold text-textPrimary capitalize">
           {triagem.location}
         </Text>
         <Text className="text-textSecondary">
