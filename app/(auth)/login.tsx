@@ -67,9 +67,15 @@ export default function LoginScreen() {
         return;
       }
 
-      // If we have a valid session, navigation will be handled by AuthContext's auth state change listener
+      // Wait for the session to be properly updated in AuthContext
+      // This will ensure the auth state change listener has time to update the session
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Check if we have a session before navigating
       if (session) {
-        router.replace("/(tabs)");
+        // Instead of forcing navigation, let the AuthContext handle it
+        // The auth state change listener will take care of the navigation
+        return;
       }
     } catch (error) {
       console.error("Login error:", error);

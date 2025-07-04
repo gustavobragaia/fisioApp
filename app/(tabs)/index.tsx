@@ -15,6 +15,7 @@ import {
 } from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
 // import { supabase } from "../../lib/supabase";
 
 export interface TriagemItem {
@@ -127,11 +128,21 @@ const mockUserStats: UserStats = {
 };
 
 export default function Dashboard() {
-  const [isFirstAccess, setIsFirstAccess] = useState<boolean>(false);
+  const { user, session } = useAuth();
+  const [isFirstAccess, setIsFirstAccess] = useState(false);
   const [userStats, setUserStats] = useState<UserStats>(mockUserStats);
-  const [triagemHistory, setTriagemHistory] =
-    useState<TriagemItem[]>(mockTriagemHistory);
+  const [triagemHistory, setTriagemHistory] = useState<TriagemItem[]>(mockTriagemHistory);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    console.log('Logged user data:', {
+      userId: user?.id,
+      userEmail: user?.email,
+      userName: user?.name,
+      sessionActive: !!session,
+      sessionUser: session?.user?.email,
+    });
+  }, [user, session]);
 
   useEffect(() => {
     // TODO login is working
