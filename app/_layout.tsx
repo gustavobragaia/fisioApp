@@ -29,17 +29,25 @@ export default function RootLayout() {
 }
 
 function AppNavigator() {
-  const { session } = useAuth();
+  const { session, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <Text className="text-lg text-primary font-medium">Carregando...</Text>
+      </View>
+    );
+  }
 
   return (
     <ToastProvider>
-        <Stack initialRouteName={session ? "(tabs)" : "(auth)"} screenOptions={{ headerShown: false }}>
-          {!session ? (
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          ) : (
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          )}
-        </Stack>
+      <Stack initialRouteName={session ? "(tabs)" : "(auth)"} screenOptions={{ headerShown: false }}>
+        {!session ? (
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        ) : (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        )}
+      </Stack>
     </ToastProvider>
   );
 }

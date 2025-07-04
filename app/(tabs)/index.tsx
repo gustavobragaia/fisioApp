@@ -3,7 +3,6 @@ import { DashboardHeader } from "@/components/home/DashboardHeader";
 import { FirstAccessDashboard } from "@/components/home/FirstAccessDashboard";
 import { HorizontalCardSection } from "@/components/home/HorizontalCardSection";
 import { TriagemHistorySection } from "@/components/home/TriagemHistorySection";
-import { supabase } from "@/lib/supabase";
 import colors from "@/styles/colors";
 import {
   Activity,
@@ -16,6 +15,7 @@ import {
 } from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
 // import { supabase } from "../../lib/supabase";
 
 export interface TriagemItem {
@@ -120,24 +120,47 @@ const mockWhereYouFeelPain = [
     title: "Joelhos"
   },
 ]
+const mockUserStats: UserStats = {
+  exercisesDone: 12,
+  triagemCount: 3,
+  consecutiveDays: 5,
+  name: "Gustavo",
+};
 
 export default function Dashboard() {
-  const [isFirstAccess, setIsFirstAccess] = useState<boolean>(false);
-  const [userStats, setUserStats] = useState<UserStats | undefined>();
-  const [triagemHistory, setTriagemHistory] =
-    useState<TriagemItem[]>(mockTriagemHistory);
+  const { user, session } = useAuth();
+  const [isFirstAccess, setIsFirstAccess] = useState(false);
+  const [userStats, setUserStats] = useState<UserStats>(mockUserStats);
+  const [triagemHistory, setTriagemHistory] = useState<TriagemItem[]>(mockTriagemHistory);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    console.log('Logged user data:', {
+      userId: user?.id,
+      userEmail: user?.email,
+      userName: user?.name,
+      sessionActive: !!session,
+      sessionUser: session?.user?.email,
+    });
+  }, [user, session]);
 
+  useEffect(() => {
+    // TODO login is working
+    // fetchData();
+
+    // Mock data setup for development
+    setIsFirstAccess(false);
+    setUserStats(mockUserStats);
     setTriagemHistory(mockTriagemHistory);
+    setIsLoading(false);
   }, []);
 
+  /*
   const fetchData = async () => {
     try {
       setIsLoading(true);
 
+      // Get current user
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
         console.error("Error fetching user:", userError);
@@ -147,42 +170,22 @@ export default function Dashboard() {
 
       const userId = userData.user.id;
 
+      // Get user data
       const { data: userData2, error: userDataError } = await supabase
         .from("users")
         .select("name")
         .eq("id", userId)
         .single();
 
-      console.log("User Data:", userData2);
-
+      // Get user's triagens
       const { data: triagemData, error: triagemError } = await supabase
         .from("triagens")
         .select("id, created_at, type, status")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if(triagemData?.length === 0) {
-        setIsFirstAccess(true);
-      }
-
-      console.log("Triagem Data:", triagemData);
-
-      const { data: exercisesData, error: exercisesError } = await supabase
-        .from("exercises")
-        .select("id, created_at, type, status")
-        .eq("user_id", userId)
-        .eq("completed", 'TRUE')
-        .order("created_at", { ascending: false });
-
-      console.log("Exercises Data:", exercisesData);
-
-      setUserStats({
-        exercisesDone: exercisesData ? exercisesData.length : 0,
-        triagemCount: triagemData ? triagemData.length : 0,
-        // TO DO
-        consecutiveDays: 5,
-        name: "Gustavo",
-      })
+      // Process and format data...
+      // (Rest of the data fetching logic)
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -190,6 +193,7 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
+  */
 
   if (isLoading) {
     return (
