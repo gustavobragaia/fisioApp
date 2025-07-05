@@ -5,6 +5,8 @@ export type User = {
   cpf?: string;
   empresa?: string;
   work_sector?: string;
+  idade?: string;
+  genero?: string;
   created_at: string;
 };
 

@@ -11,8 +11,9 @@ import {
   Personalcard,
   Shop,
   Sms,
-  User
-} from 'iconsax-react-native';
+  User,
+  UserSquare,
+} from "iconsax-react-native";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -21,7 +22,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 import { z } from "zod";
@@ -41,6 +42,8 @@ const registerSchema = z
       .refine((val) => cpfValidator.isValid(val), "CPF inválido"),
     empresa: z.string().min(1, "Nome da empresa é obrigatório"),
     work_sector: z.string().min(1, "Work_sector da empresa é obrigatório"),
+    idade: z.string().min(1, "Idade obrigatória"),
+    genero: z.string().min(1, "Gênero obrigatório"),
     password: z
       .string()
       .min(1, "Senha é obrigatória")
@@ -72,6 +75,8 @@ export default function RegisterScreen() {
       cpf: "",
       empresa: "",
       work_sector: "",
+      idade: "",
+      genero: "",
       password: "",
       confirmPassword: "",
     },
@@ -87,7 +92,9 @@ export default function RegisterScreen() {
         data.name,
         data.cpf,
         data.empresa,
-        data.work_sector
+        data.work_sector,
+        data.idade,
+        data.genero,
       );
 
       if (error) {
@@ -256,6 +263,37 @@ export default function RegisterScreen() {
                 value={value}
                 autoCapitalize="words"
                 error={errors.work_sector?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="idade"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={UserSquare}
+                placeholder="Idade"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="numeric"
+                error={errors.idade?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="genero"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                Icon={Personalcard}
+                placeholder="Gênero"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                error={errors.genero?.message}
               />
             )}
           />

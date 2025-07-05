@@ -196,7 +196,7 @@ export default function LoginScreen() {
           <View className="flex-row justify-center mt-8">
             <Text className="text-gray-600">Não tem uma conta? </Text>
             <Link href="/(auth)/register" asChild>
-              <TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.7}>
                 <Text
                   className="font-semibold"
                   style={{ color: colors.primary }}

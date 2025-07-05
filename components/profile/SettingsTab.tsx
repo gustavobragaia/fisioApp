@@ -48,6 +48,8 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
       cpf: "",
       empresa: "",
       work_sector: "",
+      idade: "",
+      genero: "",
     },
   });
 
@@ -60,6 +62,8 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
     cpf: userProfile?.cpf || "",
     empresa: userProfile?.empresa || "",
     work_sector: userProfile?.work_sector || "",
+    idade: userProfile?.idade || "",
+    genero: userProfile?.genero || "",
   };
 
   const hasChanges = hasFormChanges(formValues as any, originalData as any);
@@ -176,7 +180,7 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               Icon={Shop}
-              placeholder="Setor"
+              placeholder="Setor de atuação"
               onChangeText={onChange}
               onBlur={onBlur}
               value={value}

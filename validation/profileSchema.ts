@@ -19,6 +19,8 @@ export const editProfileSchema = z.object({
     .max(100, "Nome da empresa deve ter no máximo 100 caracteres")
     .optional()
     .or(z.literal("")),
+  idade: z.string().min(1, "Idade obrigatória"),
+  genero: z.string().min(1, "Gênero obrigatório"),
   work_sector: z
     .string()
     .max(50, "Setor deve ter no máximo 50 caracteres")

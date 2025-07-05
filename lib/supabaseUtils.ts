@@ -1,8 +1,17 @@
-import { Triagem, User } from '../types/supabase';
-import { supabase, supabaseAdmin } from './supabase';
+import { Triagem, User } from "../types/supabase";
+import { supabase, supabaseAdmin } from "./supabase";
 
 // Authentication functions
-export const signUp = async (email: string, password: string, name: string, cpf: string, empresa: string, work_sector: string) => {
+export const signUp = async (
+  email: string,
+  password: string,
+  name: string,
+  cpf: string,
+  empresa: string,
+  work_sector: string,
+  idade: string,
+  genero: string
+) => {
   try {
     // Sign up with Supabase Auth and include user metadata
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -13,48 +22,56 @@ export const signUp = async (email: string, password: string, name: string, cpf:
           name,
           cpf,
           empresa,
-          work_sector
-        }
-      }
+          work_sector,
+          idade,
+          genero,
+        },
+      },
     });
 
     if (authError) throw authError;
 
-    if (!authData.user) throw new Error('No user returned from sign up');
+    if (!authData.user) throw new Error("No user returned from sign up");
 
     // The database trigger should handle creating the user profile
     // If you want to ensure the profile exists, you can check/create it here
     const { data: existingUser, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
+      .from("users")
+      .select("*")
+      .eq("id", authData.user.id)
       .single();
 
     // If the user profile doesn't exist (trigger didn't work), create it manually
     // Use supabaseAdmin with service role to bypass RLS policies
     if (fetchError || !existingUser) {
-      const { error: profileError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email,
-          name,
-          cpf,
-          empresa,
-        });
+      const { error: profileError } = await supabaseAdmin.from("users").insert({
+        id: authData.user.id,
+        email,
+        name,
+        cpf,
+        empresa,
+        idade,
+        genero,
+        work_sector,
+      });
 
       if (profileError) throw profileError;
     }
 
     return { user: authData.user, error: null };
   } catch (error) {
-    console.error('Error signing up:', error);
+    console.error("Error signing up:", error);
     return { user: null, error };
   }
 };
 
 // Phone number sign up
-export const signUpWithPhone = async (phone: string, password: string, name: string, empresa?: string) => {
+export const signUpWithPhone = async (
+  phone: string,
+  password: string,
+  name: string,
+  empresa?: string
+) => {
   try {
     // Sign up with Supabase Auth using phone and include user metadata
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -63,86 +80,88 @@ export const signUpWithPhone = async (phone: string, password: string, name: str
       options: {
         data: {
           name,
-          empresa
-        }
-      }
+          empresa,
+        },
+      },
     });
 
     if (authError) throw authError;
 
-    if (!authData.user) throw new Error('No user returned from sign up');
+    if (!authData.user) throw new Error("No user returned from sign up");
 
     // The database trigger should handle creating the user profile
     // If you want to ensure the profile exists, you can check/create it here
     const { data: existingUser, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
+      .from("users")
+      .select("*")
+      .eq("id", authData.user.id)
       .single();
 
     // If the user profile doesn't exist (trigger didn't work), create it manually
     // Use supabaseAdmin with service role to bypass RLS policies
     if (fetchError || !existingUser) {
-      const { error: profileError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          phone,
-          name,
-          empresa,
-        });
+      const { error: profileError } = await supabaseAdmin.from("users").insert({
+        id: authData.user.id,
+        phone,
+        name,
+        empresa,
+      });
 
       if (profileError) throw profileError;
     }
 
     return { user: authData.user, error: null };
   } catch (error) {
-    console.error('Error signing up with phone:', error);
+    console.error("Error signing up with phone:", error);
     return { user: null, error };
   }
 };
 
 export const signIn = async (email: string, password: string) => {
   try {
-    const { data: { session, user: authUser }, error: authError } = await supabase.auth.signInWithPassword({
+    const {
+      data: { session, user: authUser },
+      error: authError,
+    } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (authError || !authUser) throw authError || new Error('Usuário não encontrado');
+    if (authError || !authUser)
+      throw authError || new Error("Usuário não encontrado");
 
     // Get user profile from our users table
     const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authUser.id)
+      .from("users")
+      .select("*")
+      .eq("id", authUser.id)
       .single();
 
     if (profileError) throw profileError;
 
     // Log user and session data for debugging
-    console.log('Auth User Data:', {
+    console.log("Auth User Data:", {
       authUserId: authUser.id,
-      authUserEmail: authUser.email
+      authUserEmail: authUser.email,
     });
-    console.log('Profile Data:', profile);
-    console.log('Session Data:', {
+    console.log("Profile Data:", profile);
+    console.log("Session Data:", {
       sessionAccessToken: session?.access_token,
       sessionRefreshToken: session?.refresh_token,
-      sessionExpiresIn: session?.expires_in
+      sessionExpiresIn: session?.expires_in,
     });
 
     return {
       session,
       user: profile,
-      error: null
+      error: null,
     };
   } catch (error) {
-    console.error('Error signing in:', error);
+    console.error("Error signing in:", error);
     return {
       session: null,
       user: null,
-      error: error instanceof Error ? error : new Error('Erro desconhecido')
+      error: error instanceof Error ? error : new Error("Erro desconhecido"),
     };
   }
 };
@@ -158,7 +177,7 @@ export const signInWithMagicLink = async (email: string) => {
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error sending magic link:', error);
+    console.error("Error sending magic link:", error);
     return { data: null, error };
   }
 };
@@ -174,7 +193,7 @@ export const signInWithSmsOtp = async (phone: string) => {
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error sending SMS OTP:', error);
+    console.error("Error sending SMS OTP:", error);
     return { data: null, error };
   }
 };
@@ -185,20 +204,22 @@ export const verifySmsOtp = async (phone: string, token: string) => {
     const { data, error } = await supabase.auth.verifyOtp({
       phone,
       token,
-      type: 'sms',
+      type: "sms",
     });
 
     if (error) throw error;
 
     return { session: data.session, user: data.user, error: null };
   } catch (error) {
-    console.error('Error verifying SMS OTP:', error);
+    console.error("Error verifying SMS OTP:", error);
     return { session: null, user: null, error };
   }
 };
 
 // Sign in with OAuth provider
-export const signInWithOAuth = async (provider: 'google' | 'facebook' | 'github' | 'gitlab' | 'bitbucket') => {
+export const signInWithOAuth = async (
+  provider: "google" | "facebook" | "github" | "gitlab" | "bitbucket"
+) => {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -222,13 +243,17 @@ export const resetPassword = async (email: string) => {
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error resetting password:', error);
+    console.error("Error resetting password:", error);
     return { data: null, error };
   }
 };
 
 // Update user
-export const updateUser = async (updates: { email?: string; password?: string; data?: object }) => {
+export const updateUser = async (updates: {
+  email?: string;
+  password?: string;
+  data?: object;
+}) => {
   try {
     const { data, error } = await supabase.auth.updateUser(updates);
 
@@ -236,7 +261,7 @@ export const updateUser = async (updates: { email?: string; password?: string; d
 
     return { user: data.user, error: null };
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error("Error updating user:", error);
     return { user: null, error };
   }
 };
@@ -247,30 +272,33 @@ export const signOut = async () => {
     if (error) throw error;
     return { error: null };
   } catch (error) {
-    console.error('Error signing out:', error);
+    console.error("Error signing out:", error);
     return { error };
   }
 };
 
 export const getCurrentUser = async () => {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error) throw error;
     if (!user) return { user: null, profile: null, error: null };
 
     // Get user profile data
     const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
       .single();
 
     if (profileError) throw profileError;
 
     return { user, profile, error: null };
   } catch (error) {
-    console.error('Error getting current user:', error);
+    console.error("Error getting current user:", error);
     return { user: null, profile: null, error };
   }
 };
@@ -285,18 +313,21 @@ export const inviteUser = async (email: string) => {
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error inviting user:', error);
+    console.error("Error inviting user:", error);
     return { data: null, error };
   }
 };
 
 // User profile functions
-export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
+export const updateUserProfile = async (
+  userId: string,
+  updates: Partial<User>
+) => {
   try {
     const { data, error } = await supabase
-      .from('users')
+      .from("users")
       .update(updates)
-      .eq('id', userId)
+      .eq("id", userId)
       .select()
       .single();
 
@@ -304,22 +335,26 @@ export const updateUserProfile = async (userId: string, updates: Partial<User>) 
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    console.error("Error updating user profile:", error);
     return { data: null, error };
   }
 };
 
 // Triagem functions
-export const createTriagem = async (userId: string, type: 'pain' | 'mental', location?: string) => {
+export const createTriagem = async (
+  userId: string,
+  type: "pain" | "mental",
+  location?: string
+) => {
   try {
     const { data, error } = await supabase
-      .from('triagens')
+      .from("triagens")
       .insert({
         user_id: userId,
         type,
-        status: 'in_progress',
+        status: "in_progress",
         location,
-        progress: { completed: 0, total: 0 }
+        progress: { completed: 0, total: 0 },
       })
       .select()
       .single();
@@ -328,20 +363,24 @@ export const createTriagem = async (userId: string, type: 'pain' | 'mental', loc
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error creating triagem:', error);
+    console.error("Error creating triagem:", error);
     return { data: null, error };
   }
 };
 
-export const updateTriagemStatus = async (triagemId: string, status: 'in_progress' | 'completed', progress?: { completed: number, total: number }) => {
+export const updateTriagemStatus = async (
+  triagemId: string,
+  status: "in_progress" | "completed",
+  progress?: { completed: number; total: number }
+) => {
   try {
     const updates: Partial<Triagem> = { status };
     if (progress) updates.progress = progress;
 
     const { data, error } = await supabase
-      .from('triagens')
+      .from("triagens")
       .update(updates)
-      .eq('id', triagemId)
+      .eq("id", triagemId)
       .select()
       .single();
 
@@ -349,7 +388,7 @@ export const updateTriagemStatus = async (triagemId: string, status: 'in_progres
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error updating triagem status:', error);
+    console.error("Error updating triagem status:", error);
     return { data: null, error };
   }
 };
@@ -357,16 +396,16 @@ export const updateTriagemStatus = async (triagemId: string, status: 'in_progres
 export const getUserTriagens = async (userId: string) => {
   try {
     const { data, error } = await supabase
-      .from('triagens')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .from("triagens")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting user triagens:', error);
+    console.error("Error getting user triagens:", error);
     return { data: null, error };
   }
 };
@@ -386,10 +425,10 @@ export const savePainSymptoms = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from('pain_symptoms')
+      .from("pain_symptoms")
       .insert({
         triagem_id: triagemId,
-        ...symptoms
+        ...symptoms,
       })
       .select()
       .single();
@@ -398,7 +437,7 @@ export const savePainSymptoms = async (
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error saving pain symptoms:', error);
+    console.error("Error saving pain symptoms:", error);
     return { data: null, error };
   }
 };
@@ -417,10 +456,10 @@ export const saveMentalHealthSymptoms = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from('mental_health_symptoms')
+      .from("mental_health_symptoms")
       .insert({
         triagem_id: triagemId,
-        ...symptoms
+        ...symptoms,
       })
       .select()
       .single();
@@ -429,7 +468,7 @@ export const saveMentalHealthSymptoms = async (
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error saving mental health symptoms:', error);
+    console.error("Error saving mental health symptoms:", error);
     return { data: null, error };
   }
 };
@@ -438,30 +477,35 @@ export const saveMentalHealthSymptoms = async (
 export const getExercisesByGroup = async (groupId: string) => {
   try {
     const { data, error } = await supabase
-      .from('exercises')
-      .select('*')
-      .eq('group_id', groupId);
+      .from("exercises")
+      .select("*")
+      .eq("group_id", groupId);
 
     if (error) throw error;
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting exercises by group:', error);
+    console.error("Error getting exercises by group:", error);
     return { data: null, error };
   }
 };
 
-export const trackExerciseCompletion = async (userId: string, exerciseId: string, triagemId?: string, feedback?: string) => {
+export const trackExerciseCompletion = async (
+  userId: string,
+  exerciseId: string,
+  triagemId?: string,
+  feedback?: string
+) => {
   try {
     const { data, error } = await supabase
-      .from('user_exercises')
+      .from("user_exercises")
       .insert({
         user_id: userId,
         exercise_id: exerciseId,
         triagem_id: triagemId,
         completed: true,
         feedback,
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -470,7 +514,7 @@ export const trackExerciseCompletion = async (userId: string, exerciseId: string
 
     return { data, error: null };
   } catch (error) {
-    console.error('Error tracking exercise completion:', error);
+    console.error("Error tracking exercise completion:", error);
     return { data: null, error };
   }
 };
@@ -479,31 +523,31 @@ export const getUserExerciseStats = async (userId: string) => {
   try {
     // Get total completed exercises
     const { count: exercisesDone, error: countError } = await supabase
-      .from('user_exercises')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('completed', true);
+      .from("user_exercises")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("completed", true);
 
     if (countError) throw countError;
 
     // Get total triagens
     const { count: triagemCount, error: triagemError } = await supabase
-      .from('triagens')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .from("triagens")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
 
     if (triagemError) throw triagemError;
 
     // Get latest triagem date
     const { data: latestTriagem, error: latestError } = await supabase
-      .from('triagens')
-      .select('created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .from("triagens")
+      .select("created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
       .limit(1)
       .single();
 
-    if (latestError && latestError.code !== 'PGRST116') throw latestError;
+    if (latestError && latestError.code !== "PGRST116") throw latestError;
 
     // Calculate consecutive days (simplified version)
     // In a real app, you'd need a more sophisticated algorithm
@@ -514,12 +558,12 @@ export const getUserExerciseStats = async (userId: string) => {
         exercisesDone: exercisesDone || 0,
         triagemCount: triagemCount || 0,
         consecutiveDays,
-        lastTriagem: latestTriagem?.created_at
+        lastTriagem: latestTriagem?.created_at,
       },
-      error: null
+      error: null,
     };
   } catch (error) {
-    console.error('Error getting user exercise stats:', error);
+    console.error("Error getting user exercise stats:", error);
     return { data: null, error };
   }
 };
