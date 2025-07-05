@@ -340,7 +340,7 @@ export default function RegisterScreen() {
           <View className="flex-row justify-center mt-8 mb-32">
             <Text className="text-gray-600">Já tem uma conta? </Text>
             <Link href="/(auth)/login" asChild>
-              <TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.7}>
                 <Text
                   className="font-semibold"
                   style={{ color: colors.primary }}
