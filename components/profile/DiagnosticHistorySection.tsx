@@ -1,4 +1,4 @@
-import { DiagnosticItem } from "@/app/(tabs)/profile";
+import { DiagnosticItem } from "@/types/profile";
 import { FlatList, View } from "react-native";
 import { EmptyState } from "../EmptyState";
 import { DiagnosticHistoryCard } from "./DiagnosticHistoryCard";

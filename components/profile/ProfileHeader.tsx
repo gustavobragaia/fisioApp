@@ -1,25 +1,33 @@
 import React from "react";
-import { Image, StatusBar, Text, View } from "react-native";
+import { Image, ImageBackground, SafeAreaView, Text, View } from "react-native";
 
 interface HeaderProps {
   name: string;
   profileImage?: string;
 }
 
-export function Header({ name = "Gustavo S.", profileImage }: HeaderProps) {
+export function ProfileHeader({
+  name = "Gustavo S.",
+  profileImage,
+}: HeaderProps) {
   const getInitials = (fullName: string) => {
     return fullName
-      .split(' ')
-      .map(name => name.charAt(0).toUpperCase())
-      .join('')
+      .split(" ")
+      .map((name) => name.charAt(0).toUpperCase())
+      .join("")
       .slice(0, 2);
   };
 
   return (
     <>
-      <StatusBar barStyle="light-content" />
-      <View className="bg-primary h-40" />
-      <View className="mt-[-40px] items-center">
+      <SafeAreaView className="bg-primary overflow-hidden h-36">
+        <ImageBackground
+          source={require("@/assets/images/banner-background.png")}
+          style={{ flex: 1 }}
+          resizeMode="cover"
+        />
+      </SafeAreaView>
+      <View className="mt-[-32px] items-center">
         {profileImage ? (
           <Image
             source={{ uri: profileImage }}
@@ -37,5 +45,3 @@ export function Header({ name = "Gustavo S.", profileImage }: HeaderProps) {
     </>
   );
 }
-
-export default Header;

@@ -1,5 +1,5 @@
-import { DiagnosticItem } from "@/app/(tabs)/profile";
 import colors from "@/styles/colors";
+import { DiagnosticItem } from "@/types/profile";
 import { useRouter } from "expo-router";
 import { ArrowRight2 } from "iconsax-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -8,7 +8,7 @@ export const DiagnosticHistoryCard = ({ item }: { item: DiagnosticItem }) => {
   const router = useRouter();
 
   const getPainLevelColor = (level: number | undefined) => {
-    if (level === undefined) return "text-gray-600";
+    if (level === undefined) return "text-red-600 font-semibold";
 
     if (level >= 6) {
       return "text-red-500 font-semibold";
@@ -20,7 +20,7 @@ export const DiagnosticHistoryCard = ({ item }: { item: DiagnosticItem }) => {
   };
 
   const getPainLevelLabel = (level: number | undefined) => {
-    if (level === undefined) return "Indefinido";
+    if (level === undefined) return "Alto";
 
     if (level >= 6) {
       return "Alta";
@@ -42,7 +42,7 @@ export const DiagnosticHistoryCard = ({ item }: { item: DiagnosticItem }) => {
       case "cancelado":
         return "bg-[#FFE1DE]";
       default:
-        return "bg-gray-100";
+        return "bg-[#FFE1DE]";
     }
   };
 
@@ -57,7 +57,7 @@ export const DiagnosticHistoryCard = ({ item }: { item: DiagnosticItem }) => {
       case "cancelado":
         return "text-[#8E1717]";
       default:
-        return "text-gray-700";
+        return "text-[#8E1717]";
     }
   };
 
