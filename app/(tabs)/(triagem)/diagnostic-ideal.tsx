@@ -1,27 +1,17 @@
+import { ResultDiagnostic } from '@/components/diagnostic/ResultDiagnostic';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { SafeAreaView, View } from 'react-native';
-import ResultDiagnostic from '../../../components/ResultDiagnostic';
-
-type DiagnosticResultParams = {
-  type?: string;
-  id?: string; // Add triagem ID parameter
-};
+import { SafeAreaView } from 'react-native';
 
 export default function DiagnosticResultScreen() {
-  // Get parameters from the route
-  const { type = 'pain', id } = useLocalSearchParams<DiagnosticResultParams>();
-  
-  console.log('DiagnosticResultScreen received params:', { type, id });
-  
+  const { type = 'pain', triagemId } = useLocalSearchParams();
+
   return (
-    <SafeAreaView className="flex-1 bg-background p-5">
-      <View className="flex-1 w-full h-full p-0">
-        <ResultDiagnostic 
-          type={type === 'mental' ? 'mental' : 'pain'} 
-          triagemId={id} // Pass the triagem ID to ResultDiagnostic
-        />
-      </View>
+    <SafeAreaView className="flex-1 bg-background p-4">
+      <ResultDiagnostic
+        type={type === 'mental' ? 'mental' : 'pain'}
+        triagemId={String(triagemId)}
+      />
     </SafeAreaView>
   );
 }

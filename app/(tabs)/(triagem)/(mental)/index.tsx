@@ -1,3 +1,6 @@
+import { FormMentalHealth } from "@/components/triagem/FormMentalHealth";
+import colors from "@/styles/colors";
+import { FormTriagemRefType } from "@/types/triagem";
 import { router, useFocusEffect } from "expo-router";
 import { ArrowLeft2 } from "iconsax-react-native";
 import React, { useRef } from "react";
@@ -6,13 +9,9 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import FormMentalHealth, {
-  FormMentalHealthRefType,
-} from "../../../../components/FormMentalHealth";
-import colors from "../../../../styles/colors";
 
 export default function MentalHealthTriagePage() {
-  const formRef = useRef<FormMentalHealthRefType>(null);
+  const formRef = useRef<FormTriagemRefType>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -24,10 +23,10 @@ export default function MentalHealthTriagePage() {
   );
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 w-full h-full p-6">
+      <View className="flex-1 w-full h-full p-6 pt-20">
         <TouchableOpacity
-          onPress={() => router.back()}
-          className="bg-white rounded-full w-10 h-10 items-center justify-center"
+          onPress={() => router.push("/(tabs)/triagem")}
+          className="bg-white rounded-full w-14 h-14 items-center justify-center"
         >
           <ArrowLeft2 size={24} color={colors.primary} />
         </TouchableOpacity>

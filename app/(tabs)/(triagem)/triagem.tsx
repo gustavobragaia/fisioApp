@@ -32,9 +32,9 @@ export default function Triagem() {
         resizeMode="stretch"
       >
         <View className="absolute inset-0 bg-primary/60" />
-        
+
         <View className="flex-1 w-full h-full px-6 py-8 relative z-10">
-          <View className="mt-5">
+          <View className="mt-20">
             <Text className="text-4xl font-bold text-white mb-8">
               Como podemos{"\n"}te ajudar agora?
             </Text>
