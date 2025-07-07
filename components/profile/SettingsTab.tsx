@@ -47,9 +47,9 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
       email: "",
       cpf: "",
       empresa: "",
-      work_sector: "",
-      idade: "",
-      genero: "",
+      branch_of_empresa: "",
+      age: "",
+      gender: "",
     },
   });
 
@@ -61,9 +61,9 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
     email: userProfile?.email || "",
     cpf: userProfile?.cpf || "",
     empresa: userProfile?.empresa || "",
-    work_sector: userProfile?.work_sector || "",
-    idade: userProfile?.idade || "",
-    genero: userProfile?.genero || "",
+    branch_of_empresa: userProfile?.branch_of_empresa || "",
+    age: userProfile?.age || "",
+    gender: userProfile?.gender || "",
   };
 
   const hasChanges = hasFormChanges(formValues as any, originalData as any);
@@ -176,7 +176,7 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
 
         <Controller
           control={control}
-          name="work_sector"
+          name="branch_of_empresa"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               Icon={Shop}
@@ -185,7 +185,7 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
               onBlur={onBlur}
               value={value}
               autoCapitalize="words"
-              error={errors.work_sector?.message}
+              error={errors.branch_of_empresa?.message}
             />
           )}
         />

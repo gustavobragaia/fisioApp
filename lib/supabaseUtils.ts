@@ -8,9 +8,9 @@ export const signUp = async (
   name: string,
   cpf: string,
   empresa: string,
-  work_sector: string,
-  idade: string,
-  genero: string
+  branch_of_empresa: string,
+  age: string,
+  gender: string
 ) => {
   try {
     // Sign up with Supabase Auth and include user metadata
@@ -22,9 +22,9 @@ export const signUp = async (
           name,
           cpf,
           empresa,
-          work_sector,
-          idade,
-          genero,
+          branch_of_empresa,
+          age,
+          gender,
         },
       },
     });
@@ -50,9 +50,9 @@ export const signUp = async (
         name,
         cpf,
         empresa,
-        idade,
-        genero,
-        work_sector,
+        age,
+        gender,
+        branch_of_empresa,
       });
 
       if (profileError) throw profileError;

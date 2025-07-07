@@ -26,9 +26,9 @@ type AuthContextType = {
     name: string,
     cpf: string,
     empresa: string,
-    work_sector: string,
-    idade: string,
-    genero: string
+    branch_of_empresa: string,
+    age: string,
+    gender: string
   ) => Promise<{ error: any }>;
   signUpWithPhone: (
     phone: string,
@@ -166,9 +166,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string,
     cpf: string,
     empresa: string,
-    work_sector: string,
-    idade: string,
-    genero: string
+    branch_of_empresa: string,
+    age: string,
+    gender: string
   ) => {
     setIsLoading(true);
     const result = await signUp(
@@ -177,9 +177,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       name,
       cpf,
       empresa,
-      work_sector,
-      idade,
-      genero
+      branch_of_empresa,
+      age,
+      gender
     );
     setIsLoading(false);
     return result;

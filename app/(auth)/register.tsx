@@ -41,9 +41,9 @@ const registerSchema = z
       .min(1, "CPF é obrigatório")
       .refine((val) => cpfValidator.isValid(val), "CPF inválido"),
     empresa: z.string().min(1, "Nome da empresa é obrigatório"),
-    work_sector: z.string().min(1, "Work_sector da empresa é obrigatório"),
-    idade: z.string().min(1, "Idade obrigatória"),
-    genero: z.string().min(1, "Gênero obrigatório"),
+    branch_of_empresa: z.string().min(1, "Work_sector da empresa é obrigatório"),
+    age: z.string().min(1, "Idade obrigatória"),
+    gender: z.string().min(1, "Gênero obrigatório"),
     password: z
       .string()
       .min(1, "Senha é obrigatória")
@@ -74,9 +74,9 @@ export default function RegisterScreen() {
       email: "",
       cpf: "",
       empresa: "",
-      work_sector: "",
-      idade: "",
-      genero: "",
+      branch_of_empresa: "",
+      age: "",
+      gender: "",
       password: "",
       confirmPassword: "",
     },
@@ -92,9 +92,9 @@ export default function RegisterScreen() {
         data.name,
         data.cpf,
         data.empresa,
-        data.work_sector,
-        data.idade,
-        data.genero,
+        data.branch_of_empresa,
+        data.age,
+        data.gender,
       );
 
       if (error) {
@@ -253,7 +253,7 @@ export default function RegisterScreen() {
 
           <Controller
             control={control}
-            name="work_sector"
+            name="branch_of_empresa"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 Icon={Shop}
@@ -262,14 +262,14 @@ export default function RegisterScreen() {
                 onBlur={onBlur}
                 value={value}
                 autoCapitalize="words"
-                error={errors.work_sector?.message}
+                error={errors.branch_of_empresa?.message}
               />
             )}
           />
 
           <Controller
             control={control}
-            name="idade"
+            name="age"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 Icon={UserSquare}
@@ -278,14 +278,14 @@ export default function RegisterScreen() {
                 onBlur={onBlur}
                 value={value}
                 keyboardType="numeric"
-                error={errors.idade?.message}
+                error={errors.age?.message}
               />
             )}
           />
 
           <Controller
             control={control}
-            name="genero"
+            name="gender"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 Icon={Personalcard}
@@ -293,7 +293,7 @@ export default function RegisterScreen() {
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
-                error={errors.genero?.message}
+                error={errors.gender?.message}
               />
             )}
           />
