@@ -41,7 +41,7 @@ const registerSchema = z
       .min(1, "CPF é obrigatório")
       .refine((val) => cpfValidator.isValid(val), "CPF inválido"),
     empresa: z.string().min(1, "Nome da empresa é obrigatório"),
-    branch_of_empresa: z.string().min(1, "Work_sector da empresa é obrigatório"),
+    branch_of_empresa: z.string().min(1, "Setor da empresa é obrigatório"),
     age: z.string().min(1, "Idade obrigatória"),
     gender: z.string().min(1, "Gênero obrigatório"),
     password: z

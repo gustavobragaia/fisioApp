@@ -11,5 +11,7 @@ export interface ProfileFormData {
   email: string;
   cpf: string;
   empresa: string;
-  work_sector: string;
+  gender: string;
+  age: string;
+  branch_of_empresa: string;
 }

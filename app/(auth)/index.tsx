@@ -30,19 +30,19 @@ const pages = [
     text: "Exercícios personalizados",
     subtext:
       "Receba exercícios feito sob medida para as suas dores, com orientações passo a passo para cada movimento.",
-    image: require("../../assets/images/onboarding/onboarding-1.png"),
+    image: require("../../assets/images/onboarding/onboarding-2.png"),
   },
   {
     text: "Acompanhe seu progresso",
     subtext:
       "Monitore sua evolução, registre seus treinos e sinta a diferença a cada dia. Veja como a consistência leva ao alívio e à sua recuperação.",
-    image: require("../../assets/images/onboarding/onboarding-1.png"),
+    image: require("../../assets/images/onboarding/onboarding-3.png"),
   },
   {
     text: "Viva uma vida ativa e sem dor",
     subtext:
       "Com Alivio Já, você terá as ferramentas para gerenciar suas dores e retomar as atividades que mais ama, tudo na palma da sua mão.",
-    image: require("../../assets/images/onboarding/onboarding-1.png"),
+    image: require("../../assets/images/onboarding/onboarding-4.png"),
   },
 ];
 
