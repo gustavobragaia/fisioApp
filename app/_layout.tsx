@@ -1,26 +1,31 @@
 import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
 import "./global.css";
 
 import { Loading } from "@/components/Loading";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from "expo-status-bar";
 import { ToastProvider } from "react-native-toast-notifications";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
+
+SplashScreen.preventAutoHideAsync();
+
+SplashScreen.setOptions({
+  fade: true,
+});
 
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
+    SplashScreen.hide();
     setInitializing(false);
   }, []);
 
   if (initializing) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <Text className="text-lg text-primary font-medium">Carregando...</Text>
-      </View>
+      <Loading />
     );
   }
 
