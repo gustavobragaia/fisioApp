@@ -27,8 +27,8 @@ export const usePhysicalPainForm = () => {
 
   useEffect(() => {
     if (!isInitialized) {
-      if (params.preSelectedPain) {
-        const painValue = params.preSelectedPain as string;
+      if (params.preSelectedQuestion) {
+        const painValue = params.preSelectedQuestion as string;
         const validValues = PHYSICAL_PAIN_QUESTIONS_CONFIG[0].options.map(opt => opt.value);
         if (validValues.includes(painValue)) {
           setFormState(prev => ({
@@ -40,7 +40,7 @@ export const usePhysicalPainForm = () => {
       }
       setIsInitialized(true);
     }
-  }, [params.preSelectedPain, isInitialized]);
+  }, [params.preSelectedQuestion, isInitialized]);
 
   const updateFormState = (key: keyof PhysicalPainFormState, value: string) => {
     setFormState(prev => ({ ...prev, [key]: value }));
@@ -58,7 +58,7 @@ export const usePhysicalPainForm = () => {
   };
 
   const goToPreviousScreen = () => {
-    if (currentScreen === 1 && params.preSelectedPain) {
+    if (currentScreen === 1 && params.preSelectedQuestion) {
       router.back();
       return;
     }
@@ -120,6 +120,6 @@ export const usePhysicalPainForm = () => {
     goToPreviousScreen,
     submitFormData,
     resetForm,
-    hasPreSelectedPain: !!params.preSelectedPain,
+    haspreSelectedQuestion: !!params.preSelectedQuestion,
   };
 };

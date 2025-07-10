@@ -35,10 +35,12 @@ export function DashboardContent({
 
       <HorizontalCardSection
         title="Feito para sua rotina"
+        key="mental"
         data={mockRoutine}
       />
       <HorizontalCardSection
         title="Onde você sente mais dor?"
+        key="pain"
         data={mockWhereYouFeelPain}
       />
 

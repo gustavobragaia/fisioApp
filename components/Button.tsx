@@ -1,19 +1,11 @@
 import React from "react";
 import {
   ActivityIndicator,
-  StyleSheet,
   Text,
-  TextStyle,
   TouchableOpacity,
   TouchableOpacityProps,
-  ViewStyle,
+  View,
 } from "react-native";
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 
 import colors from "@/styles/colors";
 
@@ -29,9 +21,6 @@ interface ButtonProps extends Omit<TouchableOpacityProps, "style"> {
   iconPosition?: "left" | "right";
 }
 
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
-
 export function Button({
   title,
   variant = "primary",
@@ -42,165 +31,66 @@ export function Button({
   iconPosition = "left",
   ...props
 }: ButtonProps) {
-  const pressAnimation = useSharedValue(0);
-  const opacityAnimation = useSharedValue(1);
+  const isDisabled = disabled || loading;
 
-  React.useEffect(() => {
-    opacityAnimation.value = withTiming(disabled || loading ? 0.6 : 1, {
-      duration: 200,
-    });
-  }, [disabled, loading, opacityAnimation]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(pressAnimation.value, [0, 1], [1, 0.98]);
-
-    return {
-      transform: [{ scale }],
-      opacity: opacityAnimation.value,
-    };
-  });
-
-  const handlePressIn = () => {
-    if (!disabled && !loading) {
-      pressAnimation.value = withTiming(1, { duration: 100 });
+  const getButtonClasses = () => {
+    let base = "flex-row items-center justify-center rounded-xl px-6 h-14";
+    if (variant === "primary") {
+      base += " bg-primary";
+    } else if (variant === "secondary") {
+      base += " bg-greenLight";
     }
-  };
-
-  const handlePressOut = () => {
-    if (!disabled && !loading) {
-      pressAnimation.value = withTiming(0, { duration: 100 });
+    if (isDisabled) {
+      base += " opacity-60";
     }
+    return base;
   };
 
-  const handlePress = () => {
-    if (!disabled && !loading && onPress) {
-      onPress();
+  const getTextClasses = () => {
+    let base = "font-semibold text-base text-center";
+    if (variant === "primary") {
+      base += " text-white";
+    } else if (variant === "secondary") {
+      base += " text-primary";
     }
+    return base;
   };
 
-  const getButtonStyle = (): ViewStyle => {
-    const baseStyle = styles.button;
-
-    let variantStyle: ViewStyle = {};
-
-    switch (variant) {
-      case "primary":
-        variantStyle = {
-          backgroundColor: colors.primary,
-        };
-        break;
-      case "secondary":
-        variantStyle = {
-          backgroundColor: colors.greenLight,
-        };
-        break;
-    }
-
-    return {
-      ...baseStyle,
-      ...variantStyle,
-    };
-  };
-
-  const getTextStyle = (): TextStyle => {
-    const baseStyle = styles.buttonText;
-
-    let variantTextStyle: TextStyle = {};
-
-    switch (variant) {
-      case "primary":
-        variantTextStyle = {
-          color: "#FFFFFF",
-        };
-        break;
-      case "secondary":
-        variantTextStyle = {
-          color: colors.primary,
-        };
-        break;
-    }
-
-    return {
-      ...baseStyle,
-      ...variantTextStyle,
-    };
-  };
-
-  const getLoadingColor = () => {
-    return variant === "primary" ? "#FFFFFF" : colors.primary;
-  };
-
-  const getIconColor = () => {
-    return variant === "primary" ? "#FFFFFF" : colors.primary;
-  };
+  const getLoadingColor = () => (variant === "primary" ? "#FFFFFF" : colors.primary);
+  const getIconColor = () => (variant === "primary" ? "#FFFFFF" : colors.primary);
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <ActivityIndicator
-          size="small"
-          color={getLoadingColor()}
-          style={styles.loadingIndicator}
-        />
-      );
+      return <ActivityIndicator size="small" color={getLoadingColor()} style={{ marginHorizontal: 4 }} />;
     }
 
     const iconElement = Icon ? <Icon size={20} color={getIconColor()} /> : null;
-
-    const textElement = (
-      <Text style={getTextStyle()} numberOfLines={1}>
-        {title}
-      </Text>
-    );
+    const textElement = <Text className={getTextClasses()} numberOfLines={1}>{title}</Text>;
 
     if (!Icon) {
       return textElement;
     }
 
     return (
-      <>
+      <View className="flex-row items-center">
         {iconPosition === "left" && iconElement}
-        {iconPosition === "left" && <Text style={styles.iconSpacing} />}
+        {iconPosition === "left" && <View style={{ width: 8 }} />}
         {textElement}
-        {iconPosition === "right" && <Text style={styles.iconSpacing} />}
+        {iconPosition === "right" && <View style={{ width: 8 }} />}
         {iconPosition === "right" && iconElement}
-      </>
+      </View>
     );
   };
 
   return (
-    <AnimatedTouchableOpacity
-      style={[animatedStyle, getButtonStyle()]}
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled || loading}
+    <TouchableOpacity
+      className={getButtonClasses()}
+      onPress={onPress}
+      disabled={isDisabled}
       activeOpacity={0.8}
       {...props}
     >
       {renderContent()}
-    </AnimatedTouchableOpacity>
+    </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-    paddingHorizontal: 24,
-    height: 56,
-  },
-  buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  loadingIndicator: {
-    marginHorizontal: 4,
-  },
-  iconSpacing: {
-    width: 8,
-  },
-});

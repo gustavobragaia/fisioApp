@@ -1,11 +1,14 @@
+import { useRouter } from "expo-router";
 import { Dimensions, FlatList, Image, Text, View } from "react-native";
 import { OptionCard } from "../OptionCard";
 
 export const HorizontalCardSection = ({
   title,
+  key,
   data = Array.from({ length: 10 }),
 }: {
   title: string;
+  key: string;
   data: {
     label: string;
     value: string;
@@ -16,6 +19,8 @@ export const HorizontalCardSection = ({
 }) => {
   const { width } = Dimensions.get("window");
   const cardWidth = (width - 60) / 3;
+
+  const router = useRouter();
 
   return (
     <View className="mt-6">
@@ -47,6 +52,17 @@ export const HorizontalCardSection = ({
             }
             title={data.item.label}
             cardWidth={cardWidth}
+            onPress={() => {
+              router.push({
+                pathname:
+                  key === "mental"
+                    ? "/(tabs)/(triagem)/(mental)"
+                    : "/(tabs)/(triagem)/(pain)",
+                params: {
+                  preSelectedQuestion: data.item.value
+                },
+              });
+            }}
           />
         )}
       />

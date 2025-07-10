@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 import colors from "@/styles/colors";
 import { User as UserType } from "@/types/supabase";
+import { dateMask, parseDateFromString } from "@/utils/dateMask";
 import { cpfMask, hasFormChanges } from "@/utils/profileUtils";
 import {
   EditProfileFormData,
@@ -13,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowRight2,
   Building,
+  Cake,
   LogoutCurve,
   Personalcard,
   Shop,
@@ -85,12 +87,21 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
   }, [cpfValue, setValue]);
 
   const onSubmitProfile = async (data: EditProfileFormData) => {
+    const birthDate = parseDateFromString(data.age);
+
     const changedData: Partial<EditProfileFormData> = {};
 
     Object.keys(data).forEach((key) => {
       const fieldKey = key as keyof EditProfileFormData;
-      if (data[fieldKey] !== originalData[fieldKey]) {
-        changedData[fieldKey] = data[fieldKey];
+
+      if (fieldKey === "age") {
+        if (birthDate && birthDate.toISOString() !== originalData.age) {
+          changedData.age = birthDate.toISOString();
+        }
+      } else {
+        if (data[fieldKey] !== originalData[fieldKey]) {
+          changedData[fieldKey] = data[fieldKey];
+        }
       }
     });
 
@@ -186,6 +197,38 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
               value={value}
               autoCapitalize="words"
               error={errors.branch_of_empresa?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="age"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              Icon={Cake}
+              placeholder="Data de nascimento"
+              onChangeText={onChange}
+              onBlur={onBlur}
+              value={value}
+              keyboardType="numeric"
+              mask={dateMask}
+              error={errors.age?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="gender"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              Icon={Personalcard}
+              placeholder="Gênero"
+              onChangeText={onChange}
+              onBlur={onBlur}
+              value={value}
+              error={errors.gender?.message}
             />
           )}
         />

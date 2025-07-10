@@ -1,18 +1,19 @@
 import { Button } from "@/components/Button";
 import colors from "@/styles/colors";
 import { cpfMask } from "@/utils/cpfMask";
+import { dateMask, parseDateFromString } from "@/utils/dateMask";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   Building,
+  Cake,
   Lock,
   Personalcard,
   Shop,
   Sms,
   User,
-  UserSquare,
 } from "iconsax-react-native";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -86,6 +87,9 @@ export default function RegisterScreen() {
     try {
       setIsLoading(true);
 
+      const birthDate = parseDateFromString(data.age);
+      const ageISO = birthDate ? birthDate.toISOString() : "";
+
       const { error } = await signUp(
         data.email,
         data.password,
@@ -93,8 +97,8 @@ export default function RegisterScreen() {
         data.cpf,
         data.empresa,
         data.branch_of_empresa,
-        data.age,
-        data.gender,
+        ageISO,
+        data.gender
       );
 
       if (error) {
@@ -191,7 +195,9 @@ export default function RegisterScreen() {
               <Input
                 Icon={User}
                 placeholder="Digite seu nome completo"
-                onChangeText={onChange}
+                onChangeText={(value) => {
+                  onChange(new Date(value));
+                }}
                 onBlur={onBlur}
                 value={value}
                 autoCapitalize="words"
@@ -272,12 +278,13 @@ export default function RegisterScreen() {
             name="age"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                Icon={UserSquare}
-                placeholder="Idade"
+                Icon={Cake}
+                placeholder="Data de nascimento"
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
                 keyboardType="numeric"
+                mask={dateMask}
                 error={errors.age?.message}
               />
             )}

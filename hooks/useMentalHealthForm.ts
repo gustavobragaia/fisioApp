@@ -27,8 +27,8 @@ export const useMentalHealthForm = () => {
 
   useEffect(() => {
     if (!isInitialized) {
-      if (params.preSelectedFeeling) {
-        const feelingValue = params.preSelectedFeeling as string;
+      if (params.preSelectedQuestion) {
+        const feelingValue = params.preSelectedQuestion as string;
 
         const validFeelings = QUESTIONS_CONFIG[0].options.map(option => option.value);
         if (validFeelings.includes(feelingValue)) {
@@ -41,7 +41,7 @@ export const useMentalHealthForm = () => {
       }
       setIsInitialized(true);
     }
-  }, [params.preSelectedFeeling, isInitialized]);
+  }, [params.preSelectedQuestion, isInitialized]);
 
   const updateFormState = (key: keyof MentalPainFormState, value: string) => {
     setFormState(prev => ({ ...prev, [key]: value }));
@@ -61,7 +61,7 @@ export const useMentalHealthForm = () => {
   };
 
   const goToPreviousScreen = () => {
-    if (currentScreen === 1 && params.preSelectedFeeling) {
+    if (currentScreen === 1 && params.preSelectedQuestion) {
       router.back();
       return;
     }
@@ -139,6 +139,6 @@ export const useMentalHealthForm = () => {
     goToPreviousScreen,
     submitFormData,
     resetForm,
-    hasPreSelectedFeeling: !!params.preSelectedFeeling,
+    haspreSelectedQuestion: !!params.preSelectedQuestion,
   };
 };
