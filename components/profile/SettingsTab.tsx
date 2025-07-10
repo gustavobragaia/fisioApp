@@ -5,6 +5,7 @@ import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 import colors from "@/styles/colors";
 import { User as UserType } from "@/types/supabase";
 import { dateMask, parseDateFromString } from "@/utils/dateMask";
+import { genderOptions } from "@/utils/genderOptions";
 import { cpfMask, hasFormChanges } from "@/utils/profileUtils";
 import {
   EditProfileFormData,
@@ -221,15 +222,34 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
         <Controller
           control={control}
           name="gender"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              Icon={Personalcard}
-              placeholder="Gênero"
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              error={errors.gender?.message}
-            />
+          render={({ field: { onChange, value } }) => (
+            <>
+              <View className="flex-row gap-4 items-center justify-center mb-4">
+                {genderOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    className={`flex-1 px-4 py-2 rounded flex items-center justify-center ${
+                      value === option.value ? "bg-primary" : "bg-slate-200"
+                    }`}
+                    onPress={() => onChange(option.value)}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      className={
+                        value === option.value ? "text-white" : "text-gray-700"
+                      }
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {errors.gender && (
+                <Text className="text-error text-xs mt-1">
+                  {errors.gender?.message}
+                </Text>
+              )}
+            </>
           )}
         />
       </View>

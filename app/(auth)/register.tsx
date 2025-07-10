@@ -2,6 +2,7 @@ import { Button } from "@/components/Button";
 import colors from "@/styles/colors";
 import { cpfMask } from "@/utils/cpfMask";
 import { dateMask, parseDateFromString } from "@/utils/dateMask";
+import { genderOptions } from "@/utils/genderOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { Link, router } from "expo-router";
@@ -293,15 +294,36 @@ export default function RegisterScreen() {
           <Controller
             control={control}
             name="gender"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                Icon={Personalcard}
-                placeholder="Gênero"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                error={errors.gender?.message}
-              />
+            render={({ field: { onChange, value } }) => (
+              <>
+                <View className="flex-row gap-4 items-center justify-center mb-4">
+                  {genderOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      className={`flex-1 px-4 py-2 rounded flex items-center justify-center ${
+                        value === option.value ? "bg-primary" : "bg-slate-200"
+                      }`}
+                      onPress={() => onChange(option.value)}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        className={
+                          value === option.value
+                            ? "text-white"
+                            : "text-gray-700"
+                        }
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                {errors.gender && (
+                  <Text className="text-error text-xs mt-1">
+                    {errors.gender?.message}
+                  </Text>
+                )}
+              </>
             )}
           />
 
