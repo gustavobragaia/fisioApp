@@ -1,6 +1,7 @@
 import Pana from "@/assets/images/triagem/Pana";
 import { useDiagnosticData } from "@/hooks/useDiagnosticData";
-import { ApiResponseData, Exercise } from "@/types/diagnostic";
+import { ApiResponseData } from "@/types/diagnostic";
+import { generic_diagnostics, motivational_messages } from "@/utils/messages";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Dimensions, FlatList, ScrollView, Text, View } from "react-native";
@@ -30,6 +31,24 @@ export function ResultDiagnostic({
     getExercisesForCategory,
   } = useDiagnosticData(type, triagemId);
 
+  const generateGenericMessages = (messageType: "pain" | "mental") => {
+    const motivationalMessages = motivational_messages[messageType];
+    const diagnosticMessages = generic_diagnostics[messageType];
+
+    const randomMotivational =
+      motivationalMessages[
+        Math.floor(Math.random() * motivationalMessages.length)
+      ];
+
+    const randomDiagnostic =
+      diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
+
+    return {
+      motivational: randomMotivational,
+      diagnostic: randomDiagnostic,
+    };
+  };
+
   const parseApiResponse = (): ApiResponseData | null => {
     try {
       if (!params.apiResponse) return null;
@@ -48,42 +67,94 @@ export function ResultDiagnostic({
 
   const parsedResponse = parseApiResponse();
 
+  const genericMessages = !parsedResponse
+    ? generateGenericMessages(type)
+    : null;
+
   const fraseMotivacional =
     parsedResponse?.output?.["Frase Motivacional"] ||
+    genericMessages?.motivational ||
     (type === "pain"
       ? "Cada movimento é um passo para o bem-estar!"
       : "Cuidar da mente é tão importante quanto cuidar do corpo!");
 
   const diagnostico =
     parsedResponse?.output?.Diagnostico ||
+    genericMessages?.diagnostic ||
     (type === "pain"
       ? "Com base na sua avaliação, identificamos exercícios personalizados para seu bem-estar."
       : "Práticas de respiração e meditação podem ajudar a acalmar a mente.");
 
   const exercicios = parsedResponse?.output?.Exercicios || exercises;
 
-  const handleCardPress = async (item: Exercise) => {
-    const categoryExercises = await getExercisesForCategory(item.tipo);
+  const mapDifficulty = (diff: string) => {
+    switch (diff?.toLowerCase()) {
+      case "iniciante":
+        return "fácil";
+      case "intermediário":
+      case "intermediario":
+        return "médio";
+      case "avançado":
+      case "avancado":
+        return "difícil";
+      default:
+        return "médio";
+    }
+  };
+
+  const exerciciosFormatted = (exercicios || []).map((item) => ({
+    ...item,
+    nome: item.name || item.nome,
+    descricao: item.description || item.descricao,
+    tipo: item.group_type || item.tipo,
+    exerciseCount: 1,
+    title: item.name || item.nome,
+    duration: item.duration ? `${item.duration} segundos` : "30 segundos",
+    difficulty: mapDifficulty(item.difficulty),
+    progress: "pending",
+    imageUrl: item.thumbnail_url || "https://placehold.co/150x150",
+  }));
+
+  console.log("=== DEBUG EXERCICIOS ===");
+  console.log("parsedResponse:", parsedResponse);
+  console.log("exercises from hook:", exercises);
+  console.log("exercicios final:", exercicios);
+  console.log("exercicios length:", exercicios?.length);
+  console.log("exercicios type:", typeof exercicios);
+
+  const validExercicios = exerciciosFormatted.filter(
+    (item) => item && (item.nome || item.name) && (item.tipo || item.group_type)
+  );
+
+  console.log("validExercicios after mapping:", validExercicios);
+  console.log("validExercicios length after mapping:", validExercicios.length);
+
+  const handleCardPress = async (item: any) => {
+    const categoryExercises = await getExercisesForCategory(
+      item.tipo || item.group_type
+    );
 
     router.push({
       pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
       params: {
-        categoryName: item.nome,
-        categoryType: item.tipo,
+        categoryName: item.nome || item.name,
+        categoryType: item.tipo || item.group_type,
         exercises: JSON.stringify(categoryExercises),
         triagemId: currentTriagemId || undefined,
       },
     });
   };
 
-  const handleStartPress = async (item: Exercise) => {
-    const categoryExercises = await getExercisesForCategory(item.tipo);
+  const handleStartPress = async (item: any) => {
+    const categoryExercises = await getExercisesForCategory(
+      item.tipo || item.group_type
+    );
 
     router.push({
       pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
       params: {
-        categoryName: item.nome,
-        categoryType: item.tipo,
+        categoryName: item.nome || item.name,
+        categoryType: item.tipo || item.group_type,
         exercises: JSON.stringify(categoryExercises),
         triagemId: currentTriagemId || undefined,
         autoStart: "true",
@@ -92,6 +163,8 @@ export function ResultDiagnostic({
   };
 
   const getCardVariant = (tipo: string): "primary" | "secondary" => {
+    if (!tipo) return "secondary";
+
     const primaryTypes = ["alivio", "dor", "pain", "meditacao"];
     return primaryTypes.some((primaryType) =>
       tipo.toLowerCase().includes(primaryType.toLowerCase())
@@ -100,16 +173,26 @@ export function ResultDiagnostic({
       : "secondary";
   };
 
-  const renderExerciseItem = ({ item }: { item: Exercise }) => (
-    <ExerciseCard
-      title={item.nome}
-      exerciseCount={item.exerciseCount || 1}
-      description={item.descricao}
-      variant={getCardVariant(item.tipo)}
-      onStartPress={() => handleStartPress(item)}
-      onPress={() => handleCardPress(item)}
-    />
-  );
+  const renderExerciseItem = ({ item }: { item: any }) => {
+    if (
+      !item ||
+      (!item.nome && !item.name) ||
+      (!item.tipo && !item.group_type)
+    ) {
+      return null;
+    }
+
+    return (
+      <ExerciseCard
+        title={item.nome || item.name || item.title}
+        exerciseCount={item.exerciseCount || 1}
+        description={item.descricao || item.description || ""}
+        variant={getCardVariant(item.tipo || item.group_type)}
+        onStartPress={() => handleStartPress(item)}
+        onPress={() => handleCardPress(item)}
+      />
+    );
+  };
 
   if (isLoading) {
     return <Loading />;
@@ -127,7 +210,7 @@ export function ResultDiagnostic({
   }
 
   return (
-    <ScrollView className="flex-1 p-4 pt-12">
+    <ScrollView className="flex-1 p-6 pt-12">
       <View className="items-center">
         <Pana width={Dimensions.get("window").width - 48} />
       </View>
@@ -154,9 +237,11 @@ export function ResultDiagnostic({
       </Text>
 
       <FlatList
-        data={exercicios}
+        data={validExercicios}
         renderItem={renderExerciseItem}
-        keyExtractor={(item, index) => `exercise-${index}-${item.tipo}`}
+        keyExtractor={(item, index) =>
+          `exercise-${index}-${item?.tipo || item?.group_type || "unknown"}`
+        }
         scrollEnabled={false}
         showsVerticalScrollIndicator={false}
         style={{ marginBottom: 100 }}

@@ -1,5 +1,5 @@
 import { ResizeMode, Video } from "expo-av";
-import { Back, Pause, Play, Repeat } from "iconsax-react-native";
+import { Pause, Play, Repeat } from "iconsax-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { Button } from "./Button";
@@ -21,7 +21,7 @@ export type ExerciseProps = {
   onComplete?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
-  duration?: number; // Duration in seconds
+  duration?: number;
 };
 
 export default function Exercise({
@@ -122,8 +122,55 @@ export default function Exercise({
       .padStart(2, "0")}`;
   };
 
+  const parseStepsForDisplay = (steps: StepType[]) => {
+    if (!steps || steps.length === 0) return [];
+
+    return steps.flatMap((step, stepIndex) => {
+      if (typeof step === "string") {
+        return [
+          {
+            title: `Passo ${stepIndex + 1}`,
+            description: step,
+          },
+        ];
+      }
+
+      if (typeof step === "object" && step !== null && "description" in step) {
+        try {
+          let jsonString = step.description?.replace(/'/g, '"');
+
+          const parsed = JSON.parse(jsonString!);
+          if (Array.isArray(parsed)) {
+            return parsed.map((subStep: any, subIndex: number) => ({
+              title: subStep.title || `Passo ${subIndex + 1}`,
+              description: subStep.description || "",
+            }));
+          }
+        } catch (e) {
+          console.log("Failed to parse step description as JSON:", e);
+        }
+
+        return [
+          {
+            title: step.title || `Passo ${stepIndex + 1}`,
+            description: step.description || "",
+          },
+        ];
+      }
+
+      return [
+        {
+          title: `Passo ${stepIndex + 1}`,
+          description: String(step),
+        },
+      ];
+    });
+  };
+
+  const parsedSteps = parseStepsForDisplay(steps);
+
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1">
       <View className="items-center mb-6 rounded-xl overflow-hidden bg-primary/5">
         <Video
           ref={videoRef}
@@ -131,40 +178,20 @@ export default function Exercise({
           useNativeControls
           resizeMode={ResizeMode.CONTAIN}
           isLooping
-          style={{ width: width - 32, height: 220 }}
+          style={{ width: width - 48, height: 220 }}
         />
       </View>
 
-      {steps.length > 0 && (
+      {parsedSteps.length > 0 && (
         <View className="mb-8">
-          {steps.map((step, index) => {
-            const isStepObject = typeof step === "object" && step !== null;
-            const title = isStepObject && "title" in step ? step.title : "";
-            const description =
-              isStepObject && "description" in step ? step.description : "";
-
-            const stepContent = isStepObject ? (
-              <View>
-                {title && (
-                  <Text className="text-textPrimary font-bold">{title}</Text>
-                )}
-                {description && (
-                  <Text className="text-textPrimary">{description}</Text>
-                )}
-              </View>
-            ) : (
-              <Text className="text-textPrimary flex-1">{String(step)}</Text>
-            );
-
-            return (
-              <View key={index} className="mb-4">
-                <Text className="text-textPrimary font-bold mb-1">
-                  Passo {index + 1}.
-                </Text>
-                <View className="flex-1">{stepContent}</View>
-              </View>
-            );
-          })}
+          {parsedSteps.map((step, index) => (
+            <View key={index} className="mb-4">
+              <Text className="text-textPrimary font-bold mb-1">
+                {step.title}
+              </Text>
+              <Text className="text-textPrimary">{step.description}</Text>
+            </View>
+          ))}
         </View>
       )}
 
@@ -196,7 +223,7 @@ export default function Exercise({
             onPress={isPaused ? resumeExercise : pauseExercise}
             variant="secondary"
             iconPosition="left"
-            Icon={isPaused ? Back : Pause}
+            Icon={isPaused ? Play : Pause}
           />
         )}
       </View>
@@ -210,45 +237,6 @@ export default function Exercise({
           style={{ width: 1, height: 1 }}
         />
       </View>
-
-      {/* Exercise Steps - Hidden in this layout but keeping for compatibility */}
-      {steps.length > 0 && false && (
-        <View className="bg-white p-4 rounded-lg shadow-sm mx-6 mt-6">
-          <Text className="text-lg font-bold text-deepBlue mb-2">
-            Como fazer:
-          </Text>
-          {steps.map((step, index) => {
-            // Check if step is an object with title and description
-            const isStepObject = typeof step === "object" && step !== null;
-            const title = isStepObject && "title" in step ? step.title : "";
-            const description =
-              isStepObject && "description" in step ? step.description : "";
-
-            // If step is a string or can't be parsed as an object, just show it as is
-            const stepContent = isStepObject ? (
-              <View>
-                {title && (
-                  <Text className="text-textPrimary font-bold">{title}</Text>
-                )}
-                {description && (
-                  <Text className="text-textPrimary">{description}</Text>
-                )}
-              </View>
-            ) : (
-              <Text className="text-textPrimary flex-1">{String(step)}</Text>
-            );
-
-            return (
-              <View key={index} className="flex-row mb-4">
-                <Text className="text-deepBlue font-bold mr-2">
-                  {index + 1}.
-                </Text>
-                <View className="flex-1">{stepContent}</View>
-              </View>
-            );
-          })}
-        </View>
-      )}
     </View>
   );
 }

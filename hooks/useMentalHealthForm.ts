@@ -1,4 +1,5 @@
 import { MentalPainFormState, Question } from '@/types/triagem';
+import { generic_diagnostics, motivational_messages } from '@/utils/messages';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { QUESTIONS_CONFIG } from '../constants/mentalHealthQuestions';
@@ -6,24 +7,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { generateMentalHealthExerciseRecommendations } from '../lib/recommendationUtils';
 import { supabase } from '../lib/supabase';
 
-const MOTIVATIONAL_MESSAGES = [
-  'Cada passo é uma conquista para seu bem-estar!',
-  'Cuidar da mente é tão importante quanto cuidar do corpo!',
-  'Você está no caminho certo para uma vida mais equilibrada!',
-  'Pequenos momentos de autocuidado fazem toda a diferença!',
-  'Sua jornada de bem-estar começa agora!',
-  'Respire fundo, você é mais forte do que imagina!',
-  'O equilíbrio mental é a base para uma vida plena!'
-];
+const MOTIVATIONAL_MESSAGES = motivational_messages.mental
 
-const GENERIC_DIAGNOSTICS = [
-  'Com base na sua avaliação, selecionamos práticas personalizadas para seu bem-estar mental.',
-  'Práticas de respiração e meditação podem ajudar a acalmar a mente e reduzir o estresse.',
-  'Exercícios de mindfulness e relaxamento são fundamentais para o equilíbrio emocional.',
-  'Técnicas de respiração consciente podem trazer mais tranquilidade ao seu dia a dia.',
-  'Momentos de pausa e reflexão são essenciais para a saúde mental.',
-  'A prática regular de exercícios mentais fortalece sua resiliência emocional.'
-];
+const GENERIC_DIAGNOSTICS = generic_diagnostics.mental;
 
 export const useMentalHealthForm = () => {
   const router = useRouter();

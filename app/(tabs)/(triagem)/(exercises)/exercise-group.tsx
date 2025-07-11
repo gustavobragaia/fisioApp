@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/EmptyState";
+import { Loading } from "@/components/Loading";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
@@ -6,31 +7,28 @@ import BackHeader from "../../../../components/BackHeader";
 import ExerciseGroupList, {
   Exercise,
 } from "../../../../components/ExerciseGroupList";
-import RecommendedExercises from "../../../../components/RecommendedExercises";
+import { RecommendedExercises } from "../../../../components/RecommendedExercises";
 import { supabase } from "../../../../lib/supabase";
-
-// Exercise type is now imported from the ExerciseGroupList component
 
 export default function ExerciseCategoryScreen() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [exercisesLoading, setExercisesLoading] = useState(true);
   const [showRecommended, setShowRecommended] = useState(false);
 
   const params = useLocalSearchParams<{
     categoryName?: string;
     categoryType?: string;
-    exercises?: string; // JSON stringified array of exercises
+    exercises?: string;
     isRecommended?: string;
     goToExerciseIndex?: string;
-    timestamp?: string; // Used to force remount
-    triagemId?: string; // ID of the triagem this exercise is part of
+    timestamp?: string;
+    triagemId?: string;
   }>();
 
-  // State to hold exercises fetched from database
   const [dbExercises, setDbExercises] = useState<Exercise[]>([]);
 
-  // Parse exercises from params
   const paramExercises: Exercise[] = React.useMemo(() => {
     try {
       if (params.exercises) {
@@ -43,7 +41,6 @@ export default function ExerciseCategoryScreen() {
     }
   }, [params.exercises]);
 
-  // Debug state to track what's happening
   const [debugInfo, setDebugInfo] = useState<{
     triagemId?: string;
     categoryName?: string;
@@ -52,11 +49,25 @@ export default function ExerciseCategoryScreen() {
     error?: string;
   }>({});
 
-  // Fetch exercises from database if not provided in params and we have a triagemId
+  const mapDifficultyToComponent = (difficulty: string): "fácil" | "médio" | "difícil" => {
+    switch (difficulty?.toLowerCase()) {
+      case "iniciante":
+        return "fácil";
+      case "intermediário":
+      case "intermediario":
+        return "médio";
+      case "avançado":
+      case "avancado":
+        return "difícil";
+      default:
+        return "médio";
+    }
+  };
+
   useEffect(() => {
     const fetchExercisesFromDb = async () => {
       if (params.triagemId && params.categoryName) {
-        setLoading(true);
+        setExercisesLoading(true);
         try {
           console.log("Fetching exercises with:", {
             triagemId: params.triagemId,
@@ -68,7 +79,6 @@ export default function ExerciseCategoryScreen() {
             categoryName: params.categoryName,
           });
 
-          // First get all exercises for this group_id
           const { data: groupExercises, error: groupExError } = await supabase
             .from("exercises")
             .select("*")
@@ -94,23 +104,20 @@ export default function ExerciseCategoryScreen() {
           }));
 
           if (groupExercises && groupExercises.length > 0) {
-            // Transform to Exercise type
             const formattedExercises: Exercise[] = groupExercises.map((ex) => ({
               id: ex.id,
               name: ex.name,
               description: ex.description || "",
-              imageUrl: ex.thumbnail_url || "https://via.placeholder.com/150",
+              imageUrl: ex.thumbnail_url || "https://placehold.co/150x150",
               videoUrl: ex.video_url,
               steps: ex.steps || [],
               duration: ex.duration ? `${ex.duration} segundos` : "30 segundos",
-              difficulty: ex.difficulty || "Intermediário",
-              // Store the group_id for proper navigation
+              difficulty: mapDifficultyToComponent(ex.difficulty || "Intermediário"),
               groupId: ex.group_id,
             }));
 
             setDbExercises(formattedExercises);
           } else {
-            // If no exercises found for this group, try to get any exercises for this triagem
             console.log(
               "No exercises found for this group, trying to find any exercises for this triagem"
             );
@@ -157,7 +164,6 @@ export default function ExerciseCategoryScreen() {
               }
 
               if (exercises && exercises.length > 0) {
-                // Group exercises by group_id
                 const exercisesByGroup: Record<string, any[]> = {};
 
                 exercises.forEach((ex) => {
@@ -167,38 +173,32 @@ export default function ExerciseCategoryScreen() {
                   exercisesByGroup[ex.group_id].push(ex);
                 });
 
-                // Use exercises from the requested group if available
                 const groupExercises =
                   exercisesByGroup[params.categoryName] ||
-                  // Otherwise use the first group found
                   exercises.filter(
                     (ex) => ex.group_id === Object.keys(exercisesByGroup)[0]
                   ) ||
-                  // Fallback to all exercises
                   exercises;
 
-                // Transform to Exercise type
                 const formattedExercises: Exercise[] = groupExercises.map(
                   (ex) => ({
                     id: ex.id,
                     name: ex.name,
                     description: ex.description || "",
                     imageUrl:
-                      ex.thumbnail_url || "https://via.placeholder.com/150",
+                      ex.thumbnail_url || "https://placehold.co/150x150",
                     videoUrl: ex.video_url,
                     steps: ex.steps || [],
                     duration: ex.duration
                       ? `${ex.duration} segundos`
                       : "30 segundos",
-                    difficulty: ex.difficulty || "Intermediário",
-                    // Store the group_id for proper navigation
+                    difficulty: mapDifficultyToComponent(ex.difficulty || "Intermediário"),
                     groupId: ex.group_id,
                   })
                 );
 
                 setDbExercises(formattedExercises);
 
-                // Update debug info with the actual group being used
                 if (formattedExercises.length > 0) {
                   setDebugInfo((prev) => ({
                     ...prev,
@@ -216,29 +216,41 @@ export default function ExerciseCategoryScreen() {
             error: "Unexpected error: " + (error as Error).message,
           }));
         } finally {
-          setLoading(false);
+          setExercisesLoading(false);
         }
+      } else {
+        setExercisesLoading(false);
       }
     };
 
     fetchExercisesFromDb();
   }, [params.triagemId, params.categoryName]);
 
-  // Use exercises from params if available, otherwise use from database
-  const displayExercises =
-    paramExercises.length > 0 ? paramExercises : dbExercises;
+  const mappedParamExercises: Exercise[] = React.useMemo(() => {
+    return paramExercises.map((ex) => ({
+      ...ex,
+      difficulty: mapDifficultyToComponent(ex.difficulty || "Intermediário"),
+    }));
+  }, [paramExercises]);
 
-  // Check user authentication status
+  const displayExercises =
+    mappedParamExercises.length > 0 ? mappedParamExercises : dbExercises;
+
   useEffect(() => {
     const checkUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const { data } = await supabase.auth.getSession();
+        setUser(data.session?.user || null);
+      } catch (error) {
+        console.error("Error checking user session:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkUser();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -250,7 +262,6 @@ export default function ExerciseCategoryScreen() {
     };
   }, []);
 
-  // Check if we should show recommended exercises
   useEffect(() => {
     if (params.isRecommended === "true") {
       setShowRecommended(true);
@@ -259,19 +270,22 @@ export default function ExerciseCategoryScreen() {
     }
   }, [params.isRecommended]);
 
-  // Check if we need to navigate directly to a specific exercise
   React.useEffect(() => {
-    if (params.goToExerciseIndex && displayExercises.length > 0) {
+    if (params.goToExerciseIndex && displayExercises.length > 0 && !exercisesLoading) {
       const index = parseInt(params.goToExerciseIndex, 10);
       if (!isNaN(index) && index >= 0 && index < displayExercises.length) {
-        // Navigate to the specified exercise
         handleExercisePress(displayExercises[index], index);
       }
     }
-  }, [params.goToExerciseIndex, displayExercises]);
+  }, [params.goToExerciseIndex, displayExercises, exercisesLoading]);
 
-  // Show message if no exercises are available
-  if (displayExercises.length === 0 && !loading) {
+  if (loading || exercisesLoading) {
+    return (
+      <Loading />
+    );
+  }
+
+  if (displayExercises.length === 0 && !exercisesLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 p-4">
@@ -280,7 +294,7 @@ export default function ExerciseCategoryScreen() {
             onBackPress={() => router.back()}
           />
           <EmptyState
-            title=" Nenhum exercício disponível para esta categoria."
+            title="Nenhum exercício disponível para esta categoria."
             variant="sad"
           />
         </View>
@@ -288,12 +302,9 @@ export default function ExerciseCategoryScreen() {
     );
   }
 
-  // Handle exercise press
   const handleExercisePress = (exercise: Exercise, index: number) => {
-    // Extract duration in seconds from the duration string (e.g., "2 minutos" -> 120)
     const durationInSeconds = parseDurationToSeconds(exercise.duration);
 
-    // Navigate to single exercise screen
     router.push({
       pathname: "/(tabs)/(triagem)/(exercises)/single-exercise",
       params: {
@@ -304,38 +315,31 @@ export default function ExerciseCategoryScreen() {
         exerciseDuration: durationInSeconds.toString(),
         exerciseIndex: index.toString(),
         totalExercises: displayExercises.length.toString(),
-        groupId: params.categoryName, // Using category name as group ID for now
-        triagemId: params.triagemId, // Pass the triagem ID to track exercise completion
+        groupId: params.categoryName,
+        triagemId: params.triagemId,
       },
     });
   };
 
-  // Helper function to parse duration string to seconds
   const parseDurationToSeconds = (durationStr: string): number => {
     try {
-      // Extract numbers from the string
       const match = durationStr.match(/\d+/);
-      if (!match) return 30; // Default to 30 seconds
+      if (!match) return 30;
 
       const value = parseInt(match[0], 10);
 
-      // Check if the string contains minutes
       if (durationStr.includes("minuto")) {
-        return value * 60; // Convert minutes to seconds
+        return value * 60;
       }
 
-      // For demo purposes, limit exercise duration to a maximum of 30 seconds
-      // This makes testing easier - remove this line for production
       return Math.min(value, 30);
     } catch (error) {
       console.error("Error parsing duration:", error);
-      return 30; // Default to 30 seconds
+      return 30;
     }
   };
 
-  // Handle completion of all recommended exercises
   const handleRecommendationsComplete = () => {
-    // Navigate to a completion screen or show a success message
     router.push({
       pathname: "/(tabs)/(triagem)/diagnostic-ideal",
       params: {
@@ -344,14 +348,10 @@ export default function ExerciseCategoryScreen() {
     });
   };
 
-  // if (loading) {
-  //   return (
-  //     <SafeAreaView className="flex-1 bg-white justify-center items-center">
-  //       <ActivityIndicator size="large" color={colors.primary} />
-  //       <Text className="mt-4 text-textPrimary">Carregando exercícios...</Text>
-  //     </SafeAreaView>
-  //   );
-  // }
+  console.log("displayExercises structure:", displayExercises);
+  if (displayExercises.length > 0) {
+    console.log("First exercise:", displayExercises[0]);
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -370,7 +370,7 @@ export default function ExerciseCategoryScreen() {
           </ScrollView>
         </View>
       ) : (
-        <ScrollView className="flex-1 p-4">
+        <ScrollView className="flex-1 p-6 pt-12">
           <BackHeader
             title={params.categoryName || "Categoria de Exercícios"}
             subtitle={"Exercícios"}

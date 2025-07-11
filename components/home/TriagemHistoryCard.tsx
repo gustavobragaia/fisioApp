@@ -5,19 +5,21 @@ import { ArrowRight2 } from "iconsax-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
-    const router = useRouter();
+  const router = useRouter();
 
   return (
     <TouchableOpacity
       className="bg-white rounded-xl p-4 mb-3 shadow-sm flex-row justify-between items-center"
       onPress={() => {
         console.log("Navigating to triagem with ID:", item.id);
-        const params = {
-          id: item.id,
-          type: item.type === "Dor" ? "pain" : "mental",
-        };
-        const queryString = `?id=${encodeURIComponent(item.id)}&type=${encodeURIComponent(params.type)}`;
-        router.push(`/(tabs)/(triagem)/diagnostic-ideal${queryString}`);
+
+        router.push({
+          pathname: "/(tabs)/(triagem)/diagnostic-ideal",
+          params: {
+            id: item.id,
+            type: item.type === "Dor" ? "pain" : "mental",
+          },
+        });
       }}
       activeOpacity={0.7}
     >
@@ -35,10 +37,7 @@ export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
           {item.progress.completed}/{item.progress.total}
         </Text>
         <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
-          <ArrowRight2
-            size={16}
-            color={colors.primary}
-          />
+          <ArrowRight2 size={16} color={colors.primary} />
         </View>
       </View>
     </TouchableOpacity>

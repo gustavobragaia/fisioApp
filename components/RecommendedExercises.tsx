@@ -5,8 +5,6 @@ import { Exercise, getGroupTypeColor } from '../lib/exerciseUtils';
 import { fetchUserRecommendedExercises, markExerciseCompleted } from '../lib/recommendationUtils';
 import colors from '../styles/colors';
 
-// Using NativeWind with className directly instead of styled components
-
 type RecommendedExercisesProps = {
   userId: string;
   triagemId?: string;
@@ -28,8 +26,7 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
       setLoading(true);
       const recommendedExercises = await fetchUserRecommendedExercises(userId, triagemId);
       setExercises(recommendedExercises);
-      
-      // Initialize completed status
+
       const completedStatus: Record<string, boolean> = {};
       recommendedExercises.forEach(exercise => {
         completedStatus[exercise.id] = false;
@@ -52,19 +49,17 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
   const handleMarkCompleted = async (exerciseId: string) => {
     try {
       await markExerciseCompleted(userId, exerciseId);
-      
-      // Update local state
+
       setCompletedExercises(prev => ({
         ...prev,
         [exerciseId]: true
       }));
-      
-      // Check if all exercises are completed
+
       const updatedCompleted = {
         ...completedExercises,
         [exerciseId]: true
       };
-      
+
       const allCompleted = exercises.every(ex => updatedCompleted[ex.id]);
       if (allCompleted && onComplete) {
         onComplete();
@@ -76,7 +71,7 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
 
   const renderExerciseCard = ({ item }: { item: Exercise }) => {
     const isCompleted = completedExercises[item.id];
-    
+
     return (
       <View className="bg-white rounded-lg shadow-md mb-4 overflow-hidden">
         <TouchableOpacity
@@ -98,9 +93,9 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
           <View className="w-2/3 p-3">
             <Text className="text-lg font-bold text-gray-800">{item.name}2</Text>
             <View className="flex-row items-center mt-1">
-              <View 
-                className="h-2 w-2 rounded-full mr-2" 
-                style={{ backgroundColor: getGroupTypeColor(item.group_type) }} 
+              <View
+                className="h-2 w-2 rounded-full mr-2"
+                style={{ backgroundColor: getGroupTypeColor(item.group_type) }}
               />
               <Text className="text-xs text-gray-600">{item.group_type}</Text>
             </View>
@@ -112,7 +107,7 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
             </View>
           </View>
         </TouchableOpacity>
-        
+
         {!isCompleted && (
           <TouchableOpacity
             className="bg-light-deepBlue py-2 mx-3 mb-3 rounded-lg"
@@ -177,5 +172,3 @@ export const RecommendedExercises = ({ userId, triagemId, onComplete }: Recommen
     </View>
   );
 };
-
-export default RecommendedExercises;

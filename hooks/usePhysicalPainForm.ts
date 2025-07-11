@@ -1,29 +1,15 @@
 import { PHYSICAL_PAIN_QUESTIONS_CONFIG } from "@/constants/physicalPainQuestions";
 import { useAuth } from "@/contexts/AuthContext";
 import { PhysicalPainFormState } from "@/types/triagem";
+import { generic_diagnostics, motivational_messages } from "@/utils/messages";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { supabase } from '../lib/supabase';
 import { generatePainExerciseRecommendations } from '../lib/recommendationUtils';
+import { supabase } from '../lib/supabase';
 
-const PAIN_MOTIVATIONAL_MESSAGES = [
-  'Cada movimento é um passo para o bem-estar!',
-  'Você está no caminho certo para uma vida sem dor!',
-  'Pequenos exercícios fazem uma grande diferença!',
-  'Sua jornada de recuperação começa agora!',
-  'O movimento é o melhor remédio para o corpo!',
-  'Cada dia de exercício é um investimento na sua saúde!',
-  'Você é mais forte do que qualquer dor!'
-];
+const PAIN_MOTIVATIONAL_MESSAGES = motivational_messages.pain;
 
-const PAIN_GENERIC_DIAGNOSTICS = [
-  'Com base na sua avaliação, identificamos exercícios personalizados para seu bem-estar físico.',
-  'Exercícios de fortalecimento e alongamento podem ajudar significativamente no alívio da dor.',
-  'A prática regular de exercícios terapêuticos é fundamental para a recuperação.',
-  'Movimentos controlados e progressivos fortalecem a musculatura e reduzem o desconforto.',
-  'Exercícios específicos para sua condição podem melhorar a mobilidade e qualidade de vida.',
-  'A combinação de fortalecimento e flexibilidade é essencial para o tratamento da dor.'
-];
+const PAIN_GENERIC_DIAGNOSTICS = generic_diagnostics.pain;
 
 export const usePhysicalPainForm = () => {
   const router = useRouter();
