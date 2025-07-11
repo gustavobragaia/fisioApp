@@ -7,7 +7,7 @@ export default function DiagnosticResultScreen() {
   const { type = 'pain', triagemId } = useLocalSearchParams();
 
   return (
-    <SafeAreaView className="flex-1 bg-background p-4">
+    <SafeAreaView className="flex-1 bg-background">
       <ResultDiagnostic
         type={type === 'mental' ? 'mental' : 'pain'}
         triagemId={String(triagemId)}

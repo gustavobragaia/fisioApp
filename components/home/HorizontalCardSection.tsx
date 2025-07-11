@@ -4,11 +4,11 @@ import { OptionCard } from "../OptionCard";
 
 export const HorizontalCardSection = ({
   title,
-  key,
+  type,
   data = Array.from({ length: 10 }),
 }: {
   title: string;
-  key: string;
+  type: string;
   data: {
     label: string;
     value: string;
@@ -55,7 +55,7 @@ export const HorizontalCardSection = ({
             onPress={() => {
               router.push({
                 pathname:
-                  key === "mental"
+                  type === "mental"
                     ? "/(tabs)/(triagem)/(mental)"
                     : "/(tabs)/(triagem)/(pain)",
                 params: {
