@@ -11,6 +11,11 @@
     "ios": {
       "supportsTablet": true
     },
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#001417"
+    },
     "android": {
       "package": "com.fisioapp",
       "usesCleartextTraffic": true,
