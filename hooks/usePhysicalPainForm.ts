@@ -89,6 +89,7 @@ export const usePhysicalPainForm = () => {
   };
 
   const submitFormData = async () => {
+    console.log("Submitting pain form data:", formState);
     try {
       setIsLoading(true);
 
@@ -96,6 +97,7 @@ export const usePhysicalPainForm = () => {
 
       if (user?.id) {
         try {
+          console.log('Persisting pain symptoms data to database...');
           const { data: triagemData, error: triagemError } = await supabase
             .from('triagens')
             .insert({
@@ -105,6 +107,8 @@ export const usePhysicalPainForm = () => {
             })
             .select()
             .single();
+
+            console.log('Triagem data:', triagemData);
 
           if (triagemError) throw triagemError;
 
@@ -127,6 +131,7 @@ export const usePhysicalPainForm = () => {
           triagemId = triagemData.id;
 
           try {
+            console.log('Generating exercise recommendations...');
             const recommendedExercises = await generatePainExerciseRecommendations(
               triagemData.id,
               user.id,
