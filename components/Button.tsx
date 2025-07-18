@@ -99,7 +99,6 @@ export function Button({
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.8}
-      style={{ backgroundColor: colors.primary }}
       {...props}
       className={getButtonClasses() + " " + props?.className}
     >
