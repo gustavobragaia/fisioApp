@@ -31,6 +31,15 @@ export default {
       // Add your service role key here - you'll need to get this from your Supabase dashboard
       // Go to Project Settings > API > Project API keys > service_role key
       supabaseServiceKey: "YOUR_SUPABASE_SERVICE_ROLE_KEY",
+      eas: {
+        projectId: "126b4377-8bc8-4dd0-98a0-c6a8d4c33e4c"
+      }
     },
+    updates: {
+      url: "https://u.expo.dev/126b4377-8bc8-4dd0-98a0-c6a8d4c33e4c",
+    },
+    runtimeVersion: {
+      policy: "appVersion"
+    }
   },
 };

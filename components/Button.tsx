@@ -56,16 +56,28 @@ export function Button({
     return base;
   };
 
-  const getLoadingColor = () => (variant === "primary" ? "#FFFFFF" : colors.primary);
-  const getIconColor = () => (variant === "primary" ? "#FFFFFF" : colors.primary);
+  const getLoadingColor = () =>
+    variant === "primary" ? "#FFFFFF" : colors.primary;
+  const getIconColor = () =>
+    variant === "primary" ? "#FFFFFF" : colors.primary;
 
   const renderContent = () => {
     if (loading) {
-      return <ActivityIndicator size="small" color={getLoadingColor()} style={{ marginHorizontal: 4 }} />;
+      return (
+        <ActivityIndicator
+          size="small"
+          color={getLoadingColor()}
+          style={{ marginHorizontal: 4 }}
+        />
+      );
     }
 
     const iconElement = Icon ? <Icon size={20} color={getIconColor()} /> : null;
-    const textElement = <Text className={getTextClasses()} numberOfLines={1}>{title}</Text>;
+    const textElement = (
+      <Text className={getTextClasses()} numberOfLines={1}>
+        {title}
+      </Text>
+    );
 
     if (!Icon) {
       return textElement;
@@ -84,11 +96,12 @@ export function Button({
 
   return (
     <TouchableOpacity
-      className={getButtonClasses()}
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.8}
+      style={{ backgroundColor: colors.primary }}
       {...props}
+      className={getButtonClasses() + " " + props?.className}
     >
       {renderContent()}
     </TouchableOpacity>

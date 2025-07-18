@@ -7,7 +7,7 @@ import {
   Health,
   HeartRemove,
   HeartSearch,
-  Lovely,
+  Lovely
 } from "iconsax-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -21,6 +21,7 @@ interface EmptyStateProps {
   title?: string;
   buttonText?: string;
   onPress?: () => void;
+  bottomComponent?: React.ReactNode;
 }
 
 export function EmptyState({
@@ -28,6 +29,7 @@ export function EmptyState({
   title,
   buttonText,
   onPress,
+  bottomComponent,
 }: EmptyStateProps) {
   const router = useRouter();
 
@@ -73,6 +75,8 @@ export function EmptyState({
       <Text className="text-base font-medium text-center my-3 text-textPrimary/50">
         {title}
       </Text>
+
+      {bottomComponent && <View className="mt-4">{bottomComponent}</View>}
 
       {buttonText && (
         <TouchableOpacity className="w-full" onPress={handlePress}>

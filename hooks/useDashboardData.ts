@@ -78,6 +78,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   const consecutiveDays = calculateConsecutiveDays(completedExercises || []);
 
   const userStats: UserStats = {
+    id: userId,
     name: userData.user.user_metadata.name || "Usuário",
     exercisesDone: completedExercises?.length || 0,
     triagemCount: formattedTriagemHistory.length,

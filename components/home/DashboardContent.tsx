@@ -1,12 +1,13 @@
-import { CurrentProgressCard } from '@/components/home/CurrentProgressCard';
-import { FirstAccessDashboard } from '@/components/home/FirstAccessDashboard';
-import { HorizontalCardSection } from '@/components/home/HorizontalCardSection';
-import { TriagemHistorySection } from '@/components/home/TriagemHistorySection';
-import { mockRoutine, mockWhereYouFeelPain } from '@/constants/mockData';
-import { TriagemItem, UserStats } from '@/types/dashboard';
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { DashboardHeader } from './DashboardHeader';
+import { CurrentProgressCard } from "@/components/home/CurrentProgressCard";
+import { HorizontalCardSection } from "@/components/home/HorizontalCardSection";
+import { HowAreYouFeeling } from "@/components/home/HowAreYouFeeling";
+import { TriagemHistorySection } from "@/components/home/TriagemHistorySection";
+import { mockRoutine, mockWhereYouFeelPain } from "@/constants/mockData";
+import { supabase } from "@/lib/supabase";
+import { TriagemItem, UserStats } from "@/types/dashboard";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
+import { DashboardHeader } from "./DashboardHeader";
 
 interface DashboardContentProps {
   userStats: UserStats;
@@ -19,17 +20,52 @@ export function DashboardContent({
   triagemHistory,
   isFirstAccess,
 }: DashboardContentProps) {
+  const [hasAnsweredToday, setHasAnsweredToday] = useState<boolean | null>(
+    null
+  );
+
+  const checkAnsweredToday = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from("emotion_user")
+      .select("id")
+      .eq("user_id", userStats.id)
+      .eq("date", today)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Erro ao verificar resposta de hoje:", error);
+      setHasAnsweredToday(false);
+      return;
+    }
+
+    setHasAnsweredToday(!!data);
+  };
+
+  useEffect(() => {
+    if (userStats?.id) {
+      checkAnsweredToday();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userStats]);
+
+  if (hasAnsweredToday === null) {
+    return null;
+  }
+
   const currentTriagem = triagemHistory[0];
-  const isCurrentTriagemCompleted = currentTriagem &&
+  const isCurrentTriagemCompleted =
+    currentTriagem &&
     currentTriagem.progress.completed >= currentTriagem.progress.total;
 
   return (
     <ScrollView className="flex-1 bg-background">
       <DashboardHeader userStats={userStats} />
 
-      {isFirstAccess && (
-        <View className="mx-6">
-          <FirstAccessDashboard />
+      {!hasAnsweredToday && (
+        <View className="mx-6 flex-1">
+          <HowAreYouFeeling userId={userStats.id} />
         </View>
       )}
 
@@ -62,4 +98,4 @@ export function DashboardContent({
       </View>
     </ScrollView>
   );
-};
+}

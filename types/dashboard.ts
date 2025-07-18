@@ -14,4 +14,5 @@ export type UserStats = {
   consecutiveDays: number;
   lastTriagem?: string;
   name: string;
+  id: string;
 };
