@@ -1,6 +1,6 @@
 export default {
   expo: {
-    name: "Avalia | Seu bem-estar começa aqui",
+    name: "Avalia",
     slug: "fisioApp",
     version: "1.0.0",
     orientation: "portrait",
