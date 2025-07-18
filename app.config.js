@@ -16,6 +16,7 @@ export default {
       supportsTablet: true,
     },
     android: {
+      package: "com.fisioapp",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#001417",
