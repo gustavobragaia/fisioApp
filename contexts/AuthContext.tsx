@@ -20,6 +20,7 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   signUp: (
     email: string,
     password: string,
@@ -170,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     age: string,
     gender: string
   ) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await signUp(
       email,
       password,
@@ -191,53 +192,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string,
     empresa?: string
   ) => {
-    setIsLoading(true);
-    const result = await signUpWithPhone(phone, password, name, empresa);
-    setIsLoading(false);
+    const result = await signUpWithPhone(phone, password, name, empresa);;
     return result;
   };
 
   const handleSignIn = async (email: string, password: string) => {
-    setIsLoading(true);
     const result = await signIn(email, password);
-    setIsLoading(false);
     return result;
   };
 
   const handleSignInWithMagicLink = async (email: string) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await signInWithMagicLink(email);
-    setIsLoading(false);
+    // setIsLoading(false);
     return result;
   };
 
   const handleSignInWithSmsOtp = async (phone: string) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await signInWithSmsOtp(phone);
-    setIsLoading(false);
+    // setIsLoading(false);
     return result;
   };
 
   const handleVerifySmsOtp = async (phone: string, token: string) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await verifySmsOtp(phone, token);
-    setIsLoading(false);
+    // setIsLoading(false);
     return result;
   };
 
   const handleSignInWithOAuth = async (
     provider: "google" | "facebook" | "github" | "gitlab" | "bitbucket"
   ) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await signInWithOAuth(provider);
-    setIsLoading(false);
+    // setIsLoading(false);
     return result;
   };
 
   const handleResetPassword = async (email: string) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await resetPassword(email);
-    setIsLoading(false);
+    // setIsLoading(false);
     return result;
   };
 
@@ -246,9 +243,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     password?: string;
     data?: object;
   }) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     const result = await updateUser(updates);
-    setIsLoading(false);
+    // setIsLoading(false);
     return result;
   };
 
@@ -263,6 +260,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     session,
     user,
     isLoading,
+    setIsLoading,
     signUp: handleSignUp,
     signUpWithPhone: handleSignUpWithPhone,
     signIn: handleSignIn,
