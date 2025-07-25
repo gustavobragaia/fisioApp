@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Dimensions, FlatList, ScrollView, Text, View } from "react-native";
 import { EmptyState } from "../EmptyState";
+import { ExerciseFromBack } from "../ExerciseGroupList";
 import { ExerciseCard } from "../exercises/ExerciseCard";
 import { Loading } from "../Loading";
 
@@ -21,14 +22,14 @@ export function ResultDiagnostic({
   const router = useRouter();
   const params = useLocalSearchParams();
 
+  console.log("Params in ResultDiagnostic:", params, "Type:", type, "Triagem ID:", triagemId);
+
   const {
     user,
-    triagemId: currentTriagemId,
     exercises,
     isLoading,
     isError,
     error,
-    getExercisesForCategory,
   } = useDiagnosticData(type, triagemId);
 
   const generateGenericMessages = (messageType: "pain" | "mental") => {
@@ -59,8 +60,8 @@ export function ResultDiagnostic({
           : params.apiResponse;
 
       return Array.isArray(response) ? response[0] : response;
-    } catch (error) {
-      console.error("Error parsing API response:", error);
+    } catch {
+      // console.error("Error parsing API response:", error);
       return null;
     }
   };
@@ -115,49 +116,48 @@ export function ResultDiagnostic({
     imageUrl: item.thumbnail_url || "https://placehold.co/150x150",
   }));
 
-  console.log("=== DEBUG EXERCICIOS ===");
-  console.log("parsedResponse:", parsedResponse);
-  console.log("exercises from hook:", exercises);
-  console.log("exercicios final:", exercicios);
-  console.log("exercicios length:", exercicios?.length);
-  console.log("exercicios type:", typeof exercicios);
-
   const validExercicios = exerciciosFormatted.filter(
     (item) => item && (item.nome || item.name) && (item.tipo || item.group_type)
   );
 
-  console.log("validExercicios after mapping:", validExercicios);
-  console.log("validExercicios length after mapping:", validExercicios.length);
+  const parseDurationToSeconds = (durationStr: string): number => {
+    try {
+      const match = durationStr.match(/\d+/);
+      if (!match) return 30;
 
-  const handleCardPress = async (item: any) => {
-    const categoryExercises = await getExercisesForCategory(
-      item.tipo || item.group_type
-    );
+      const value = parseInt(match[0], 10);
 
-    router.push({
-      pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
-      params: {
-        categoryName: item.nome || item.name,
-        categoryType: item.tipo || item.group_type,
-        exercises: JSON.stringify(categoryExercises),
-        triagemId: currentTriagemId || undefined,
-      },
-    });
+      if (durationStr.includes("minuto")) {
+        return value * 60;
+      }
+
+      return Math.min(value, 30);
+    } catch {
+      // console.error("Error parsing duration:", error);
+      return 30;
+    }
   };
 
-  const handleStartPress = async (item: any) => {
-    const categoryExercises = await getExercisesForCategory(
-      item.tipo || item.group_type
-    );
+  const handleCardPress = async (item: ExerciseFromBack) => {
+    const durationInSeconds = parseDurationToSeconds(item.duration);
+
+    const exercisesToUse = validExercicios;
+
+    const exerciseIndex = exercisesToUse.findIndex((ex) => ex.id === item.id);
 
     router.push({
-      pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
+      pathname: "/(tabs)/(triagem)/(exercises)/single-exercise",
       params: {
-        categoryName: item.nome || item.name,
-        categoryType: item.tipo || item.group_type,
-        exercises: JSON.stringify(categoryExercises),
-        triagemId: currentTriagemId || undefined,
-        autoStart: "true",
+        exerciseId: item.id,
+        exerciseName: item.name,
+        exerciseVideoUrl: item.video_url,
+        exerciseSteps: JSON.stringify(item.steps),
+        exerciseDuration: durationInSeconds.toString(),
+        exerciseIndex: Math.max(0, exerciseIndex).toString(),
+        totalExercises: exercisesToUse.length.toString(),
+        groupId: item.tipo || item.group_type,
+        triagemId: triagemId || params.triagemId,
+        allExercises: JSON.stringify(exercisesToUse),
       },
     });
   };
@@ -188,7 +188,7 @@ export function ResultDiagnostic({
         exerciseCount={item.exerciseCount || 1}
         description={item.descricao || item.description || ""}
         variant={getCardVariant(item.tipo || item.group_type)}
-        onStartPress={() => handleStartPress(item)}
+        onStartPress={() => handleCardPress(item)}
         onPress={() => handleCardPress(item)}
       />
     );

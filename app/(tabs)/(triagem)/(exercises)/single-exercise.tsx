@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Dimensions, SafeAreaView, ScrollView, Text, View } from "react-native";
@@ -12,7 +11,7 @@ export default function SingleExerciseScreen() {
   const router = useRouter();
   const [showFeedback, setShowFeedback] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,7 +34,20 @@ export default function SingleExerciseScreen() {
     totalExercises?: string;
     groupId?: string;
     triagemId?: string;
+    allExercises?: string;
   }>();
+
+  const allExercises = React.useMemo(() => {
+    try {
+      if (params.allExercises) {
+        return JSON.parse(params.allExercises);
+      }
+      return [];
+    } catch (error) {
+      console.error("Error parsing all exercises:", error);
+      return [];
+    }
+  }, [params.allExercises]);
 
   const exerciseSteps = React.useMemo(() => {
     try {
@@ -58,7 +70,7 @@ export default function SingleExerciseScreen() {
   const duration = React.useMemo(() => {
     try {
       if (params.exerciseDuration) {
-        return 30;
+        return parseInt(params.exerciseDuration, 10) || 30;
       }
       return 30;
     } catch (error) {
@@ -73,125 +85,173 @@ export default function SingleExerciseScreen() {
   const totalExercises = params.totalExercises
     ? parseInt(params.totalExercises, 10)
     : 1;
-  const exerciseIndex = parseInt(params.exerciseIndex || "0", 10);
 
-  const handleExerciseComplete = () => {
+  const handleExerciseComplete = async () => {
     if (currentIndex === totalExercises - 1) {
+      const { error } = await supabase
+        .from("triagens")
+        .update({
+          status: "completed",
+          completion_date: new Date().toISOString(),
+        })
+        .eq("user_id", userId)
+        .eq("id", params.triagemId);
+
+      if (error) {
+        console.error("Error updating triagem status:", error);
+      }
+
       setShowFeedback(true);
     }
-    console.log("Exercise completed! Ready for user to click PRÓXIMO");
   };
 
-  const handlePreviousExercise = () => {
-    if (currentIndex > 0) {
-      setShowFeedback(false);
-
-      router.replace({
-        pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
-        params: {
-          goToExerciseIndex: (currentIndex - 1).toString(),
-          categoryName: params.groupId || "",
-          categoryType: "Exercícios",
-          triagemId: params.triagemId,
-          timestamp: Date.now().toString(),
-        },
-      });
-    }
-  };
-
-  const handleCompleteExercise = async () => {
+  const parseDurationToSeconds = (durationStr: string): number => {
     try {
-      if (params.triagemId && params.exerciseId) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      const match = durationStr.match(/\d+/);
+      if (!match) return 30;
 
-        if (user) {
-          const { error } = await supabase
-            .from("user_exercises")
-            .update({
-              completed: true,
-              completion_date: new Date().toISOString(),
-            })
-            .eq("user_id", userId)
-            .eq("exercise_id", params.exerciseId)
-            .eq("triagem_id", params.triagemId);
+      const value = parseInt(match[0], 10);
 
-          if (error) {
-            console.error("Error marking exercise as completed:", error);
-          }
-
-          navigateBackToGroup()
-        }
+      if (durationStr.includes("minuto")) {
+        return value * 60;
       }
 
-      // Navigate based on whether there are more exercises
-      if (exerciseIndex < totalExercises - 1) {
-        // Go to next exercise
-        router.replace({
-          pathname: "/(tabs)/(triagem)/(exercises)/single-exercise",
-          params: {
-            ...params,
-            exerciseIndex: (exerciseIndex + 1).toString(),
-          },
-        });
-      } else {
-      }
+      return Math.min(value, 30);
     } catch (error) {
-      console.error("Error in handleCompleteExercise:", error);
-      router.back();
+      console.error("Error parsing duration:", error);
+      return 30;
     }
   };
 
-  const handleNextExercise = async () => {
-    if (currentIndex < totalExercises - 1) {
-      if (userId && params.exerciseId && params.triagemId) {
-        try {
-          const { error } = await supabase
-            .from("user_exercises")
-            .update({
-              completed: true,
-              completion_date: new Date().toISOString(),
-            })
-            .eq("user_id", userId)
-            .eq("exercise_id", params.exerciseId)
-            .eq("triagem_id", params.triagemId);
+  const navigateToExercise = (index: number) => {
+    const exercise = allExercises[index];
+    if (!exercise) return;
 
-          if (error) {
-            console.error("Error updating exercise completion status:", error);
-          } else {
-            console.log("Exercise marked as completed successfully!");
-          }
-        } catch (error) {
-          console.error("Error in handleNextExercise:", error);
-        }
-      }
+    const durationInSeconds = parseDurationToSeconds(
+      exercise.duration || "30 segundos"
+    );
 
-      setShowFeedback(false);
-
-      router.replace({
-        pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
-        params: {
-          goToExerciseIndex: (currentIndex + 1).toString(),
-          categoryName: params.groupId || "",
-          categoryType: "Exercícios",
-          triagemId: params.triagemId,
-          timestamp: Date.now().toString(),
-        },
-      });
-    }
-  };
-
-  const navigateBackToGroup = () => {
     router.replace({
-      pathname: "/(tabs)/(triagem)/(exercises)/exercise-group",
+      pathname: "/(tabs)/(triagem)/(exercises)/single-exercise",
       params: {
-        categoryName: params.groupId || "",
-        categoryType: "Exercícios",
+        exerciseId: exercise.id,
+        exerciseName: exercise.name || exercise.nome,
+        exerciseVideoUrl: exercise.video_url || exercise.videoUrl,
+        exerciseSteps: JSON.stringify(exercise.steps || []),
+        exerciseDuration: durationInSeconds.toString(),
+        exerciseIndex: index.toString(),
+        totalExercises: totalExercises.toString(),
+        groupId: params.groupId,
         triagemId: params.triagemId,
-        timestamp: Date.now().toString(),
+        allExercises: params.allExercises,
       },
     });
+  };
+
+  const markExerciseCompleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId || !params.exerciseId || !params.triagemId) {
+        console.log("Missing required data");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("user_exercises")
+        .update({
+          completed: true,
+          completion_date: new Date().toISOString(),
+        })
+        .eq("user_id", userId)
+        .eq("exercise_id", params.exerciseId)
+        .eq("triagem_id", params.triagemId);
+
+      if (error) {
+        throw error;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
+    },
+    onError: (error) => {
+      console.error("Error marking exercise as completed:", error);
+    },
+  });
+
+  const nextExerciseMutation = useMutation({
+    mutationFn: async () => {
+      await markExerciseCompleteMutation.mutateAsync();
+
+      await navigateToExercise(currentIndex + 1);
+    },
+    onSuccess: () => {
+      setShowFeedback(false);
+    },
+    onError: (error) => {
+      console.error("Error in nextExerciseMutation:", error);
+    },
+  });
+
+  const previousExerciseMutation = useMutation({
+    mutationFn: async () => {
+      await markExerciseCompleteMutation.mutateAsync();
+
+      await navigateToExercise(currentIndex - 1);
+    },
+    onSuccess: () => {
+      setShowFeedback(false);
+    },
+    onError: (error) => {
+      console.error("Error in previousExerciseMutation:", error);
+    },
+  });
+
+  const completeExerciseMutation = useMutation({
+    mutationFn: async () => {
+      if (!params.triagemId || !params.exerciseId) {
+        console.log("Missing triagem or exercise ID");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("user_exercises")
+        .update({
+          completed: true,
+          completion_date: new Date().toISOString(),
+        })
+        .eq("user_id", userId)
+        .eq("exercise_id", params.exerciseId)
+        .eq("triagem_id", params.triagemId);
+
+      if (error) {
+        throw error;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
+    },
+    onSuccess: () => {
+      router.back();
+    },
+    onError: (error) => {
+      console.error("Error in completeExerciseMutation:", error);
+      router.back();
+    },
+  });
+
+  const handlePreviousExercise = () => {
+    if (currentIndex > 0 && !previousExerciseMutation.isPending) {
+      previousExerciseMutation.mutate();
+    }
+  };
+
+  const handleNextExercise = () => {
+    if (currentIndex < totalExercises - 1 && !nextExerciseMutation.isPending) {
+      nextExerciseMutation.mutate();
+    }
+  };
+
+  const handleCompleteExercise = () => {
+    if (!completeExerciseMutation.isPending) {
+      completeExerciseMutation.mutate();
+    }
   };
 
   const handleRepeatExercise = () => {
@@ -212,7 +272,7 @@ export default function SingleExerciseScreen() {
           <View
             key={index}
             className={`h-2 rounded-full ${
-              index === currentIndex ? "bg-deepBlue" : "bg-gray-200"
+              index === currentIndex ? "bg-primary" : "bg-gray-200"
             }`}
             style={{
               width: dotWidth,
@@ -231,11 +291,11 @@ export default function SingleExerciseScreen() {
           onRepeat={handleRepeatExercise}
           onComplete={handleCompleteExercise}
           onNext={
-            exerciseIndex < totalExercises - 1 ? handleNextExercise : undefined
+            currentIndex < totalExercises - 1 ? handleNextExercise : undefined
           }
         />
       ) : (
-        <View className="flex-1 bg-background">
+        <View className="flex-1 pt-4">
           <View className="px-6 pt-12 pb-2">
             <BackHeader
               title={params.exerciseName || "Exercício"}
@@ -245,7 +305,7 @@ export default function SingleExerciseScreen() {
 
             {totalExercises > 1 && (
               <View className="mt-2 mb-1">
-                <Text className="text-sm text-textPrimary text-center mb-2">
+                <Text className="text-sm text-textPrimary text-left mb-2">
                   Exercício {currentIndex + 1} de {totalExercises}
                 </Text>
                 {renderDotsIndicator()}
@@ -270,6 +330,9 @@ export default function SingleExerciseScreen() {
                     ? handleNextExercise
                     : undefined
                 }
+                isLoadingComplete={markExerciseCompleteMutation.isPending}
+                isLoadingNext={nextExerciseMutation.isPending}
+                isLoadingPrevious={previousExerciseMutation.isPending}
               />
             </View>
           </ScrollView>

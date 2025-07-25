@@ -1,6 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { DetailedExercise } from '@/types/diagnostic';
 import { useQuery } from '@tanstack/react-query';
 
 export const useDiagnosticData = (type: 'pain' | 'mental', triagemId?: string) => {
@@ -75,20 +74,6 @@ export const useDiagnosticData = (type: 'pain' | 'mental', triagemId?: string) =
     enabled: !!user?.id && !!triagemQuery.data,
   });
 
-  const getExercisesForCategory = async (categoryType: string): Promise<DetailedExercise[]> => {
-    const { data, error } = await supabase
-      .from('detailed_exercises')
-      .select('*')
-      .eq('category_type', categoryType);
-
-    if (error) {
-      console.error('Error fetching detailed exercises:', error);
-      return [];
-    }
-
-    return data || [];
-  };
-
   return {
     user: userQuery.data,
     triagemId: triagemQuery.data,
@@ -96,6 +81,5 @@ export const useDiagnosticData = (type: 'pain' | 'mental', triagemId?: string) =
     isLoading: userQuery.isLoading || triagemQuery.isLoading || exercisesQuery.isLoading,
     isError: userQuery.isError || triagemQuery.isError || exercisesQuery.isError,
     error: userQuery.error || triagemQuery.error || exercisesQuery.error,
-    getExercisesForCategory,
   };
 };

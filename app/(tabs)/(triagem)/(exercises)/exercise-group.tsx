@@ -29,7 +29,7 @@ export default function ExerciseCategoryScreen() {
 
   const [dbExercises, setDbExercises] = useState<Exercise[]>([]);
 
-  const paramExercises: Exercise[] = React.useMemo(() => {
+  const exercises: Exercise[] = React.useMemo(() => {
     try {
       if (params.exercises) {
         return JSON.parse(params.exercises);
@@ -41,23 +41,18 @@ export default function ExerciseCategoryScreen() {
     }
   }, [params.exercises]);
 
-  const [debugInfo, setDebugInfo] = useState<{
-    triagemId?: string;
-    categoryName?: string;
-    userExercisesCount?: number;
-    exercisesCount?: number;
-    error?: string;
-  }>({});
-
   const mapDifficultyToComponent = (difficulty: string): "fácil" | "médio" | "difícil" => {
     switch (difficulty?.toLowerCase()) {
       case "iniciante":
+      case "easy":
         return "fácil";
       case "intermediário":
       case "intermediario":
+      case "medium":
         return "médio";
       case "avançado":
       case "avancado":
+      case "hard":
         return "difícil";
       default:
         return "médio";
@@ -66,42 +61,31 @@ export default function ExerciseCategoryScreen() {
 
   useEffect(() => {
     const fetchExercisesFromDb = async () => {
-      if (params.triagemId && params.categoryName) {
+      if (params.triagemId && params.categoryType) {
         setExercisesLoading(true);
         try {
           console.log("Fetching exercises with:", {
             triagemId: params.triagemId,
-            categoryName: params.categoryName,
+            categoryType: params.categoryType,
           });
 
-          setDebugInfo({
-            triagemId: params.triagemId,
-            categoryName: params.categoryName,
-          });
-
+          // Buscar exercícios por group_type ao invés de group_id
           const { data: groupExercises, error: groupExError } = await supabase
             .from("exercises")
             .select("*")
-            .eq("group_id", params.categoryName);
+            .eq("id", params.categoryType)
+            .eq("is_published", true);
 
           if (groupExError) {
             console.error("Error fetching group exercises:", groupExError);
-            setDebugInfo((prev) => ({
-              ...prev,
-              error: "Error fetching group exercises: " + groupExError.message,
-            }));
             return;
           }
 
           console.log(
-            `Found ${groupExercises?.length || 0} exercises in group ${
-              params.categoryName
+            `Found ${groupExercises?.length || 0} exercises in group_type ${
+              params.categoryType
             }`
           );
-          setDebugInfo((prev) => ({
-            ...prev,
-            exercisesCount: groupExercises?.length || 0,
-          }));
 
           if (groupExercises && groupExercises.length > 0) {
             const formattedExercises: Exercise[] = groupExercises.map((ex) => ({
@@ -112,14 +96,14 @@ export default function ExerciseCategoryScreen() {
               videoUrl: ex.video_url,
               steps: ex.steps || [],
               duration: ex.duration ? `${ex.duration} segundos` : "30 segundos",
-              difficulty: mapDifficultyToComponent(ex.difficulty || "Intermediário"),
-              groupId: ex.group_id,
+              difficulty: mapDifficultyToComponent(ex.difficulty || "medium"),
+              groupId: ex.group_type, // Usar group_type como groupId
             }));
 
             setDbExercises(formattedExercises);
           } else {
             console.log(
-              "No exercises found for this group, trying to find any exercises for this triagem"
+              "No exercises found for this group_type, trying to find any exercises for this triagem"
             );
 
             const { data: userExercises, error: userExError } = await supabase
@@ -129,10 +113,6 @@ export default function ExerciseCategoryScreen() {
 
             if (userExError) {
               console.error("Error fetching user exercises:", userExError);
-              setDebugInfo((prev) => ({
-                ...prev,
-                error: "Error fetching user exercises: " + userExError.message,
-              }));
               return;
             }
 
@@ -141,10 +121,6 @@ export default function ExerciseCategoryScreen() {
                 params.triagemId
               }`
             );
-            setDebugInfo((prev) => ({
-              ...prev,
-              userExercisesCount: userExercises?.length || 0,
-            }));
 
             if (userExercises && userExercises.length > 0) {
               const exerciseIds = userExercises.map((ue) => ue.exercise_id);
@@ -152,31 +128,30 @@ export default function ExerciseCategoryScreen() {
               const { data: exercises, error: exError } = await supabase
                 .from("exercises")
                 .select("*")
-                .in("id", exerciseIds);
+                .in("id", exerciseIds)
+                .eq("is_published", true);
 
               if (exError) {
                 console.error("Error fetching exercises:", exError);
-                setDebugInfo((prev) => ({
-                  ...prev,
-                  error: "Error fetching exercises: " + exError.message,
-                }));
                 return;
               }
 
               if (exercises && exercises.length > 0) {
+                // Agrupar por group_type ao invés de group_id
                 const exercisesByGroup: Record<string, any[]> = {};
 
                 exercises.forEach((ex) => {
-                  if (!exercisesByGroup[ex.group_id]) {
-                    exercisesByGroup[ex.group_id] = [];
+                  if (!exercisesByGroup[ex.group_type]) {
+                    exercisesByGroup[ex.group_type] = [];
                   }
-                  exercisesByGroup[ex.group_id].push(ex);
+                  exercisesByGroup[ex.group_type].push(ex);
                 });
 
+                // Tentar encontrar exercícios do grupo específico ou usar o primeiro grupo disponível
                 const groupExercises =
-                  exercisesByGroup[params.categoryName] ||
+                  exercisesByGroup[params.categoryType] ||
                   exercises.filter(
-                    (ex) => ex.group_id === Object.keys(exercisesByGroup)[0]
+                    (ex) => ex.group_type === Object.keys(exercisesByGroup)[0]
                   ) ||
                   exercises;
 
@@ -192,29 +167,17 @@ export default function ExerciseCategoryScreen() {
                     duration: ex.duration
                       ? `${ex.duration} segundos`
                       : "30 segundos",
-                    difficulty: mapDifficultyToComponent(ex.difficulty || "Intermediário"),
-                    groupId: ex.group_id,
+                    difficulty: mapDifficultyToComponent(ex.difficulty || "medium"),
+                    groupId: ex.group_type, // Usar group_type como groupId
                   })
                 );
 
                 setDbExercises(formattedExercises);
-
-                if (formattedExercises.length > 0) {
-                  setDebugInfo((prev) => ({
-                    ...prev,
-                    categoryName: formattedExercises[0].groupId,
-                    exercisesCount: formattedExercises.length,
-                  }));
-                }
               }
             }
           }
         } catch (error) {
           console.error("Error in fetchExercisesFromDb:", error);
-          setDebugInfo((prev) => ({
-            ...prev,
-            error: "Unexpected error: " + (error as Error).message,
-          }));
         } finally {
           setExercisesLoading(false);
         }
@@ -224,14 +187,15 @@ export default function ExerciseCategoryScreen() {
     };
 
     fetchExercisesFromDb();
-  }, [params.triagemId, params.categoryName]);
+  }, [params.triagemId, params.categoryType]);
 
   const mappedParamExercises: Exercise[] = React.useMemo(() => {
-    return paramExercises.map((ex) => ({
+    return exercises.map((ex: any) => ({
       ...ex,
-      difficulty: mapDifficultyToComponent(ex.difficulty || "Intermediário"),
+      difficulty: mapDifficultyToComponent(ex.difficulty || "medium"),
+      groupId: ex.group_type || ex.tipo, // Mapear group_type ou tipo para groupId
     }));
-  }, [paramExercises]);
+  }, [exercises]);
 
   const displayExercises =
     mappedParamExercises.length > 0 ? mappedParamExercises : dbExercises;
@@ -280,9 +244,7 @@ export default function ExerciseCategoryScreen() {
   }, [params.goToExerciseIndex, displayExercises, exercisesLoading]);
 
   if (loading || exercisesLoading) {
-    return (
-      <Loading />
-    );
+    return <Loading />;
   }
 
   if (displayExercises.length === 0 && !exercisesLoading) {
@@ -290,7 +252,7 @@ export default function ExerciseCategoryScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 p-4">
           <BackHeader
-            title={params.categoryType || "Exercícios"}
+            title={params.categoryName || "Exercícios"}
             onBackPress={() => router.back()}
           />
           <EmptyState
@@ -315,7 +277,7 @@ export default function ExerciseCategoryScreen() {
         exerciseDuration: durationInSeconds.toString(),
         exerciseIndex: index.toString(),
         totalExercises: displayExercises.length.toString(),
-        groupId: params.categoryName,
+        groupId: params.categoryType, // Usar categoryType ao invés de categoryName
         triagemId: params.triagemId,
       },
     });

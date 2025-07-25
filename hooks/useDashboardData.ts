@@ -126,7 +126,6 @@ export const useDashboardData = () => {
   return useQuery({
     queryKey: ["dashboard-data"],
     queryFn: fetchDashboardData,
-    staleTime: 5 * 60 * 1000, // 5 minutos
     retry: 3,
   });
 };

@@ -28,7 +28,7 @@ export const ExerciseCard = ({
 
   const handleCardPress = () => {
     if (disabled) return;
-    
+
     if (href) {
       router.push(href as any);
     } else if (onPress) {
@@ -38,7 +38,7 @@ export const ExerciseCard = ({
 
   const handleStartPress = () => {
     if (disabled) return;
-    
+
     if (onStartPress) {
       onStartPress();
     }
@@ -46,11 +46,11 @@ export const ExerciseCard = ({
 
   const getCardStyles = () => {
     const baseStyles = "rounded-xl p-4 mb-3 shadow-sm flex-row justify-between items-center";
-    
+
     if (variant === "primary") {
       return `${baseStyles} bg-primary ${disabled ? "opacity-50" : ""}`;
     }
-    
+
     return `${baseStyles} bg-white ${disabled ? "opacity-50" : ""}`;
   };
 
@@ -97,7 +97,7 @@ export const ExerciseCard = ({
       <View className="flex-row items-center">
         <TouchableOpacity
           className={`px-4 py-2 rounded-full mr-3 ${getStartButtonStyles()}`}
-          onPress={handleStartPress}
+          onPress={onPress}
           disabled={disabled}
         >
           <Text className={`text-sm font-medium ${getStartButtonStyles().split(' ')[1]}`}>
@@ -106,9 +106,9 @@ export const ExerciseCard = ({
         </TouchableOpacity>
 
         <View className={`rounded-full w-8 h-8 items-center justify-center bg-[#F8F8FE]`}>
-          <ArrowRight2 
-            size={16} 
-            color={getArrowColor()} 
+          <ArrowRight2
+            size={16}
+            color={getArrowColor()}
           />
         </View>
       </View>

@@ -54,10 +54,12 @@ export function DashboardContent({
     return null;
   }
 
+
   const currentTriagem = triagemHistory[0];
+
   const isCurrentTriagemCompleted =
     currentTriagem &&
-    currentTriagem.progress.completed >= currentTriagem.progress.total;
+    currentTriagem?.status === "completed";
 
   return (
     <ScrollView className="flex-1 bg-background">

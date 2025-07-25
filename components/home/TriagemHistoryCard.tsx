@@ -11,7 +11,7 @@ export const TriagemHistoryCard = ({ item }: { item: TriagemItem }) => {
     <TouchableOpacity
       className="bg-white rounded-xl p-4 mb-3 shadow-sm flex-row justify-between items-center"
       onPress={() => {
-        console.log("Navigating to triagem with ID:", item.id);
+        console.log("Navigating to triagem with ID:", item);
 
         router.push({
           pathname: "/(tabs)/(triagem)/diagnostic-ideal",

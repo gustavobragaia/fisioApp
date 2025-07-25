@@ -15,6 +15,32 @@ export type Exercise = {
   groupId?: string;
 };
 
+export type ExerciseFromBack = {
+  created_at: string
+  descricao: string
+  description: string
+  difficulty: string
+  duration: string
+  exerciseCount: number
+  group_type: string
+  id: string
+  imageUrl: string
+  is_published: boolean
+  name: string
+  nome: string
+  progress: string
+  region_name: string
+  steps: {
+    description: string
+    title: string
+  }[]
+  thumbnail_url: string
+  tipo: string
+  title: string
+  video_url: string
+}
+
+
 type ExerciseGroupListProps = {
   exercises: Exercise[];
   onExercisePress?: (exercise: Exercise, index: number) => void;

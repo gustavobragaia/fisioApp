@@ -37,12 +37,13 @@ export const CurrentProgressCard = ({ triagem }: { triagem: TriagemItem }) => {
         title="Continuar"
         onPress={() => {
           console.log("Continuar button - navigating to triagem with ID:", triagem.id);
-          const params = {
-            id: triagem.id,
-            type: triagem.type === "Dor" ? "pain" : "mental",
-          };
-          const queryString = `?id=${encodeURIComponent(params.id)}&type=${encodeURIComponent(params.type)}`;
-          router.push(`/(tabs)/(triagem)/diagnostic-ideal${queryString}`);
+          router.push({
+            pathname: "/(tabs)/(triagem)/diagnostic-ideal",
+            params: {
+              id: triagem.id,
+              type: triagem.type === "Dor" ? "pain" : "mental",
+            },
+          });
         }}
       />
     </View>

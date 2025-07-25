@@ -1,5 +1,11 @@
 import { ResizeMode, Video } from "expo-av";
-import { Pause, Play, Repeat } from "iconsax-react-native";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Pause,
+  Play,
+  Repeat,
+} from "iconsax-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { Button } from "./Button";
@@ -22,6 +28,9 @@ export type ExerciseProps = {
   onPrevious?: () => void;
   onNext?: () => void;
   duration?: number;
+  isLoadingNext?: boolean;
+  isLoadingPrevious?: boolean;
+  isLoadingComplete?: boolean;
 };
 
 export default function Exercise({
@@ -33,6 +42,9 @@ export default function Exercise({
   onPrevious,
   onNext,
   duration = 30,
+  isLoadingNext,
+  isLoadingPrevious,
+  isLoadingComplete,
 }: ExerciseProps) {
   const videoRef = useRef<Video>(null);
 
@@ -211,12 +223,40 @@ export default function Exercise({
 
       <View className="mb-28">
         {!timerRunning ? (
-          <Button
-            title={exerciseComplete ? "Repetir exercício" : "Iniciar exercício"}
-            onPress={startExercise}
-            iconPosition="left"
-            Icon={exerciseComplete ? Repeat : Play}
-          />
+          <>
+            <Button
+              title={
+                exerciseComplete ? "Repetir exercício" : "Iniciar exercício"
+              }
+              onPress={startExercise}
+              iconPosition="left"
+              Icon={exerciseComplete ? Repeat : Play}
+            />
+             {(onNext || onPrevious) && exerciseComplete && (
+              <View className="flex-row justify-between mt-4">
+                {onPrevious && exerciseComplete && (
+                  <Button
+                    title="Voltar"
+                    onPress={onPrevious}
+                    variant="secondary"
+                    loading={isLoadingPrevious}
+                    Icon={ArrowLeft}
+                    className="flex-1"
+                  />
+                )}
+                {onNext && exerciseComplete && (
+                  <Button
+                    title="Próximo"
+                    onPress={onNext}
+                    iconPosition="right"
+                    loading={isLoadingNext}
+                    Icon={ArrowRight}
+                    className="flex-1"
+                  />
+                )}
+              </View>
+            )}
+          </>
         ) : (
           <Button
             title={isPaused ? "Retomar" : "Pausar"}
