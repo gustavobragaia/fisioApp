@@ -103,7 +103,7 @@ export const usePhysicalPainForm = () => {
             .insert({
               user_id: user.id,
               type: 'pain',
-              status: 'completed'
+              status: 'in_progress'
             })
             .select()
             .single();
