@@ -5,7 +5,7 @@ import { dateMask, parseDateFromString } from "@/utils/dateMask";
 import { genderOptions } from "@/utils/genderOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
-import { Link, router } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   Building,
@@ -60,6 +60,8 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterScreen() {
+  const params = useLocalSearchParams();
+
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
 
@@ -72,13 +74,13 @@ export default function RegisterScreen() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      cpf: "",
-      empresa: "",
-      branch_of_empresa: "",
-      age: "",
-      gender: "",
+      name: (params.nome as string) || "",
+      email: (params.email as string) || "",
+      cpf: (params.cpf as string) || "",
+      empresa: (params.empresa as string) || "",
+      branch_of_empresa: (params.setor as string) || "",
+      age: (params.idade as string) || "",
+      gender: (params.genero as string) || "",
       password: "",
       confirmPassword: "",
     },
