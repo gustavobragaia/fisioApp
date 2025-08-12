@@ -4,6 +4,7 @@ import { cpfMask } from "@/utils/cpfMask";
 import { dateMask, parseDateFromString } from "@/utils/dateMask";
 import { genderOptions } from "@/utils/genderOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -139,10 +140,13 @@ export default function RegisterScreen() {
     }
   };
 
+  const headerHeight = useHeaderHeight();
+
   return (
     <KeyboardAvoidingView
       className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={"padding"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
       style={{ backgroundColor: colors.background }}
     >
       <StatusBar style="dark" />
@@ -175,10 +179,13 @@ export default function RegisterScreen() {
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          justifyContent: "center",
           paddingHorizontal: 24,
           paddingVertical: 40,
         }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets={true}
+        showsVerticalScrollIndicator={false}
       >
         <View className="items-center mt-32 mb-12">
           <Text className="text-2xl font-bold text-gray-800 mb-2">
@@ -198,12 +205,9 @@ export default function RegisterScreen() {
               <Input
                 Icon={User}
                 placeholder="Digite seu nome completo"
-                onChangeText={(value) => {
-                  onChange(new Date(value));
-                }}
+                onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
-                autoCapitalize="words"
                 error={errors.name?.message}
               />
             )}

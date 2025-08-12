@@ -192,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string,
     empresa?: string
   ) => {
-    const result = await signUpWithPhone(phone, password, name, empresa);;
+    const result = await signUpWithPhone(phone, password, name, empresa);
     return result;
   };
 
@@ -245,6 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }) => {
     // setIsLoading(true);
     const result = await updateUser(updates);
+    console.log("User updated:", result);
     // setIsLoading(false);
     return result;
   };

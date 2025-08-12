@@ -8,6 +8,7 @@ export type User = {
   age?: string;
   gender?: string;
   created_at: string;
+  is_first_access?: boolean;
 };
 
 export type Triagem = {

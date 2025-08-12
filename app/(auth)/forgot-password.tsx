@@ -14,17 +14,14 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { z } from "zod";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../contexts/AuthContext";
 
 const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email é obrigatório")
-    .email("Email inválido"),
+  email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
@@ -50,7 +47,7 @@ export default function ForgotPasswordScreen() {
 
   const handleResetPassword = async (email: string) => {
     if (!email) {
-      Alert.alert('Erro', 'Por favor, informe seu email');
+      Alert.alert("Erro", "Por favor, informe seu email");
       return;
     }
 
@@ -59,14 +56,17 @@ export default function ForgotPasswordScreen() {
       const { error } = await resetPassword(email);
 
       if (error) {
-        Alert.alert('Erro', error.message || 'Não foi possível enviar o email de recuperação');
+        Alert.alert(
+          "Erro",
+          error.message || "Não foi possível enviar o email de recuperação"
+        );
         return;
       }
 
       setEmailSent(true);
     } catch (error) {
-      console.error('Reset password error:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao tentar redefinir sua senha');
+      console.error("Reset password error:", error);
+      Alert.alert("Erro", "Ocorreu um erro ao tentar redefinir sua senha");
     } finally {
       setIsLoading(false);
     }
@@ -126,14 +126,17 @@ export default function ForgotPasswordScreen() {
             >
               <TickCircle size={40} color={colors.primary} />
             </View>
-            
+
             <Text className="text-2xl font-bold text-gray-800 mb-2 text-center">
               Email enviado!
             </Text>
             <Text className="text-base text-gray-600 text-center mb-4">
               Enviamos um link de recuperação para
             </Text>
-            <Text className="text-base font-semibold text-center mb-6" style={{ color: colors.primary }}>
+            <Text
+              className="text-base font-semibold text-center mb-6"
+              style={{ color: colors.primary }}
+            >
               {getValues("email")}
             </Text>
             <Text className="text-sm text-gray-500 text-center">
@@ -155,7 +158,10 @@ export default function ForgotPasswordScreen() {
             >
               <Text className="text-sm text-gray-600">
                 Não recebeu o email?{" "}
-                <Text className="font-semibold" style={{ color: colors.primary }}>
+                <Text
+                  className="font-semibold"
+                  style={{ color: colors.primary }}
+                >
                   Reenviar
                 </Text>
               </Text>
@@ -169,7 +175,7 @@ export default function ForgotPasswordScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={"padding"}
       style={{ backgroundColor: colors.background }}
     >
       <StatusBar style="dark" />
@@ -224,12 +230,13 @@ export default function ForgotPasswordScreen() {
           >
             <Sms size={40} color={colors.primary} />
           </View>
-          
+
           <Text className="text-2xl font-bold text-gray-800 mb-2 text-center">
             Esqueceu sua senha?
           </Text>
           <Text className="text-base text-gray-600 text-center">
-            Não se preocupe! Digite seu email e enviaremos um link para redefinir sua senha.
+            Não se preocupe! Digite seu email e enviaremos um link para
+            redefinir sua senha.
           </Text>
         </View>
 

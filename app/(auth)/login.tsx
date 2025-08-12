@@ -12,7 +12,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 import { z } from "zod";
@@ -20,10 +20,7 @@ import { Input } from "../../components/Input";
 import { useAuth } from "../../contexts/AuthContext";
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email é obrigatório")
-    .email("Email inválido"),
+  email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
   password: z
     .string()
     .min(1, "Senha é obrigatória")
@@ -55,19 +52,25 @@ export default function LoginScreen() {
     try {
       setIsLoading(true);
 
-      const { session, error } = await signIn(data.email, data.password);
+      const { session, user, error } = await signIn(data.email, data.password);
 
       if (error) {
-        toast.show(error.message || "Falha na autenticação. Verifique seu email e senha.", {
-          type: "danger",
-          placement: "bottom",
-          duration: 3000,
-          animationType: "slide-in",
-        });
+        toast.show(
+          error.message ||
+            "Falha na autenticação. Verifique seu email e senha.",
+          {
+            type: "danger",
+            placement: "bottom",
+            duration: 3000,
+            animationType: "slide-in",
+          }
+        );
         return;
       }
 
-      if (session) {
+      if (user?.is_first_access) {
+        router.replace("/(tabs)/profile");
+      } else if (session) {
         router.replace("/(tabs)");
       }
     } catch (error) {
@@ -87,6 +90,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       className="flex-1"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       style={{ backgroundColor: colors.background }}
     >
       <StatusBar style="dark" />
@@ -119,85 +123,88 @@ export default function LoginScreen() {
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          justifyContent: "center",
           paddingHorizontal: 24,
           paddingVertical: 40,
         }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View className="items-center mb-12">
-          <Text className="text-2xl font-bold text-gray-800 mb-2">
-            Seja bem-vindo(a) de volta
-          </Text>
-          <Text className="text-base text-gray-600 text-center">
-            Acesse sua jornada para uma vida ativa e sem dores.
-          </Text>
-        </View>
-
-        <View className="space-y-4">
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                Icon={Sms}
-                placeholder="Digite seu e-mail"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={errors.email?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                Icon={Lock}
-                placeholder="Digite sua senha"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                isPassword
-                error={errors.password?.message}
-              />
-            )}
-          />
-
-          <TouchableOpacity
-            className="self-end mt-2"
-            onPress={() => router.navigate('/(auth)/forgot-password')}
-          >
-            <Text
-              className="text-sm font-medium"
-              style={{ color: colors.primary }}
-            >
-              Esqueceu a senha?
+        <View style={{ flex: 1, justifyContent: "center", minHeight: 600 }}>
+          <View className="items-center mb-12">
+            <Text className="text-2xl font-bold text-gray-800 mb-2">
+              Seja bem-vindo(a) de volta
             </Text>
-          </TouchableOpacity>
+            <Text className="text-base text-gray-600 text-center">
+              Acesse sua jornada para uma vida ativa e sem dores.
+            </Text>
+          </View>
 
-          <Button
-            title="Entrar"
-            onPress={handleSubmit(onSubmit)}
-            loading={isLoading}
-            className="mt-8"
-          />
+          <View className="space-y-4">
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  Icon={Sms}
+                  placeholder="Digite seu e-mail"
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  error={errors.email?.message}
+                />
+              )}
+            />
 
-          <View className="flex-row justify-center mt-8">
-            <Text className="text-gray-600">Não tem uma conta? </Text>
-            <Link href="/(auth)/register" asChild>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text
-                  className="font-semibold"
-                  style={{ color: colors.primary }}
-                >
-                  Cadastre-se
-                </Text>
-              </TouchableOpacity>
-            </Link>
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  Icon={Lock}
+                  placeholder="Digite sua senha"
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  isPassword
+                  error={errors.password?.message}
+                />
+              )}
+            />
+
+            <TouchableOpacity
+              className="self-end mt-2"
+              onPress={() => router.navigate("/(auth)/forgot-password")}
+            >
+              <Text
+                className="text-sm font-medium"
+                style={{ color: colors.primary }}
+              >
+                Esqueceu a senha?
+              </Text>
+            </TouchableOpacity>
+
+            <Button
+              title="Entrar"
+              onPress={handleSubmit(onSubmit)}
+              loading={isLoading}
+              className="mt-8"
+            />
+
+            <View className="flex-row justify-center mt-8">
+              <Text className="text-gray-600">Não tem uma conta? </Text>
+              <Link href="/(auth)/register" asChild>
+                <TouchableOpacity activeOpacity={0.7}>
+                  <Text
+                    className="font-semibold"
+                    style={{ color: colors.primary }}
+                  >
+                    Cadastre-se
+                  </Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
           </View>
         </View>
       </ScrollView>

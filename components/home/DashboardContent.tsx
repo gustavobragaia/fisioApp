@@ -35,7 +35,7 @@ export function DashboardContent({
       .single();
 
     if (error) {
-      console.error("Erro ao verificar resposta de hoje:", error);
+      // console.error("Erro ao verificar resposta de hoje:", error);
       setHasAnsweredToday(false);
       return;
     }

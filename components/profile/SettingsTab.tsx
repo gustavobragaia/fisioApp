@@ -2,6 +2,7 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateProfile } from "@/hooks/useUpdateProfile";
+import { useUpdateUserAuth } from "@/hooks/useUpdateUserAuthData";
 import colors from "@/styles/colors";
 import { User as UserType } from "@/types/supabase";
 import { dateMask, parseDateFromString } from "@/utils/dateMask";
@@ -13,18 +14,19 @@ import {
 } from "@/validation/profileSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  ArrowRight2,
   Building,
   Cake,
+  Lock,
   LogoutCurve,
   Personalcard,
   Shop,
   Sms,
   User,
 } from "iconsax-react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 import { Loading } from "../Loading";
 
 interface SettingsTabProps {
@@ -33,8 +35,17 @@ interface SettingsTabProps {
 }
 
 export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
-  const { signOut } = useAuth();
+  const { signOut } = useAuth() as {
+    signOut: () => void;
+  };
   const updateProfileMutation = useUpdateProfile();
+  const updateUserAuthMutation = useUpdateUserAuth();
+  const toast = useToast();
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const isFirstAccess = !!userProfile?.is_first_access;
 
   const {
     control,
@@ -111,6 +122,62 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
     }
 
     updateProfileMutation.mutate(changedData);
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.show("Preencha todos os campos de senha", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.show("A senha deve ter pelo menos 6 caracteres", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.show("As senhas não coincidem", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const user = await updateUserAuthMutation.mutate({
+        email: userProfile?.email,
+        password: newPassword,
+      });
+      console.log("User updated:", user);
+
+      await updateProfileMutation.mutateAsync({
+        is_first_access: false,
+      } as any);
+
+      toast.show("Senha atualizada com sucesso!", {
+        type: "success",
+        placement: "bottom",
+        duration: 3000,
+      });
+
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      toast.show("Erro ao atualizar senha", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+      });
+    }
   };
 
   if (isLoading) {
@@ -252,6 +319,25 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
             </>
           )}
         />
+
+        {isFirstAccess && (
+          <>
+            <Input
+              Icon={Lock}
+              placeholder="Nova senha"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              isPassword
+            />
+            <Input
+              Icon={Lock}
+              placeholder="Confirmar nova senha"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              isPassword
+            />
+          </>
+        )}
       </View>
 
       {hasChanges && (
@@ -264,22 +350,17 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
         </View>
       )}
 
-      <View className="gap-3">
-        <TouchableOpacity
-          className="flex-row items-center justify-between p-4 bg-white rounded-lg shadow-sm h-14"
-          activeOpacity={0.7}
-          onPress={() => {
-            console.log("Navegar para Sobre o App");
-          }}
-        >
-          <Text className="text-textPrimary text-base font-medium flex-1">
-            Sobre o App
-          </Text>
-          <View className="bg-gray-100 rounded-full w-8 h-8 items-center justify-center">
-            <ArrowRight2 size={16} color={colors.primary} />
-          </View>
-        </TouchableOpacity>
+      {isFirstAccess && (newPassword || confirmPassword) && (
+        <View className="mb-6">
+          <Button
+            title="Atualizar Senha"
+            loading={updateUserAuthMutation.isPending}
+            onPress={handlePasswordUpdate}
+          />
+        </View>
+      )}
 
+      <View className="gap-3">
         <TouchableOpacity
           className="flex-row items-center p-4 bg-white rounded-lg shadow-sm h-14"
           onPress={signOut}
