@@ -99,29 +99,44 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
   }, [cpfValue, setValue]);
 
   const onSubmitProfile = async (data: EditProfileFormData) => {
-    const birthDate = parseDateFromString(data.age);
+    try {
+      const birthDate = parseDateFromString(data.age);
 
-    const changedData: Partial<EditProfileFormData> = {};
+      const changedData: Partial<EditProfileFormData> = {};
 
-    Object.keys(data).forEach((key) => {
-      const fieldKey = key as keyof EditProfileFormData;
+      Object.keys(data).forEach((key) => {
+        const fieldKey = key as keyof EditProfileFormData;
 
-      if (fieldKey === "age") {
-        if (birthDate && birthDate.toISOString() !== originalData.age) {
-          changedData.age = birthDate.toISOString();
+        if (fieldKey === "age") {
+          if (birthDate && birthDate.toISOString() !== originalData.age) {
+            changedData.age = birthDate.toISOString();
+          }
+        } else {
+          if (data[fieldKey] !== originalData[fieldKey]) {
+            changedData[fieldKey] = data[fieldKey];
+          }
         }
-      } else {
-        if (data[fieldKey] !== originalData[fieldKey]) {
-          changedData[fieldKey] = data[fieldKey];
-        }
+      });
+
+      if (Object.keys(changedData).length === 0) {
+        toast.show("Nenhuma alteração para salvar", {
+          type: "info",
+          placement: "bottom",
+          duration: 3000,
+        });
+        return;
       }
-    });
 
-    if (Object.keys(changedData).length === 0) {
-      return;
+      await updateProfileMutation.mutateAsync(changedData);
+
+    } catch (error) {
+      console.error("Error in onSubmitProfile:", error);
+      toast.show("Erro ao salvar alterações. Tente novamente.", {
+        type: "danger",
+        placement: "bottom",
+        duration: 3000,
+      });
     }
-
-    updateProfileMutation.mutate(changedData);
   };
 
   const handlePasswordUpdate = async () => {
