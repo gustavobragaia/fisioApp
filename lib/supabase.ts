@@ -1,7 +1,7 @@
-import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import 'react-native-url-polyfill/auto';
 
 // Get Supabase URL and keys from environment variables
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || '';
@@ -25,13 +25,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
-  },
-});
-
-// Admin client with service role key (bypasses RLS)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
   },
 });
