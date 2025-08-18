@@ -18,6 +18,7 @@ export default {
     },
     android: {
       package: "com.fisioapp",
+      usesCleartextTraffic: true,
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#001417",
