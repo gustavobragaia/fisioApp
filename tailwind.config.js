@@ -1,12 +1,9 @@
-const colors = require('./styles/colors').default;
+const colors = require("./styles/colors").default;
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   // Include all component files
-  content: [
-    "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}"
-  ],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
@@ -19,6 +16,7 @@ module.exports = {
         textPrimary: colors.textPrimary,
         textSecondary: colors.textSecondary,
         primary: colors.primary,
+        greenLight: colors.greenLight,
 
         // Light theme colors
         deepBlue: colors.light.deepBlue,
@@ -30,4 +28,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};

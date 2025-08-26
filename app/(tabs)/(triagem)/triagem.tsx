@@ -27,7 +27,7 @@ export default function Triagem() {
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <ImageBackground
-        source={require('@/assets/images/banner-background.png')}
+        source={require("@/assets/images/banner-background.png")}
         style={{ flex: 1 }}
         resizeMode="stretch"
       >
@@ -36,7 +36,7 @@ export default function Triagem() {
         <View className="flex-1 w-full h-full px-6 py-8 relative z-10">
           <View className="mt-20">
             <Text className="text-4xl font-bold text-white mb-8">
-              Como podemos{"\n"}te ajudar agora?
+              Como podemos te ajudar agora?
             </Text>
 
             <TriageOption

@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Health, Home2, Profile } from "iconsax-react-native";
+import { Document, Health, Home2, Profile } from "iconsax-react-native";
 import colors from "../../styles/colors";
 
 export default function TabsLayout() {
@@ -38,6 +38,20 @@ export default function TabsLayout() {
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Health
+              size={size}
+              color={color}
+              variant={focused ? "Bold" : "Outline"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="form-nr1"
+        options={{
+          title: "Formulário NR1",
+          headerShown: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Document
               size={size}
               color={color}
               variant={focused ? "Bold" : "Outline"}
