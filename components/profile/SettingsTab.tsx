@@ -4,10 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 import { useUpdateUserAuth } from "@/hooks/useUpdateUserAuthData";
 import colors from "@/styles/colors";
-import { User as UserType } from "@/types/supabase";
+import type { User } from "@/types/supabase";
+import { UserUpdateData } from "@/lib/userUtils";
 import { dateMask, parseDateFromString } from "@/utils/dateMask";
 import { genderOptions } from "@/utils/genderOptions";
 import { cpfMask, hasFormChanges } from "@/utils/profileUtils";
+import { formatDate } from "@/lib/userUtils";
 import {
   EditProfileFormData,
   editProfileSchema,
@@ -21,7 +23,7 @@ import {
   Personalcard,
   Shop,
   Sms,
-  User,
+  User as UserIcon,
 } from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -30,7 +32,7 @@ import { useToast } from "react-native-toast-notifications";
 import { Loading } from "../Loading";
 
 interface SettingsTabProps {
-  userProfile: UserType | null;
+  userProfile: User | null;
   isLoading: boolean;
 }
 
@@ -98,27 +100,31 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
     }
   }, [cpfValue, setValue]);
 
-  const onSubmitProfile = async (data: EditProfileFormData) => {
+  const onSubmitProfile = async (formData: EditProfileFormData) => {
     try {
-      const birthDate = parseDateFromString(data.age);
+      const updates: Partial<UserUpdateData> = {};
+      
+      // Check each field for changes
+      const fieldsToCheck: (keyof EditProfileFormData)[] = [
+        'name', 'email', 'cpf', 'empresa', 'branch_of_empresa', 'age', 'gender'
+      ];
 
-      const changedData: Partial<EditProfileFormData> = {};
-
-      Object.keys(data).forEach((key) => {
-        const fieldKey = key as keyof EditProfileFormData;
-
-        if (fieldKey === "age") {
-          if (birthDate && birthDate.toISOString() !== originalData.age) {
-            changedData.age = birthDate.toISOString();
-          }
-        } else {
-          if (data[fieldKey] !== originalData[fieldKey]) {
-            changedData[fieldKey] = data[fieldKey];
+      fieldsToCheck.forEach(field => {
+        if (formData[field] !== originalData[field]) {
+          if (field === 'age') {
+            const birthDate = parseDateFromString(formData.age);
+            if (birthDate) {
+              updates.age = formatDate(birthDate.toISOString());
+            }
+          } else {
+            // Map form fields to update fields
+            const updateField = field === 'branch_of_empresa' ? 'branch_of_empresa' : field;
+            updates[updateField as keyof UserUpdateData] = formData[field] as any;
           }
         }
       });
 
-      if (Object.keys(changedData).length === 0) {
+      if (Object.keys(updates).length === 0) {
         toast.show("Nenhuma alteração para salvar", {
           type: "info",
           placement: "bottom",
@@ -127,15 +133,10 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
         return;
       }
 
-      await updateProfileMutation.mutateAsync(changedData);
-
+      await updateProfileMutation.mutateAsync(updates);
     } catch (error) {
       console.error("Error in onSubmitProfile:", error);
-      toast.show("Erro ao salvar alterações. Tente novamente.", {
-        type: "danger",
-        placement: "bottom",
-        duration: 3000,
-      });
+      // Error is already handled by the mutation's onError
     }
   };
 
@@ -207,7 +208,7 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
           name="name"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              Icon={User}
+              Icon={UserIcon}
               placeholder="Digite seu nome completo"
               onChangeText={onChange}
               onBlur={onBlur}
@@ -264,6 +265,8 @@ export function SettingsTab({ userProfile, isLoading }: SettingsTabProps) {
               value={value}
               autoCapitalize="words"
               error={errors.empresa?.message}
+              editable={false}
+              selectTextOnFocus={false}
             />
           )}
         />
