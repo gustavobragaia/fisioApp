@@ -1,6 +1,9 @@
 import { Button } from "@/components/Button";
+import { useProfileData } from "@/hooks/useProfileData";
+import { supabase } from "@/lib/supabase";
 import colors from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import {
   ImageBackground,
@@ -23,6 +26,12 @@ interface QuestionnaireScreenProps {
   navigation?: any;
 }
 
+interface ReportData {
+  titulo: string;
+  descricao: string;
+  categoria: "assedio" | "fraude" | "seguranca" | "outro";
+}
+
 const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
   navigation,
 }) => {
@@ -33,7 +42,20 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [isFormAvailable, setIsFormAvailable] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
-  const [reportText, setReportText] = useState<string>("");
+  const [reportData, setReportData] = useState<ReportData>({
+    titulo: "",
+    descricao: "",
+    categoria: "assedio",
+  });
+
+  const { data: profileData, isLoading: isLoadingProfile } = useProfileData();
+
+  const categoryLabels = {
+    assedio: "Assédio",
+    fraude: "Fraude",
+    seguranca: "Segurança",
+    outro: "Outro",
+  };
 
   const questions = [
     {
@@ -140,16 +162,125 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
     },
   ];
 
+  const submitReportMutation = useMutation({
+    mutationFn: async (
+      reportData: ReportData & {
+        user_id: string;
+        empresa: string;
+        branch_of_empresa: string;
+      }
+    ) => {
+      const { error } = await supabase.from("denuncias").insert([
+        {
+          empresa: reportData.empresa,
+          branch_of_empresa: reportData.branch_of_empresa,
+          titulo: reportData.titulo,
+          descricao: reportData.descricao,
+          categoria: reportData.categoria,
+        },
+      ]);
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      Toast.show(
+        "Sua denúncia foi recebida e será tratada com absoluta confidencialidade.",
+        {
+          type: "success",
+          placement: "top",
+          duration: 3000,
+          animationType: "slide-in",
+        }
+      );
+      setReportData({ titulo: "", descricao: "", categoria: "assedio" });
+      setShowReportModal(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar denúncia:", error);
+      Toast.show("Erro ao enviar denúncia. Tente novamente.", {
+        type: "danger",
+        placement: "top",
+        duration: 3000,
+        animationType: "slide-in",
+      });
+    },
+  });
+
+  const convertScaleValue = (value: number): number => {
+    if (value >= 0 && value <= 24) return 1;
+    if (value >= 25 && value <= 49) return 2;
+    if (value === 50) return 3;
+    if (value >= 51 && value <= 75) return 4;
+    if (value >= 76 && value <= 100) return 5;
+    return 0;
+  };
+
+  const submitNR1Mutation = useMutation({
+    mutationFn: async (data: { answers: Answer[]; user_id: string }) => {
+      const { data: submission, error: submissionError } = await supabase
+        .from("nr1_submissions")
+        .insert({
+          user_id: data.user_id,
+        })
+        .select()
+        .single();
+
+      if (submissionError) throw submissionError;
+
+      const insertPromises = data.answers.map(async (answer) => {
+        const [categoryIndex, questionIndex] = answer.questionId.split(".");
+        const categoryData = questions[parseInt(categoryIndex) - 1];
+        const questionData = categoryData.items.find(
+          (item) => item.id === answer.questionId
+        );
+
+        const { error } = await supabase.from("nr1_answers").insert({
+          section_title: categoryData.category,
+          question_code: "Q" + answer.questionId,
+          question_text: questionData?.text || "",
+          value: convertScaleValue(answer.value),
+          user_id: data.user_id,
+          submission_id: submission.id,
+        });
+
+        if (error) {
+          console.error(
+            `Erro ao inserir resposta ${answer.questionId}:`,
+            error
+          );
+          throw error;
+        }
+
+        return { questionId: answer.questionId, success: true };
+      });
+
+      const results = await Promise.all(insertPromises);
+      console.log("Todas as respostas inseridas:", results);
+
+      return submission;
+    },
+    onSuccess: () => {
+      console.log("Formulário NR1 enviado com sucesso");
+      setCurrentScreen("completed");
+    },
+    onError: (error) => {
+      console.error("Erro ao enviar formulário NR1:", error);
+      Toast.show("Erro ao enviar formulário. Tente novamente.", {
+        type: "danger",
+        placement: "top",
+        duration: 3000,
+        animationType: "slide-in",
+      });
+    },
+  });
+
   useEffect(() => {
-    // Simular verificação se é último dia útil do mês
-    // Em produção, você implementaria a lógica real aqui
     const isLastWorkingDay = checkIfLastWorkingDay();
     setIsFormAvailable(isLastWorkingDay);
   }, []);
 
   const checkIfLastWorkingDay = (): boolean => {
-    // Implementar lógica real para verificar último dia útil
-    // Por enquanto, retornando true para demonstração
     return true;
   };
 
@@ -160,7 +291,6 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
 
     if (!question) return "";
 
-    // Determinar o tipo de escala baseado na pergunta
     const isFrequencyQuestion =
       question.text.includes("tem que") ||
       question.text.includes("exige") ||
@@ -200,7 +330,6 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
       if (value >= 51 && value <= 75) return "Frequentemente";
       if (value >= 76 && value <= 100) return "Sempre";
     } else {
-      // Default para concordância
       if (value >= 0 && value <= 24) return "Discordo totalmente";
       if (value >= 25 && value <= 49) return "Discordo";
       if (value === 50) return "Neutro";
@@ -220,7 +349,6 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
 
     if (!question) return { left: "Discordo", right: "Concordo" };
 
-    // Determinar labels baseado no tipo da pergunta
     if (
       question.text.includes("tem que") ||
       question.text.includes("exige") ||
@@ -255,12 +383,10 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
   };
 
   const canNavigateToCategory = (categoryIndex: number): boolean => {
-    // Pode navegar para a categoria atual ou anteriores que foram preenchidas
     if (categoryIndex <= currentCategory) {
       return true;
     }
 
-    // Para navegar para frente, precisa ter preenchido todas as categorias anteriores
     for (let i = 0; i < categoryIndex; i++) {
       const categoryQuestions = questions[i].items;
       const answeredQuestions = categoryQuestions.filter(
@@ -321,12 +447,33 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
   };
 
   const handleSubmit = () => {
-    console.log("Respostas:", answers);
-    setCurrentScreen("completed");
+    const userId = profileData?.userProfile?.id;
+
+    if (!userId) {
+      Toast.show("Erro: Usuário não identificado", {
+        type: "danger",
+        placement: "top",
+        duration: 3000,
+        animationType: "slide-in",
+      });
+      return;
+    }
+
+    submitNR1Mutation.mutate({ answers, user_id: userId });
   };
 
   const handleReportSubmit = () => {
-    if (!reportText.trim()) {
+    if (!reportData.titulo.trim()) {
+      Toast.show("Por favor, digite um título para a denúncia.", {
+        type: "warning",
+        placement: "top",
+        duration: 3000,
+        animationType: "slide-in",
+      });
+      return;
+    }
+
+    if (!reportData.descricao.trim()) {
       Toast.show("Por favor, descreva a situação.", {
         type: "warning",
         placement: "top",
@@ -336,18 +483,26 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
       return;
     }
 
-    console.log("Denúncia:", reportText);
-    Toast.show(
-      "Sua denúncia foi recebida e será tratada com absoluta confidencialidade.",
-      {
-        type: "success",
+    const userId = profileData?.userProfile?.id;
+    const branch_of_empresa = profileData?.userProfile?.branch_of_empresa!;
+    const empresa = profileData?.userProfile?.empresa!;
+
+    if (!userId) {
+      Toast.show("Erro: Usuário não identificado", {
+        type: "danger",
         placement: "top",
         duration: 3000,
         animationType: "slide-in",
-      }
-    );
-    setReportText("");
-    setShowReportModal(false);
+      });
+      return;
+    }
+
+    submitReportMutation.mutate({
+      ...reportData,
+      user_id: userId,
+      branch_of_empresa,
+      empresa,
+    });
   };
 
   const renderScale = (questionId: string) => {
@@ -476,12 +631,21 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
             <TouchableOpacity
               onPress={() => setCurrentScreen("questionnaire")}
               className="bg-greenLight rounded-xl py-4 px-6 mb-8"
+              disabled={submitNR1Mutation.isPending}
             >
               <View className="flex-row items-center justify-center">
-                <Ionicons name="play-circle" size={24} color="black" />
-                <Text className="text-black font-bold text-lg ml-3">
-                  Iniciar Formulário NR-1
-                </Text>
+                {submitNR1Mutation.isPending ? (
+                  <Text className="text-black font-bold text-lg">
+                    Carregando...
+                  </Text>
+                ) : (
+                  <>
+                    <Ionicons name="play-circle" size={24} color="black" />
+                    <Text className="text-black font-bold text-lg ml-3">
+                      Iniciar Formulário NR-1
+                    </Text>
+                  </>
+                )}
               </View>
             </TouchableOpacity>
           ) : (
@@ -511,12 +675,21 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
               activeOpacity={0.7}
               onPress={() => setShowReportModal(true)}
               className="bg-red-500 rounded-xl py-3 px-6"
+              disabled={submitReportMutation.isPending}
             >
               <View className="flex-row items-center justify-center">
-                <Ionicons name="shield" size={20} color="white" />
-                <Text className="text-white font-semibold text-base ml-3">
-                  Fazer Denúncia Anônima
-                </Text>
+                {submitReportMutation.isPending ? (
+                  <Text className="text-white font-semibold text-base">
+                    Enviando...
+                  </Text>
+                ) : (
+                  <>
+                    <Ionicons name="shield" size={20} color="white" />
+                    <Text className="text-white font-semibold text-base ml-3">
+                      Fazer Denúncia Anônima
+                    </Text>
+                  </>
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -573,9 +746,14 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
 
           <Button
             title={
-              currentCategory === questions.length - 1 ? "Finalizar" : "Próximo"
+              currentCategory === questions.length - 1
+                ? submitNR1Mutation.isPending
+                  ? "Finalizando..."
+                  : "Finalizar"
+                : "Próximo"
             }
             onPress={handleNextCategory}
+            disabled={submitNR1Mutation.isPending}
             className="flex-1 ml-2 bg-primary py-3 px-6 rounded-xl"
           />
         </View>
@@ -642,22 +820,88 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
             </Text>
           </View>
 
-          <TextInput
-            value={reportText}
-            onChangeText={setReportText}
-            placeholder="Descreva detalhadamente o que aconteceu..."
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-            className="bg-gray-50 rounded-xl p-4 text-gray-800 text-base mb-6"
-            placeholderTextColor="#9ca3af"
-          />
+          {/* Campo Título */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-medium mb-2">
+              Título da denúncia
+            </Text>
+            <TextInput
+              value={reportData.titulo}
+              onChangeText={(text) =>
+                setReportData((prev) => ({ ...prev, titulo: text }))
+              }
+              placeholder="Digite um título para a denúncia..."
+              className="bg-gray-50 rounded-xl p-4 text-gray-800 text-base border border-gray-200"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          {/* Seleção de Categoria */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-medium mb-2">Categoria</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-2">
+                {Object.entries(categoryLabels).map(([key, label]) => (
+                  <TouchableOpacity
+                    key={key}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      setReportData((prev) => ({
+                        ...prev,
+                        categoria: key as ReportData["categoria"],
+                      }))
+                    }
+                    className={`px-4 py-2 rounded-lg border ${
+                      reportData.categoria === key
+                        ? "bg-primary border-primary"
+                        : "bg-gray-100 border-gray-300"
+                    }`}
+                  >
+                    <Text
+                      className={`font-medium ${
+                        reportData.categoria === key
+                          ? "text-white"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+
+          {/* Campo Descrição */}
+          <View className="mb-6">
+            <Text className="text-gray-700 font-medium mb-2">Descrição</Text>
+            <TextInput
+              value={reportData.descricao}
+              onChangeText={(text) =>
+                setReportData((prev) => ({ ...prev, descricao: text }))
+              }
+              placeholder="Descreva detalhadamente o que aconteceu..."
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              className="bg-gray-50 rounded-xl p-4 text-gray-800 text-base border border-gray-200"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
 
           <View className="flex-row gap-3">
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => setShowReportModal(false)}
+              onPress={() => {
+                setShowReportModal(false);
+                setReportData({
+                  titulo: "",
+                  descricao: "",
+                  categoria: "assedio",
+                });
+              }}
               className="flex-1 bg-gray-200 py-3 rounded-xl"
+              disabled={submitReportMutation.isPending}
             >
               <Text className="text-gray-700 text-center font-semibold">
                 Cancelar
@@ -668,9 +912,12 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
               activeOpacity={0.7}
               onPress={handleReportSubmit}
               className="flex-1 bg-red-500 py-3 rounded-xl"
+              disabled={submitReportMutation.isPending}
             >
               <Text className="text-white text-center font-semibold">
-                Enviar Denúncia
+                {submitReportMutation.isPending
+                  ? "Enviando..."
+                  : "Enviar Denúncia"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -678,6 +925,14 @@ const FormularioNR1Screen: React.FC<QuestionnaireScreenProps> = ({
       </View>
     </Modal>
   );
+
+  if (isLoadingProfile) {
+    return (
+      <SafeAreaView className="flex-1 bg-primary justify-center items-center">
+        <Text className="text-white text-lg">Carregando...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <>
