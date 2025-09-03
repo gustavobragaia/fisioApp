@@ -1,26 +1,13 @@
-import { Button } from "@/components/Button";
 import colors from "@/styles/colors";
 import { router } from "expo-router";
-import { EmojiSad, HeartSearch } from "iconsax-react-native";
+import { EmojiSad } from "iconsax-react-native";
 import { ImageBackground, SafeAreaView, Text, View } from "react-native";
 import { TriageOption } from "../../../components/TriageOption";
 
 export default function Triagem() {
-  const handlePainOptionPress = () => {
-    router.push({
-      pathname: "/(tabs)/(triagem)/(pain)",
-    });
-  };
-
   const handleMentalHealthOptionPress = () => {
     router.push({
       pathname: "/(tabs)/(triagem)/(mental)",
-    });
-  };
-
-  const handleExploreApp = () => {
-    router.push({
-      pathname: "/(tabs)",
     });
   };
 
@@ -40,23 +27,11 @@ export default function Triagem() {
             </Text>
 
             <TriageOption
-              title="Estou com dor no corpo"
-              icon={<HeartSearch size={32} color={colors.primary} />}
-              onPress={handlePainOptionPress}
-            />
-
-            <TriageOption
               title="Estou ansioso, estressado o não dormi bem"
               icon={<EmojiSad size={32} color={colors.primary} />}
               onPress={handleMentalHealthOptionPress}
             />
           </View>
-
-          <Button
-            title="Explorar o app"
-            onPress={handleExploreApp}
-            variant="secondary"
-          />
         </View>
       </ImageBackground>
     </SafeAreaView>
