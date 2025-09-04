@@ -1,4 +1,4 @@
-import { ResizeMode, Video } from "expo-av";
+import { Video } from "expo-av";
 import {
   ArrowLeft,
   ArrowRight,
@@ -6,7 +6,7 @@ import {
   Play,
   Repeat,
 } from "iconsax-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { Button } from "./Button";
 
@@ -21,8 +21,7 @@ export type StepType =
 
 export type ExerciseProps = {
   id: string;
-  name: string;
-  videoUrl?: string;
+  videoRef: React.RefObject<Video | null>;
   steps?: StepType[];
   onComplete?: () => void;
   onPrevious?: () => void;
@@ -35,8 +34,7 @@ export type ExerciseProps = {
 
 export default function Exercise({
   id,
-  name,
-  videoUrl = "https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
+  videoRef,
   steps = [],
   onComplete,
   onPrevious,
@@ -46,8 +44,6 @@ export default function Exercise({
   isLoadingPrevious,
   isLoadingComplete,
 }: ExerciseProps) {
-  const videoRef = useRef<Video>(null);
-
   const [timerRunning, setTimerRunning] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [exerciseComplete, setExerciseComplete] = useState(false);
@@ -180,50 +176,93 @@ export default function Exercise({
   };
 
   const parsedSteps = parseStepsForDisplay(steps);
+  const progressPercentage = ((duration - timeRemaining) / duration) * 100;
 
   return (
     <View className="flex-1">
-      <View className="items-center mb-6 rounded-xl overflow-hidden bg-primary/5">
-        <Video
-          ref={videoRef}
-          source={{ uri: videoUrl }}
-          useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
-          isLooping
-          style={{ width: width - 48, height: 220 }}
-        />
+      <View className="pb-2">
+        {exerciseComplete && (
+          <View className="bg-[#7FDEB7]/10 rounded-full px-4 py-2 mt-2 self-center">
+            <Text className="text-[#7FDEB7] font-semibold text-center">
+              ✓ Exercício concluído
+            </Text>
+          </View>
+        )}
       </View>
 
       {parsedSteps.length > 0 && (
-        <View className="mb-8">
+        <View className=" mb-8">
+          <Text className="text-lg font-bold text-textPrimary mb-4">
+            Como fazer:
+          </Text>
           {parsedSteps.map((step, index) => (
-            <View key={index} className="mb-4">
-              <Text className="text-textPrimary font-bold mb-1">
-                {step.title}
-              </Text>
-              <Text className="text-textPrimary">{step.description}</Text>
+            <View
+              key={index}
+              className="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100"
+            >
+              <View className="flex-row items-start">
+                <View className="w-6 h-6 rounded-full bg-[#7FDEB7] items-center justify-center mr-3 mt-0.5">
+                  <Text className="text-white text-xs font-bold">
+                    {index + 1}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-textPrimary font-semibold mb-1">
+                    {step.title}
+                  </Text>
+                  <Text className="text-textPrimary/70 leading-5">
+                    {step.description}
+                  </Text>
+                </View>
+              </View>
             </View>
           ))}
         </View>
       )}
 
-      <View className="items-center mb-8">
-        <View className="relative items-center justify-center">
-          <View className="w-96 h-96 rounded-full bg-[#7FDEB7]/20 items-center justify-center">
-            <View className="w-72 h-72 rounded-full bg-[#7FDEB7] items-center justify-center">
-              <View className="w-48 h-48 rounded-full bg-primary items-center justify-center">
-                <Text className="text-4xl font-bold text-white">
-                  {formatTime(timeRemaining)}
-                </Text>
+      <View className="items-center mb-8 ">
+        <View className="relative">
+          <View className="w-80 h-80 rounded-full bg-gray-100 items-center justify-center">
+            <View
+              className="w-72 h-72 rounded-full items-center justify-center"
+              style={{
+                backgroundColor: `rgba(127, 222, 183, ${
+                  0.1 + (progressPercentage / 100) * 0.2
+                })`,
+              }}
+            >
+              <View className="w-60 h-60 rounded-full bg-[#7FDEB7] items-center justify-center shadow-lg">
+                <View className="w-44 h-44 rounded-full bg-primary items-center justify-center">
+                  <Text className="text-3xl font-bold text-white mb-2">
+                    {formatTime(timeRemaining)}
+                  </Text>
+                  <Text className="text-white/70 text-sm">
+                    {timerRunning
+                      ? isPaused
+                        ? "Pausado"
+                        : "Em andamento"
+                      : "Pronto"}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
+
+          {timerRunning && (
+            <View className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+              <View className="bg-white rounded-full px-3 py-1 shadow-md">
+                <Text className="text-primary text-xs font-semibold">
+                  {Math.round(progressPercentage)}%
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
       </View>
 
-      <View className="mb-28">
+      <View className="mb-64">
         {!timerRunning ? (
-          <>
+          <View>
             <Button
               title={
                 exerciseComplete ? "Repetir exercício" : "Iniciar exercício"
@@ -231,12 +270,14 @@ export default function Exercise({
               onPress={startExercise}
               iconPosition="left"
               Icon={exerciseComplete ? Repeat : Play}
+              className="mb-4"
             />
-             {(onNext || onPrevious) && exerciseComplete && (
-              <View className="flex-row justify-between mt-4">
-                {onPrevious && exerciseComplete && (
+
+            {(onNext || onPrevious) && exerciseComplete && (
+              <View className="flex-row gap-3">
+                {onPrevious && (
                   <Button
-                    title="Voltar"
+                    title="Anterior"
                     onPress={onPrevious}
                     variant="secondary"
                     loading={isLoadingPrevious}
@@ -244,7 +285,7 @@ export default function Exercise({
                     className="flex-1"
                   />
                 )}
-                {onNext && exerciseComplete && (
+                {onNext && (
                   <Button
                     title="Próximo"
                     onPress={onNext}
@@ -256,26 +297,16 @@ export default function Exercise({
                 )}
               </View>
             )}
-          </>
+          </View>
         ) : (
           <Button
-            title={isPaused ? "Retomar" : "Pausar"}
+            title={isPaused ? "Retomar exercício" : "Pausar exercício"}
             onPress={isPaused ? resumeExercise : pauseExercise}
             variant="secondary"
             iconPosition="left"
             Icon={isPaused ? Play : Pause}
           />
         )}
-      </View>
-
-      <View style={{ position: "absolute", top: -1000, left: -1000 }}>
-        <Video
-          ref={videoRef}
-          source={{ uri: videoUrl }}
-          resizeMode={ResizeMode.CONTAIN}
-          isLooping
-          style={{ width: 1, height: 1 }}
-        />
       </View>
     </View>
   );

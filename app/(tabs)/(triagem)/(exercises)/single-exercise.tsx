@@ -1,17 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ResizeMode, Video } from "expo-av";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, SafeAreaView, ScrollView, Text, View } from "react-native";
 import BackHeader from "../../../../components/BackHeader";
 import Exercise from "../../../../components/Exercise";
 import ExerciseFeedback from "../../../../components/ExerciseFeedback";
 import { supabase } from "../../../../lib/supabase";
 
+const { width } = Dimensions.get("window");
+
 export default function SingleExerciseScreen() {
   const router = useRouter();
   const [showFeedback, setShowFeedback] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  const videoRef = useRef<Video>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -267,7 +272,7 @@ export default function SingleExerciseScreen() {
     const dotWidth = Math.min(availableWidth / totalExercises, 40);
 
     return (
-      <View className="flex-row justify-center items-center mt-2 mb-1 px-4">
+      <View className="flex-row justify-center items-center mb-1 px-4">
         {Array.from({ length: totalExercises }, (_, index) => (
           <View
             key={index}
@@ -295,7 +300,7 @@ export default function SingleExerciseScreen() {
           }
         />
       ) : (
-        <View className="flex-1 pt-4">
+        <ScrollView className="flex-1 pt-4 pb-36">
           <View className="px-6 pt-12 pb-2">
             <BackHeader
               title={params.exerciseName || "Exercício"}
@@ -308,35 +313,50 @@ export default function SingleExerciseScreen() {
                 <Text className="text-sm text-textPrimary text-left mb-2">
                   Exercício {currentIndex + 1} de {totalExercises}
                 </Text>
+
+                {params.exerciseVideoUrl && (
+                  <View className="mt-2 mb-6">
+                    <View className="rounded-2xl overflow-hidden bg-primary/5 shadow-sm">
+                      <Video
+                        ref={videoRef}
+                        source={{ uri: params.exerciseVideoUrl }}
+                        useNativeControls
+                        resizeMode={ResizeMode.CONTAIN}
+                        isLooping
+                        style={{
+                          width: width - 48,
+                          height: 240,
+                          borderRadius: 16,
+                        }}
+                      />
+                    </View>
+                  </View>
+                )}
+
                 {renderDotsIndicator()}
               </View>
             )}
           </View>
 
-          <ScrollView>
-            <View className="flex-1 px-6">
-              <Exercise
-                id={params.exerciseId}
-                name={params.exerciseName}
-                videoUrl={params.exerciseVideoUrl}
-                steps={exerciseSteps}
-                duration={duration}
-                onComplete={handleExerciseComplete}
-                onPrevious={
-                  currentIndex > 0 ? handlePreviousExercise : undefined
-                }
-                onNext={
-                  currentIndex < totalExercises - 1
-                    ? handleNextExercise
-                    : undefined
-                }
-                isLoadingComplete={markExerciseCompleteMutation.isPending}
-                isLoadingNext={nextExerciseMutation.isPending}
-                isLoadingPrevious={previousExerciseMutation.isPending}
-              />
-            </View>
-          </ScrollView>
-        </View>
+          <View className="flex-1 px-6">
+            <Exercise
+              id={params.exerciseId}
+              videoRef={videoRef}
+              steps={exerciseSteps}
+              duration={duration}
+              onComplete={handleExerciseComplete}
+              onPrevious={currentIndex > 0 ? handlePreviousExercise : undefined}
+              onNext={
+                currentIndex < totalExercises - 1
+                  ? handleNextExercise
+                  : undefined
+              }
+              isLoadingComplete={markExerciseCompleteMutation.isPending}
+              isLoadingNext={nextExerciseMutation.isPending}
+              isLoadingPrevious={previousExerciseMutation.isPending}
+            />
+          </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   );
