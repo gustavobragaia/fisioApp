@@ -2,7 +2,8 @@ import { CurrentProgressCard } from "@/components/home/CurrentProgressCard";
 import { HorizontalCardSection } from "@/components/home/HorizontalCardSection";
 import { HowAreYouFeeling } from "@/components/home/HowAreYouFeeling";
 import { TriagemHistorySection } from "@/components/home/TriagemHistorySection";
-import { mockRoutine, mockWhereYouFeelPain } from "@/constants/mockData";
+import { WellnessCardsSection } from "@/components/home/WellnessCardsSection";
+import { mockRoutine } from "@/constants/mockData";
 import { supabase } from "@/lib/supabase";
 import { TriagemItem, UserStats } from "@/types/dashboard";
 import React, { useEffect, useState } from "react";
@@ -50,16 +51,20 @@ export function DashboardContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userStats]);
 
+  const handleWellnessCardPress = (cardId: string) => {
+    console.log(`Card pressed: ${cardId}`);
+    // Aqui você pode navegar para a tela específica ou executar uma ação
+    // navigation.navigate('WellnessDetail', { cardId });
+  };
+
   if (hasAnsweredToday === null) {
     return null;
   }
 
-
   const currentTriagem = triagemHistory[0];
 
   const isCurrentTriagemCompleted =
-    currentTriagem &&
-    currentTriagem?.status === "completed";
+    currentTriagem && currentTriagem?.status === "completed";
 
   return (
     <ScrollView className="flex-1 bg-background">
@@ -76,11 +81,8 @@ export function DashboardContent({
         type="mental"
         data={mockRoutine}
       />
-      <HorizontalCardSection
-        title="Onde você sente mais dor?"
-        type="pain"
-        data={mockWhereYouFeelPain}
-      />
+
+      <WellnessCardsSection onCardPress={handleWellnessCardPress} />
 
       <View className="flex-1 px-6 mb-60">
         {!isFirstAccess && triagemHistory.length > 0 && (

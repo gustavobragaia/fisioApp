@@ -40,10 +40,10 @@ const AppointmentScreen: React.FC<AppointmentScreenProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<
     "selection" | "professionals" | "calendar" | "confirmation"
-  >("selection");
+  >("professionals");
   const [selectedSpecialty, setSelectedSpecialty] = useState<
     "psicologo" | "fisioterapeuta" | null
-  >(null);
+  >("psicologo");
   const [selectedProfessional, setSelectedProfessional] =
     useState<Professional | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -234,24 +234,10 @@ const AppointmentScreen: React.FC<AppointmentScreenProps> = ({
   const renderHeader = () => (
     <View className="bg-white shadow-sm">
       <View className="px-6 py-4 pt-16">
-        <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              if (currentStep === "professionals") setCurrentStep("selection");
-              else if (currentStep === "calendar")
-                setCurrentStep("professionals");
-              else if (currentStep === "confirmation")
-                setCurrentStep("selection");
-              else navigation?.goBack();
-            }}
-          >
-            <Ionicons name="arrow-back" size={24} color="#374151" />
-          </TouchableOpacity>
+        <View className="flex-row items-center justify-center mb-4">
           <Text className="text-xl font-bold text-gray-800">
             Agende sua Sessão
           </Text>
-          <View className="w-6" />
         </View>
       </View>
     </View>
@@ -296,30 +282,6 @@ const AppointmentScreen: React.FC<AppointmentScreenProps> = ({
                   </Text>
                   <Text className="text-gray-600 text-sm">
                     Suporte emocional e saúde mental
-                  </Text>
-                  <Text className="text-primary font-semibold text-sm mt-2">
-                    3 especialistas disponíveis
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => handleSpecialtySelect("fisioterapeuta")}
-              className="bg-white rounded-xl p-6 shadow-sm"
-            >
-              <View className="flex-row items-center">
-                <View className="bg-green-100 p-3 rounded-full mr-4">
-                  <Text className="text-2xl">💪</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-xl font-bold text-gray-800 mb-1">
-                    Fisioterapeuta
-                  </Text>
-                  <Text className="text-gray-600 text-sm">
-                    Reabilitação e cuidados físicos
                   </Text>
                   <Text className="text-primary font-semibold text-sm mt-2">
                     3 especialistas disponíveis
