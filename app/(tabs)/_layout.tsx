@@ -38,9 +38,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="(triagem)/triagem"
+        name="(triagem)/(mental)/index"
         options={{
-          title: "Triagem",
+          title: "Saúde Mental",
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Health
@@ -49,6 +49,14 @@ export default function TabsLayout() {
               variant={focused ? "Bold" : "Outline"}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="(triagem)/triagem"
+        options={{
+          title: "Triagem",
+          headerShown: false,
+          href: null, // Hide from tab bar
         }}
       />
       <Tabs.Screen
@@ -114,14 +122,6 @@ export default function TabsLayout() {
         name="(triagem)/(exercises)/single-exercise"
         options={{
           title: "Exercício",
-          headerShown: false,
-          href: null, // Hide from tab bar
-        }}
-      />
-      <Tabs.Screen
-        name="(triagem)/(mental)/index"
-        options={{
-          title: "Saúde Mental",
           headerShown: false,
           href: null, // Hide from tab bar
         }}
