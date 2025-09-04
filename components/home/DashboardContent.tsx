@@ -1,11 +1,10 @@
 import { CurrentProgressCard } from "@/components/home/CurrentProgressCard";
-import { HorizontalCardSection } from "@/components/home/HorizontalCardSection";
 import { HowAreYouFeeling } from "@/components/home/HowAreYouFeeling";
 import { TriagemHistorySection } from "@/components/home/TriagemHistorySection";
 import { WellnessCardsSection } from "@/components/home/WellnessCardsSection";
-import { mockRoutine } from "@/constants/mockData";
 import { supabase } from "@/lib/supabase";
 import { TriagemItem, UserStats } from "@/types/dashboard";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { DashboardHeader } from "./DashboardHeader";
@@ -21,6 +20,8 @@ export function DashboardContent({
   triagemHistory,
   isFirstAccess,
 }: DashboardContentProps) {
+  const router = useRouter();
+
   const [hasAnsweredToday, setHasAnsweredToday] = useState<boolean | null>(
     null
   );
@@ -52,9 +53,12 @@ export function DashboardContent({
   }, [userStats]);
 
   const handleWellnessCardPress = (cardId: string) => {
-    console.log(`Card pressed: ${cardId}`);
-    // Aqui você pode navegar para a tela específica ou executar uma ação
-    // navigation.navigate('WellnessDetail', { cardId });
+    router.push({
+      pathname: "/(tabs)/(triagem)/(mental)",
+      params: {
+        preSelectedQuestion: cardId,
+      },
+    });
   };
 
   if (hasAnsweredToday === null) {
@@ -75,12 +79,12 @@ export function DashboardContent({
           <HowAreYouFeeling userId={userStats.id} />
         </View>
       )}
-
+      {/*
       <HorizontalCardSection
         title="Feito para sua rotina"
         type="mental"
         data={mockRoutine}
-      />
+      /> */}
 
       <WellnessCardsSection onCardPress={handleWellnessCardPress} />
 
