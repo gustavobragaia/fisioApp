@@ -107,19 +107,19 @@ export function WellnessCardsSection({
           >
             <View className="flex-1 pr-4">
               <Text
-                className={`${card.textColor} font-bold text-lg leading-tight mb-1`}
+                className={`${card.textColor} font-bold text-2xl leading-tight mb-1`}
               >
                 {card.title}
               </Text>
               <Text
-                className={`${card.textColor} font-medium text-base leading-tight opacity-90`}
+                className={`${card.textColor} font-medium text-xl leading-tight opacity-90`}
               >
                 {card.description}
               </Text>
             </View>
 
             <View className="bg-white/20 rounded-2xl p-3 backdrop-blur-sm">
-              <Text className="text-4xl">{card.iconEmoji}</Text>
+              <Text className="text-5xl">{card.iconEmoji}</Text>
             </View>
           </TouchableOpacity>
         ))}

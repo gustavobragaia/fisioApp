@@ -1,21 +1,13 @@
 import { Video } from "expo-av";
 import {
-  ArrowDown,
   ArrowLeft,
   ArrowRight,
-  ArrowUp,
   Pause,
   Play,
   Repeat,
 } from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
-import {
-  Dimensions,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { Button } from "./Button";
 
 const { width, height } = Dimensions.get("window");
@@ -56,14 +48,12 @@ export default function Exercise({
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [exerciseComplete, setExerciseComplete] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     setTimeRemaining(duration);
     setTimerRunning(false);
     setExerciseComplete(false);
     setIsPaused(false);
-    setShowInstructions(false);
 
     if (videoRef.current) {
       videoRef.current.stopAsync().catch((error) => {
@@ -178,119 +168,108 @@ export default function Exercise({
 
   return (
     <View className="flex-1 px-4">
-      {exerciseComplete && (
-        <View className="bg-[#7FDEB7]/10 rounded-full px-3 py-1 self-center mb-3">
-          <Text className="text-[#7FDEB7] font-medium text-sm">
-            ✓ Concluído
+      {exerciseDescription && !exerciseComplete && (
+        <View className="bg-gradient-to-r from-primary/5 to-[#7FDEB7]/5 rounded-2xl p-4 border border-primary/10">
+          <View className="flex-row items-center mb-2">
+            <View className="w-2 h-2 rounded-full bg-primary mr-2" />
+            <Text className="text-lg font-semibold text-textPrimary">
+              Como fazer
+            </Text>
+          </View>
+          <Text
+            className="text-textPrimary/80 leading-6 text-base"
+            ellipsizeMode="tail"
+          >
+            {exerciseDescription}
           </Text>
         </View>
       )}
 
-      {exerciseDescription && (
-        <View className="mb-4">
+      <View className="items-center justify-center flex-1 min-h-[240px]">
+        <View className="relative mb-6">
           <TouchableOpacity
-            onPress={() => setShowInstructions(!showInstructions)}
-            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex-row items-center justify-between"
+            onPress={
+              !timerRunning
+                ? startExercise
+                : isPaused
+                ? resumeExercise
+                : pauseExercise
+            }
+            activeOpacity={0.8}
+            className="w-52 h-52 rounded-full items-center justify-center border-4 shadow-lg"
+            style={{
+              borderColor: `rgba(127, 222, 183, ${
+                0.3 + (progressPercentage / 100) * 0.5
+              })`,
+              backgroundColor: `rgba(127, 222, 183, 0.08)`,
+            }}
           >
-            <Text className="text-lg font-semibold text-textPrimary flex-1">
-              Como fazer
-            </Text>
-            {showInstructions ? (
-              <ArrowUp size={20} color="#666" />
-            ) : (
-              <ArrowDown size={20} color="#666" />
-            )}
-          </TouchableOpacity>
-
-          {showInstructions && (
-            <View className="bg-white z-50 rounded-xl p-4 mt-2 shadow-sm border border-gray-100">
-              <ScrollView
-                style={{ maxHeight: 120 }}
-                showsVerticalScrollIndicator={false}
-              >
-                <Text className="text-textPrimary/80 leading-6 text-base">
-                  {exerciseDescription}
+            <View className="w-40 h-40 rounded-full bg-gradient-to-b from-[#7FDEB7] to-primary items-center justify-center shadow-xl">
+              <View className="w-36 h-36 rounded-full bg-primary items-center justify-center">
+                <Text className="text-2xl font-bold text-white mb-1">
+                  {formatTime(timeRemaining)}
                 </Text>
-              </ScrollView>
-            </View>
-          )}
-        </View>
-      )}
 
-      <View
-        className={`items-center justify-center flex-1 ${
-          showInstructions && "mt-[-140px]"
-        }`}
-      >
-        <View className="relative">
-          <View className="w-52 h-52 rounded-full bg-gray-100 items-center justify-center">
-            <View
-              className="w-44 h-44 rounded-full items-center justify-center"
-              style={{
-                backgroundColor: `rgba(127, 222, 183, ${
-                  0.1 + (progressPercentage / 100) * 0.2
-                })`,
-              }}
-            >
-              <View className="w-36 h-36 rounded-full bg-[#7FDEB7] items-center justify-center shadow-lg">
-                <View className="w-28 h-28 rounded-full bg-primary items-center justify-center">
-                  <Text className="text-xl font-bold text-white mb-1">
-                    {formatTime(timeRemaining)}
-                  </Text>
-                  <Text className="text-white/70 text-xs text-center">
-                    {timerRunning ? (isPaused ? "Pausado" : "Ativo") : "Pronto"}
+                <View className="flex-row items-center">
+                  {!timerRunning ? (
+                    exerciseComplete ? (
+                      <Repeat size={16} color="rgba(255,255,255,0.8)" />
+                    ) : (
+                      <Play size={16} color="rgba(255,255,255,0.8)" />
+                    )
+                  ) : isPaused ? (
+                    <Play size={16} color="rgba(255,255,255,0.8)" />
+                  ) : (
+                    <Pause size={16} color="rgba(255,255,255,0.8)" />
+                  )}
+
+                  <Text className="text-white/80 text-sm font-medium ml-2">
+                    {!timerRunning
+                      ? exerciseComplete
+                        ? "Repetir"
+                        : "Iniciar"
+                      : isPaused
+                      ? "Continuar"
+                      : "Pausar"}
                   </Text>
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <View className="pb-6">
-        {!timerRunning ? (
-          <View>
-            <Button
-              title={exerciseComplete ? "Repetir" : "Iniciar"}
-              onPress={startExercise}
-              iconPosition="left"
-              Icon={exerciseComplete ? Repeat : Play}
-              className="mb-3"
-            />
+        {exerciseComplete && (
+          <View className="bg-[#7FDEB7]/20 rounded-full px-3 py-1 self-center mb-4">
+            <Text className="text-[#7FDEB7] font-medium text-sm">
+              ✓ Concluído
+            </Text>
+          </View>
+        )}
 
-            {(onNext || onPrevious) && exerciseComplete && (
-              <View className="flex-row gap-3">
-                {onPrevious && (
-                  <Button
-                    title="Anterior"
-                    onPress={onPrevious}
-                    variant="secondary"
-                    loading={isLoadingPrevious}
-                    Icon={ArrowLeft}
-                    className="flex-1"
-                  />
-                )}
-                {onNext && (
-                  <Button
-                    title="Próximo"
-                    onPress={onNext}
-                    iconPosition="right"
-                    loading={isLoadingNext}
-                    Icon={ArrowRight}
-                    className="flex-1"
-                  />
-                )}
-              </View>
+        {exerciseComplete && (onNext || onPrevious) && (
+          <View className="flex-row gap-4 px-8">
+            {onPrevious && (
+              <Button
+                title="Anterior"
+                onPress={onPrevious}
+                variant="secondary"
+                loading={isLoadingPrevious}
+                Icon={ArrowLeft}
+                className="flex-1 py-3"
+              />
+            )}
+
+            {onNext && (
+              <Button
+                title="Próximo"
+                onPress={onNext}
+                iconPosition="right"
+                loading={isLoadingNext}
+                Icon={ArrowRight}
+                className="flex-1 py-3"
+              />
             )}
           </View>
-        ) : (
-          <Button
-            title={isPaused ? "Continuar" : "Pausar"}
-            onPress={isPaused ? resumeExercise : pauseExercise}
-            variant="secondary"
-            iconPosition="left"
-            Icon={isPaused ? Play : Pause}
-          />
         )}
       </View>
     </View>
