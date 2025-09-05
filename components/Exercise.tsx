@@ -1,16 +1,24 @@
 import { Video } from "expo-av";
 import {
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
   Pause,
   Play,
   Repeat,
 } from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Text, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Button } from "./Button";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export type StepType =
   | {
@@ -48,12 +56,14 @@ export default function Exercise({
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [exerciseComplete, setExerciseComplete] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     setTimeRemaining(duration);
     setTimerRunning(false);
     setExerciseComplete(false);
     setIsPaused(false);
+    setShowInstructions(false);
 
     if (videoRef.current) {
       videoRef.current.stopAsync().catch((error) => {
@@ -130,147 +140,122 @@ export default function Exercise({
       .padStart(2, "0")}`;
   };
 
-  const parseStepsForDisplay = (steps: StepType[]) => {
-    if (!steps || steps.length === 0) return [];
+  const getExerciseDescription = (steps: StepType[]) => {
+    if (!steps || steps.length === 0) return "";
 
-    return steps.flatMap((step, stepIndex) => {
-      if (typeof step === "string") {
-        return [
-          {
-            title: `Passo ${stepIndex + 1}`,
-            description: step,
-          },
-        ];
-      }
-
-      if (typeof step === "object" && step !== null && "description" in step) {
-        try {
-          let jsonString = step.description?.replace(/'/g, '"');
-
-          const parsed = JSON.parse(jsonString!);
-          if (Array.isArray(parsed)) {
-            return parsed.map((subStep: any, subIndex: number) => ({
-              title: subStep.title || `Passo ${subIndex + 1}`,
-              description: subStep.description || "",
-            }));
-          }
-        } catch (e) {
-          console.log("Failed to parse step description as JSON:", e);
+    const descriptions = steps
+      .flatMap((step) => {
+        if (typeof step === "string") {
+          return [step];
         }
 
-        return [
-          {
-            title: step.title || `Passo ${stepIndex + 1}`,
-            description: step.description || "",
-          },
-        ];
-      }
+        if (
+          typeof step === "object" &&
+          step !== null &&
+          "description" in step
+        ) {
+          try {
+            let jsonString = step.description?.replace(/'/g, '"');
+            const parsed = JSON.parse(jsonString!);
+            if (Array.isArray(parsed)) {
+              return parsed
+                .map((subStep: any) => subStep.description || "")
+                .filter(Boolean);
+            }
+          } catch (e) {}
+          return [step.description || ""];
+        }
 
-      return [
-        {
-          title: `Passo ${stepIndex + 1}`,
-          description: String(step),
-        },
-      ];
-    });
+        return [String(step)];
+      })
+      .filter(Boolean);
+
+    return descriptions.join(" ");
   };
 
-  const parsedSteps = parseStepsForDisplay(steps);
+  const exerciseDescription = getExerciseDescription(steps);
   const progressPercentage = ((duration - timeRemaining) / duration) * 100;
 
   return (
-    <View className="flex-1">
-      <View className="pb-2">
-        {exerciseComplete && (
-          <View className="bg-[#7FDEB7]/10 rounded-full px-4 py-2 mt-2 self-center">
-            <Text className="text-[#7FDEB7] font-semibold text-center">
-              ✓ Exercício concluído
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {parsedSteps.length > 0 && (
-        <View className=" mb-8">
-          <Text className="text-lg font-bold text-textPrimary mb-4">
-            Como fazer:
+    <View className="flex-1 px-4">
+      {exerciseComplete && (
+        <View className="bg-[#7FDEB7]/10 rounded-full px-3 py-1 self-center mb-3">
+          <Text className="text-[#7FDEB7] font-medium text-sm">
+            ✓ Concluído
           </Text>
-          {parsedSteps.map((step, index) => (
-            <View
-              key={index}
-              className="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100"
-            >
-              <View className="flex-row items-start">
-                <View className="w-6 h-6 rounded-full bg-[#7FDEB7] items-center justify-center mr-3 mt-0.5">
-                  <Text className="text-white text-xs font-bold">
-                    {index + 1}
-                  </Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-textPrimary font-semibold mb-1">
-                    {step.title}
-                  </Text>
-                  <Text className="text-textPrimary/70 leading-5">
-                    {step.description}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ))}
         </View>
       )}
 
-      <View className="items-center mb-8 ">
+      {exerciseDescription && (
+        <View className="mb-4">
+          <TouchableOpacity
+            onPress={() => setShowInstructions(!showInstructions)}
+            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex-row items-center justify-between"
+          >
+            <Text className="text-lg font-semibold text-textPrimary flex-1">
+              Como fazer
+            </Text>
+            {showInstructions ? (
+              <ArrowUp size={20} color="#666" />
+            ) : (
+              <ArrowDown size={20} color="#666" />
+            )}
+          </TouchableOpacity>
+
+          {showInstructions && (
+            <View className="bg-white z-50 rounded-xl p-4 mt-2 shadow-sm border border-gray-100">
+              <ScrollView
+                style={{ maxHeight: 120 }}
+                showsVerticalScrollIndicator={false}
+              >
+                <Text className="text-textPrimary/80 leading-6 text-base">
+                  {exerciseDescription}
+                </Text>
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      )}
+
+      <View
+        className={`items-center justify-center flex-1 ${
+          showInstructions && "mt-[-140px]"
+        }`}
+      >
         <View className="relative">
-          <View className="w-80 h-80 rounded-full bg-gray-100 items-center justify-center">
+          <View className="w-52 h-52 rounded-full bg-gray-100 items-center justify-center">
             <View
-              className="w-72 h-72 rounded-full items-center justify-center"
+              className="w-44 h-44 rounded-full items-center justify-center"
               style={{
                 backgroundColor: `rgba(127, 222, 183, ${
                   0.1 + (progressPercentage / 100) * 0.2
                 })`,
               }}
             >
-              <View className="w-60 h-60 rounded-full bg-[#7FDEB7] items-center justify-center shadow-lg">
-                <View className="w-44 h-44 rounded-full bg-primary items-center justify-center">
-                  <Text className="text-3xl font-bold text-white mb-2">
+              <View className="w-36 h-36 rounded-full bg-[#7FDEB7] items-center justify-center shadow-lg">
+                <View className="w-28 h-28 rounded-full bg-primary items-center justify-center">
+                  <Text className="text-xl font-bold text-white mb-1">
                     {formatTime(timeRemaining)}
                   </Text>
-                  <Text className="text-white/70 text-sm">
-                    {timerRunning
-                      ? isPaused
-                        ? "Pausado"
-                        : "Em andamento"
-                      : "Pronto"}
+                  <Text className="text-white/70 text-xs text-center">
+                    {timerRunning ? (isPaused ? "Pausado" : "Ativo") : "Pronto"}
                   </Text>
                 </View>
               </View>
             </View>
           </View>
-
-          {timerRunning && (
-            <View className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-              <View className="bg-white rounded-full px-3 py-1 shadow-md">
-                <Text className="text-primary text-xs font-semibold">
-                  {Math.round(progressPercentage)}%
-                </Text>
-              </View>
-            </View>
-          )}
         </View>
       </View>
 
-      <View className="mb-64">
+      <View className="pb-6">
         {!timerRunning ? (
           <View>
             <Button
-              title={
-                exerciseComplete ? "Repetir exercício" : "Iniciar exercício"
-              }
+              title={exerciseComplete ? "Repetir" : "Iniciar"}
               onPress={startExercise}
               iconPosition="left"
               Icon={exerciseComplete ? Repeat : Play}
-              className="mb-4"
+              className="mb-3"
             />
 
             {(onNext || onPrevious) && exerciseComplete && (
@@ -300,7 +285,7 @@ export default function Exercise({
           </View>
         ) : (
           <Button
-            title={isPaused ? "Retomar exercício" : "Pausar exercício"}
+            title={isPaused ? "Continuar" : "Pausar"}
             onPress={isPaused ? resumeExercise : pauseExercise}
             variant="secondary"
             iconPosition="left"

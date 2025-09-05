@@ -2,13 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ResizeMode, Video } from "expo-av";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Dimensions, SafeAreaView, View } from "react-native";
 import BackHeader from "../../../../components/BackHeader";
 import Exercise from "../../../../components/Exercise";
 import ExerciseFeedback from "../../../../components/ExerciseFeedback";
 import { supabase } from "../../../../lib/supabase";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default function SingleExerciseScreen() {
   const router = useRouter();
@@ -184,7 +184,6 @@ export default function SingleExerciseScreen() {
   const nextExerciseMutation = useMutation({
     mutationFn: async () => {
       await markExerciseCompleteMutation.mutateAsync();
-
       await navigateToExercise(currentIndex + 1);
     },
     onSuccess: () => {
@@ -198,7 +197,6 @@ export default function SingleExerciseScreen() {
   const previousExerciseMutation = useMutation({
     mutationFn: async () => {
       await markExerciseCompleteMutation.mutateAsync();
-
       await navigateToExercise(currentIndex - 1);
     },
     onSuccess: () => {
@@ -265,18 +263,18 @@ export default function SingleExerciseScreen() {
 
   const renderDotsIndicator = () => {
     const screenWidth = Dimensions.get("window").width;
-    const containerPadding = 48;
-    const dotMargin = 8;
+    const containerPadding = 32;
+    const dotMargin = 6;
     const totalMargins = (totalExercises - 1) * dotMargin;
     const availableWidth = screenWidth - containerPadding - totalMargins;
-    const dotWidth = Math.min(availableWidth / totalExercises, 40);
+    const dotWidth = Math.min(availableWidth / totalExercises, 38);
 
     return (
-      <View className="flex-row justify-center items-center mb-1 px-4">
+      <View className="flex-row justify-center items-center px-4">
         {Array.from({ length: totalExercises }, (_, index) => (
           <View
             key={index}
-            className={`h-2 rounded-full ${
+            className={`h-1.5 rounded-full ${
               index === currentIndex ? "bg-primary" : "bg-gray-200"
             }`}
             style={{
@@ -300,45 +298,37 @@ export default function SingleExerciseScreen() {
           }
         />
       ) : (
-        <ScrollView className="flex-1 pt-4 pb-36">
-          <View className="px-6 pt-12 pb-2">
+        <View className="flex-1">
+          <View className="px-6 pt-8 pb-3">
             <BackHeader
               title={params.exerciseName || "Exercício"}
               totalExercises={totalExercises}
               currentIndex={currentIndex}
             />
 
-            {totalExercises > 1 && (
-              <View className="mt-2 mb-1">
-                <Text className="text-sm text-textPrimary text-left mb-2">
-                  Exercício {currentIndex + 1} de {totalExercises}
-                </Text>
-
-                {params.exerciseVideoUrl && (
-                  <View className="mt-2 mb-6">
-                    <View className="rounded-2xl overflow-hidden bg-primary/5 shadow-sm">
-                      <Video
-                        ref={videoRef}
-                        source={{ uri: params.exerciseVideoUrl }}
-                        useNativeControls
-                        resizeMode={ResizeMode.CONTAIN}
-                        isLooping
-                        style={{
-                          width: width - 48,
-                          height: 240,
-                          borderRadius: 16,
-                        }}
-                      />
-                    </View>
-                  </View>
-                )}
-
-                {renderDotsIndicator()}
-              </View>
-            )}
+            {totalExercises > 1 && <View>{renderDotsIndicator()}</View>}
           </View>
 
-          <View className="flex-1 px-6">
+          {params.exerciseVideoUrl && (
+            <View className="px-6 mb-3">
+              <View className="rounded-2xl overflow-hidden bg-primary/5 shadow-sm">
+                <Video
+                  ref={videoRef}
+                  source={{ uri: params.exerciseVideoUrl }}
+                  useNativeControls
+                  resizeMode={ResizeMode.CONTAIN}
+                  isLooping
+                  style={{
+                    width: width - 48,
+                    height: 240,
+                    borderRadius: 16,
+                  }}
+                />
+              </View>
+            </View>
+          )}
+
+          <View className="flex-1">
             <Exercise
               id={params.exerciseId}
               videoRef={videoRef}
@@ -356,7 +346,7 @@ export default function SingleExerciseScreen() {
               isLoadingPrevious={previousExerciseMutation.isPending}
             />
           </View>
-        </ScrollView>
+        </View>
       )}
     </SafeAreaView>
   );

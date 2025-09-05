@@ -37,7 +37,7 @@ export default function BackHeader({
       </TouchableOpacity>
 
       <View className="mt-6">
-        <Text className="text-4xl font-bold text-textPrimary">{title}</Text>
+        <Text className="text-3xl font-bold text-textPrimary">{title}</Text>
         {subtitle && <Text className="text-sm text-secondary">{subtitle}</Text>}
       </View>
     </View>
