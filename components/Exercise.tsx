@@ -165,7 +165,6 @@ export default function Exercise({
 
   const exerciseDescription = getExerciseDescription(steps);
   const progressPercentage = ((duration - timeRemaining) / duration) * 100;
-  console.log(exerciseDescription);
 
   return (
     <View className="flex-1 px-4">
