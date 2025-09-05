@@ -173,7 +173,7 @@ export default function Exercise({
           <View className="flex-row items-center mb-2">
             <View className="w-2 h-2 rounded-full bg-primary mr-2" />
             <Text className="text-lg font-semibold text-textPrimary">
-              Como fazer
+              Execução:
             </Text>
           </View>
           <Text

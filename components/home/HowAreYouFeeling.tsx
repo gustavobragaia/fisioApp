@@ -38,7 +38,7 @@ export const HowAreYouFeeling = ({ userId }: { userId: string }) => {
     if (userId) {
       checkAnsweredToday();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const handleEmotionSelect = async (emotion: string) => {
@@ -85,7 +85,8 @@ export const HowAreYouFeeling = ({ userId }: { userId: string }) => {
       let message = "";
       switch (emotion) {
         case "Triste":
-          message = "Obrigado por compartilhar como está se sentindo. Estamos aqui para ajudar!";
+          message =
+            "Obrigado por compartilhar como está se sentindo. Estamos aqui para ajudar!";
           break;
         case "Regular":
           message = "Obrigado por nos contar! Esperamos que seu dia melhore.";
@@ -126,7 +127,7 @@ export const HowAreYouFeeling = ({ userId }: { userId: string }) => {
               activeOpacity={0.7}
               onPress={() => handleEmotionSelect("Triste")}
             >
-              <EmojiSad key="sad" size={24} color={colors.primary} />
+              <EmojiSad key="sad" size={32} color={colors.primary} />
               <Text className="text-sm font-bold text-primary">Triste</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -134,7 +135,7 @@ export const HowAreYouFeeling = ({ userId }: { userId: string }) => {
               activeOpacity={0.7}
               onPress={() => handleEmotionSelect("Regular")}
             >
-              <Smileys key="smileys" size={24} color={colors.primary} />
+              <Smileys key="smileys" size={32} color={colors.primary} />
               <Text className="text-sm font-bold text-primary">Regular</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -142,7 +143,7 @@ export const HowAreYouFeeling = ({ userId }: { userId: string }) => {
               activeOpacity={0.7}
               onPress={() => handleEmotionSelect("Ótimo")}
             >
-              <EmojiNormal key="normal" size={24} color={colors.primary} />
+              <EmojiNormal key="normal" size={32} color={colors.primary} />
               <Text className="text-sm font-bold text-primary">Ótimo</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -150,7 +151,7 @@ export const HowAreYouFeeling = ({ userId }: { userId: string }) => {
               activeOpacity={0.7}
               onPress={() => handleEmotionSelect("Excelente")}
             >
-              <EmojiHappy key="happy" size={24} color={colors.primary} />
+              <EmojiHappy key="happy" size={32} color={colors.primary} />
               <Text className="text-sm font-bold text-primary">Excelente</Text>
             </TouchableOpacity>
           </View>
