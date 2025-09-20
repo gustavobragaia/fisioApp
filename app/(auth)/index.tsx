@@ -23,7 +23,7 @@ const pages = [
   {
     text: "Identifique suas principais dores",
     subtext:
-      "Responda a algumas perguntas simples para entendermos suas dores, físicas e mentais, e recomendar os exercícios mais adequados para você.",
+      "Responda a algumas perguntas simples para entendermos suas dores mentais, e recomendar os exercícios mais adequados para você.",
     image: require("../../assets/images/onboarding/onboarding-1.png"),
   },
   {

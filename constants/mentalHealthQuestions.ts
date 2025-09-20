@@ -7,33 +7,53 @@ export const QUESTIONS_CONFIG = [
     options: [
       {
         label: "Ansioso(a)",
-        value: "ansioso",
+        value: "controle-ansiedade",
         imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/3081/3081383.png" },
       },
       {
         label: "Estressado(a)",
-        value: "estressado",
+        value: "gestao-estresse",
         imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/2151/2151795.png" },
       },
       {
         label: "Com dificuldade para dormir",
-        value: "dificuldadeDormir",
+        value: "inducao-sono",
         imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/3094/3094837.png" },
       },
       {
-        label: "Triste ou desanimado(a)",
-        value: "triste",
+        label: "Acordei durante a madrugada",
+        value: "combate-insonia",
+        imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/9068/9068533.png" },
+      },
+      {
+        label: "Preciso de foco no trabalho",
+        value: "foco-rapido",
+        imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/3094/3094814.png" },
+      },
+      {
+        label: "Irritado(a) ou triste",
+        value: "liberacao-emocional",
         imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/2877/2877300.png" },
       },
       {
-        label: "Irritado(a)",
-        value: "irritado",
-        imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/2877/2877300.png" },
-      },
-      {
-        label: "Quero manter meu bem-estar",
-        value: "manterBemEstar",
+        label: "Preciso relaxar profundamente",
+        value: "relaxamento-profundo",
         imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/4320/4320337.png" },
+      },
+      {
+        label: "Em crise de ansiedade",
+        value: "sos-ansiedade",
+        imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/2965/2965879.png" },
+      },
+      {
+        label: "Disperso(a), sem foco",
+        value: "foco-presenca",
+        imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/3094/3094837.png" },
+      },
+      {
+        label: "Sendo muito duro(a) comigo",
+        value: "autocompaixao",
+        imageSource: { uri: "https://cdn-icons-png.flaticon.com/128/8968/8968463.png" },
       },
     ],
   },

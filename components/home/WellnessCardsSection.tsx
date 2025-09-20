@@ -99,7 +99,6 @@ export function WellnessCardsSection({
               duration-200
             `}
             style={{
-              shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.3,
               shadowRadius: 8,
             }}
